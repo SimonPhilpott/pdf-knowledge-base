@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FileText, ExternalLink } from 'lucide-react';
 
 export default function CitationCard({ citation, onOpenPdf }) {
   const [showExcerpt, setShowExcerpt] = useState(false);
@@ -12,7 +13,7 @@ export default function CitationCard({ citation, onOpenPdf }) {
         onMouseLeave={() => setShowExcerpt(false)}
         title={`Click to open ${citation.filename} at page ${citation.pageNum}`}
       >
-        <span className="citation-icon">📄</span>
+        <FileText size={14} style={{ marginRight: '4px' }} />
         {citation.filename?.replace('.pdf', '')}, p.{citation.pageNum}
         <span style={{ marginLeft: '4px', fontSize: '10px', opacity: 0.7 }}>↗</span>
       </button>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Library, User } from 'lucide-react';
 import Sidebar from './Sidebar';
 import ChatInterface from './ChatInterface';
 import TopicDiscovery from './TopicDiscovery';
@@ -24,8 +25,8 @@ export default function Layout({
       <header className="app-topbar">
         <div className="app-topbar-left">
           <div className="app-logo">
-            <span className="app-logo-icon">📚</span>
-            PDF Knowledge Base
+            <Library className="app-logo-icon" size={20} />
+            <span>PDF Knowledge Base</span>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -68,8 +69,9 @@ export default function Layout({
       <footer className="app-statusbar">
         <SyncStatus syncStatus={syncStatus} onSync={onSync} />
         {authStatus?.email && (
-          <span className="status-item" style={{ marginLeft: 'auto' }}>
-            👤 {authStatus.email}
+          <span className="status-item" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <User size={12} />
+            {authStatus.email}
           </span>
         )}
       </footer>

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Send, BookOpen, Bot } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 
 export default function ChatInterface({ messages, isTyping, onSendMessage, onOpenPdf, suggestions, onTopicClick }) {
@@ -38,7 +39,7 @@ export default function ChatInterface({ messages, isTyping, onSendMessage, onOpe
     <div className="chat-container">
       {messages.length === 0 ? (
         <div className="chat-empty">
-          <div className="chat-empty-icon">📖</div>
+          <BookOpen size={64} style={{ opacity: 0.3, marginBottom: '16px' }} />
           <h2>Ask Your PDF Library</h2>
           <p>
             Ask questions about your documents and get AI-powered answers with direct citations to the source pages.
@@ -71,7 +72,9 @@ export default function ChatInterface({ messages, isTyping, onSendMessage, onOpe
           ))}
           {isTyping && (
             <div className="message assistant">
-              <div className="message-avatar">🤖</div>
+              <div className="message-avatar">
+                <Bot size={16} />
+              </div>
               <div className="message-content">
                 <div className="typing-indicator">
                   <div className="typing-dot"></div>
@@ -104,7 +107,7 @@ export default function ChatInterface({ messages, isTyping, onSendMessage, onOpe
             disabled={!input.trim() || isTyping}
             id="chat-send-btn"
           >
-            ➤
+            <Send size={18} />
           </button>
         </form>
       </div>

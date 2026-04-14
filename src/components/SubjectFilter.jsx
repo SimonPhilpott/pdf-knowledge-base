@@ -1,4 +1,4 @@
-import React from 'react';
+import { Folder } from 'lucide-react';
 
 export default function SubjectFilter({ subjects, selected, onChange }) {
   const toggleSubject = (subject) => {
@@ -20,7 +20,10 @@ export default function SubjectFilter({ subjects, selected, onChange }) {
   if (!subjects || subjects.length === 0) {
     return (
       <div>
-        <div className="sidebar-section-title">📁 Subjects</div>
+        <div className="sidebar-section-title">
+          <Folder size={12} />
+          Subjects
+        </div>
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '8px 0' }}>
           No subjects found. Sync your Drive to get started.
         </p>
@@ -31,7 +34,10 @@ export default function SubjectFilter({ subjects, selected, onChange }) {
   return (
     <div>
       <div className="sidebar-section-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span>📁 Subjects</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Folder size={12} />
+          Subjects
+        </span>
         <button
           onClick={toggleAll}
           style={{

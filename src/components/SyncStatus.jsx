@@ -1,53 +1,69 @@
 import React from 'react';
+import { RefreshCw, CheckCircle2, AlertCircle, FileText, Loader2 } from 'lucide-react';
 
 export default function SyncStatus({ syncStatus, onSync }) {
-  const isActive = syncStatus?.drive?.active || syncStatus?.indexing?.active;
+  const isSyncing = syncStatus?.drive?.active || syncStatus?.indexing?.active;
   const stats = syncStatus?.stats;
+  const progress = syncStatus?.indexing;
+
+  const percent = progress?.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
 
   return (
-    <>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
       <div className="status-item">
-        <div className={`status-dot ${isActive ? 'syncing' : ''}`}></div>
-        <span>{isActive ? 'Syncing...' : 'Connected'}</span>
+        {isSyncing ? (
+          <RefreshCw size={14} className="spin" style={{ color: 'var(--accent-indigo-light)' }} />
+        ) : (
+          <CheckCircle2 size={14} style={{ color: 'var(--status-green)' }} />
+        )}
+        <span style={{ fontWeight: 500 }}>{isSyncing ? 'Syncing Library...' : 'Library Synced'}</span>
       </div>
 
-      {stats && (
-        <div className="status-item">
-          📄 {stats.indexedDocuments || 0} PDFs indexed
+      {isSyncing && progress && progress.total > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, maxWidth: '400px' }}>
+          <div className="sync-progress-container" style={{ flex: 1, height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
+            <div 
+              className="sync-progress-fill" 
+              style={{ 
+                width: `${percent}%`, 
+                height: '100%', 
+                background: 'var(--gradient-primary)',
+                transition: 'width 0.3s ease-out'
+              }} 
+            />
+          </div>
+          <span style={{ fontSize: '11px', color: 'var(--text-secondary)', minWidth: '70px', fontFamily: 'var(--font-mono)' }}>
+            {progress.current} / {progress.total} ({percent}%)
+          </span>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {progress.currentFile}
+          </span>
         </div>
       )}
 
-      {stats?.lastSynced && (
+      {!isSyncing && stats && (
         <div className="status-item">
-          🕐 Last sync: {formatTimeAgo(stats.lastSynced)}
+          <FileText size={12} />
+          {stats.indexedDocuments || 0} PDFs
         </div>
       )}
 
-      {isActive && syncStatus?.indexing?.active && (
-        <div className="status-item">
-          ⏳ {syncStatus.indexing.currentFile} ({syncStatus.indexing.current}/{syncStatus.indexing.total})
+      {!isSyncing && stats?.lastSynced && (
+        <div className="status-item" style={{ color: 'var(--text-muted)' }}>
+          Last sync: {formatTimeAgo(stats.lastSynced)}
         </div>
       )}
 
       <button
         onClick={onSync}
-        disabled={isActive}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: isActive ? 'var(--text-muted)' : 'var(--accent-indigo-light)',
-          cursor: isActive ? 'default' : 'pointer',
-          fontSize: '12px',
-          fontFamily: 'var(--font-sans)',
-          padding: '2px 8px',
-          borderRadius: '4px',
-          transition: 'background 0.15s'
-        }}
-        title="Re-sync PDFs from Google Drive"
+        disabled={isSyncing}
+        className={`sync-btn ${isSyncing ? 'active' : ''}`}
+        title="Sync Library"
       >
-        🔄 {isActive ? 'Syncing' : 'Sync'}
+        <RefreshCw size={14} className={isSyncing ? 'spin' : ''} />
+        {isSyncing ? 'Syncing...' : 'Sync Now'}
       </button>
-    </>
+    </div>
   );
 }
 

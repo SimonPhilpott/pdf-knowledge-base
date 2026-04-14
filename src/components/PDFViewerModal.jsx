@@ -19,9 +19,13 @@ export default function PDFViewerModal({ driveFileId, initialPage, filename, onC
         setError(null);
 
         const pdfjsLib = await import('pdfjs-dist');
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        const pdfworker = await import('pdfjs-dist/build/pdf.worker.mjs');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = pdfworker;
 
-        const loadingTask = pdfjsLib.getDocument(`/api/pdf/${driveFileId}`);
+        const loadingTask = pdfjsLib.getDocument({
+          url: `/api/pdf/${driveFileId}`,
+          withCredentials: true
+        });
         const pdf = await loadingTask.promise;
 
         if (cancelled) return;

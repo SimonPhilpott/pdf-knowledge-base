@@ -1,4 +1,4 @@
-import React from 'react';
+import { Sparkles } from 'lucide-react';
 import SubjectFilter from './SubjectFilter';
 import ChatHistory from './ChatHistory';
 
@@ -10,7 +10,8 @@ export default function Sidebar({
     <aside className="sidebar">
       <div className="sidebar-section">
         <button className="new-chat-btn" onClick={onNewChat} id="new-chat-btn">
-          ✨ New Chat
+          <Sparkles size={14} />
+          <span>New Chat</span>
         </button>
       </div>
 

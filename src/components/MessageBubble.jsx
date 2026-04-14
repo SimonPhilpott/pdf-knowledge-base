@@ -1,4 +1,5 @@
 import React from 'react';
+import { User, Bot, Zap, Brain } from 'lucide-react';
 import CitationCard from './CitationCard';
 
 export default function MessageBubble({ message, onOpenPdf }) {
@@ -137,7 +138,7 @@ export default function MessageBubble({ message, onOpenPdf }) {
   return (
     <div className={`message ${role}`}>
       <div className="message-avatar">
-        {role === 'user' ? '👤' : '🤖'}
+        {role === 'user' ? <User size={16} /> : <Bot size={16} />}
       </div>
       <div>
         <div className="message-content">
@@ -150,9 +151,10 @@ export default function MessageBubble({ message, onOpenPdf }) {
             ))}
           </div>
         )}
-        {role === 'assistant' && modelLabel && (
-          <div className="message-model-tag">
-            {modelLabel}
+        {role === 'assistant' && model && (
+          <div className="message-model">
+            {model === 'flash' ? <Zap size={10} style={{ color: 'var(--status-yellow)' }} /> : <Brain size={10} style={{ color: 'var(--accent-indigo-light)' }} />}
+            <span>{model === 'flash' ? 'Flash' : 'Pro'}</span>
           </div>
         )}
       </div>

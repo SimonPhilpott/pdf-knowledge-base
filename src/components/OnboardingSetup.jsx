@@ -136,6 +136,10 @@ export default function OnboardingSetup({ authStatus, onComplete }) {
                     <div style={{ padding: '24px', textAlign: 'center' }}>
                       <div className="spinner" style={{ margin: '0 auto' }}></div>
                     </div>
+                  ) : !Array.isArray(folders) ? (
+                    <p style={{ padding: '16px', textAlign: 'center', color: 'var(--accent-rose)', fontSize: '13px' }}>
+                      Failed to load folders. Please check your connection.
+                    </p>
                   ) : folders.length === 0 ? (
                     <p style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
                       No subfolders found
