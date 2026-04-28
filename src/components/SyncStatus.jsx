@@ -1,31 +1,55 @@
 import React from 'react';
 import { RefreshCw, CheckCircle2, AlertCircle, FileText, Loader2 } from 'lucide-react';
 
-export default function SyncStatus({ syncStatus, onSync }) {
+export default function SyncStatus({ syncStatus, onSync, compact = false }) {
   const isSyncing = syncStatus?.drive?.active || syncStatus?.indexing?.active;
   const stats = syncStatus?.stats;
   const progress = syncStatus?.indexing;
 
+  if (compact) {
+    return (
+      <button
+        onClick={onSync}
+        disabled={isSyncing}
+        className={`sync-btn ${isSyncing ? 'active' : ''}`}
+        title="Sync Library"
+        style={{ margin: 0 }}
+      >
+        <RefreshCw size={14} className={isSyncing ? 'spin' : ''} />
+        <span className="mobile-hide">{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
+      </button>
+    );
+  }
+
   const percent = progress?.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, flexWrap: 'wrap' }}>
       <div className="status-item">
         {isSyncing ? (
           <RefreshCw size={14} className="spin" style={{ color: 'var(--accent-indigo-light)' }} />
         ) : (
           <CheckCircle2 size={14} style={{ color: 'var(--status-green)' }} />
         )}
-        <span style={{ fontWeight: 500 }}>{isSyncing ? 'Syncing Library...' : 'Library Synced'}</span>
+        <span style={{ fontWeight: 500 }}>
+          {isSyncing 
+            ? (syncStatus?.indexing?.active ? 'Indexing PDFs...' : 'Checking Drive...') 
+            : 'Library Synced'
+          }
+        </span>
       </div>
 
-      {isSyncing && progress && progress.total > 0 && (
+      {isSyncing && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, maxWidth: '400px' }}>
           <div className="sync-progress-container" style={{ flex: 1, height: '6px', background: 'var(--bg-tertiary)', borderRadius: '3px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
             <div 
               className="sync-progress-fill" 
               style={{ 
-                width: `${percent}%`, 
+                width: `${
+                  syncStatus?.indexing?.active 
+                    ? (syncStatus.indexing.total > 0 ? (syncStatus.indexing.current / syncStatus.indexing.total) * 100 : 0)
+                    : (syncStatus?.drive?.total > 0 ? (syncStatus.drive.current / syncStatus.drive.total) * 100 : 0)
+                }%`, 
                 height: '100%', 
                 background: 'var(--gradient-primary)',
                 transition: 'width 0.3s ease-out'
@@ -33,10 +57,13 @@ export default function SyncStatus({ syncStatus, onSync }) {
             />
           </div>
           <span style={{ fontSize: '11px', color: 'var(--text-secondary)', minWidth: '70px', fontFamily: 'var(--font-mono)' }}>
-            {progress.current} / {progress.total} ({percent}%)
+            {syncStatus?.indexing?.active 
+              ? `${syncStatus.indexing.current} / ${syncStatus.indexing.total}`
+              : `${syncStatus?.drive?.current || 0} / ${syncStatus?.drive?.total || 0}`
+            }
           </span>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {progress.currentFile}
+            {syncStatus?.indexing?.active ? syncStatus.indexing.currentFile : syncStatus?.drive?.currentFile}
           </span>
         </div>
       )}
@@ -44,7 +71,11 @@ export default function SyncStatus({ syncStatus, onSync }) {
       {!isSyncing && stats && (
         <div className="status-item">
           <FileText size={12} />
-          {stats.indexedDocuments || 0} PDFs
+          <span>
+            Indexed: <strong style={{ color: stats.indexedDocuments === stats.totalDocuments ? 'var(--status-green)' : 'var(--status-amber)' }}>
+              {stats.indexedDocuments || 0}
+            </strong> / {stats.totalDocuments || 0} PDFs
+          </span>
         </div>
       )}
 
@@ -61,7 +92,7 @@ export default function SyncStatus({ syncStatus, onSync }) {
         title="Sync Library"
       >
         <RefreshCw size={14} className={isSyncing ? 'spin' : ''} />
-        {isSyncing ? 'Syncing...' : 'Sync Now'}
+        <span className="mobile-hide">{isSyncing ? 'Syncing...' : 'Sync Now'}</span>
       </button>
     </div>
   );

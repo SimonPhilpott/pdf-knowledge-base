@@ -1,72 +1,192 @@
-import { Folder } from 'lucide-react';
+import React, { useState } from 'react';
+import { Folder, ChevronRight, ChevronDown, CheckSquare, Square, MinusSquare, Sparkles } from 'lucide-react';
 
-export default function SubjectFilter({ subjects, selected, onChange }) {
-  const toggleSubject = (subject) => {
-    if (selected.includes(subject)) {
-      onChange(selected.filter(s => s !== subject));
+const SubjectNode = ({ node, selected, onToggle, level = 0 }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const isFolder = node.children && node.children.length > 0;
+  
+  // Recursively check if all children are selected
+  const getAllLeafPaths = (n) => {
+    let paths = [];
+    if (n.path) paths.push(n.path);
+    if (n.children) {
+      for (const child of n.children) {
+        paths.push(...getAllLeafPaths(child));
+      }
+    }
+    return [...new Set(paths)];
+  };
+
+  const leafPaths = getAllLeafPaths(node).filter(p => p !== '');
+  const selectedCount = leafPaths.filter(p => selected.includes(p)).length;
+  const isSelected = leafPaths.length > 0 && selectedCount === leafPaths.length;
+  const isIndeterminate = selectedCount > 0 && selectedCount < leafPaths.length;
+
+  const handleToggle = (e) => {
+    e.stopPropagation();
+    onToggle(leafPaths, !isSelected);
+  };
+
+  const toggleOpen = (e) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
+  if (node.path === '' && level === 0 && (!node.children || node.children.length === 0)) {
+    return null;
+  }
+
+  return (
+    <div className="subject-tree-node">
+      <div 
+        className={`subject-tree-item ${node.path === '' ? 'root' : ''}`}
+        style={{ paddingLeft: `${node.path === '' ? 0 : level * 12 + 4}px` }}
+        onClick={isFolder ? toggleOpen : handleToggle}
+      >
+        <span className="subject-tree-chevron" onClick={toggleOpen}>
+          {isFolder ? (
+            isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />
+          ) : (
+            <span style={{ width: 12 }} />
+          )}
+        </span>
+        
+        <span className="subject-tree-checkbox" onClick={handleToggle}>
+          {isSelected ? (
+            <CheckSquare size={14} className="text-accent" />
+          ) : isIndeterminate ? (
+            <MinusSquare size={14} className="text-accent" />
+          ) : (
+            <Square size={14} />
+          )}
+        </span>
+
+        <span className="subject-tree-name">
+          {node.source === 'ai' ? (
+            <Sparkles size={12} className="text-accent" style={{ marginRight: '6px', display: 'inline-block' }} />
+          ) : (
+            <Folder size={12} style={{ marginRight: '6px', display: 'inline-block', opacity: 0.6 }} />
+          )}
+          {node.name}
+          {node.indexStatus && node.indexStatus !== 'none' && (
+            <span className={`subject-status-dot ${node.indexStatus}`} title={`${node.indexedCount}/${node.documentCount} indexed`} />
+          )}
+        </span>
+        
+        {node.documentCount > 0 && (
+          <span className="subject-badge">{node.documentCount}</span>
+        )}
+      </div>
+
+      {isFolder && isOpen && (
+        <div className="subject-tree-children">
+          {node.children.map((child, idx) => (
+            <SubjectNode 
+              key={idx} 
+              node={child} 
+              selected={selected} 
+              onToggle={onToggle} 
+              level={level + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default function SubjectFilter({ subjects, selected, onChange, onRefineAll }) {
+  const [isRefining, setIsRefining] = useState(false);
+
+  const handleToggle = (paths, shouldSelect) => {
+    let newSelected;
+    if (shouldSelect) {
+      newSelected = [...new Set([...selected, ...paths])];
     } else {
-      onChange([...selected, subject]);
+      newSelected = selected.filter(p => !paths.includes(p));
+    }
+    onChange(newSelected);
+  };
+
+  const handleRefineAll = async () => {
+    if (isRefining) return;
+    setIsRefining(true);
+    try {
+      await onRefineAll();
+    } finally {
+      setIsRefining(false);
     }
   };
 
   const toggleAll = () => {
-    if (selected.length === subjects.length) {
+    if (!subjects || !subjects.children) return;
+    if (selected.length > 0) {
       onChange([]);
     } else {
-      onChange(subjects.map(s => s.subject));
+      // Get all paths from tree
+      const getAllPaths = (node) => {
+        let paths = node.path ? [node.path] : [];
+        if (node.children) {
+          node.children.forEach(c => paths.push(...getAllPaths(c)));
+        }
+        return paths;
+      };
+      const allPaths = [...new Set(getAllPaths(subjects))];
+      onChange(allPaths);
     }
   };
 
-  if (!subjects || subjects.length === 0) {
+  if (!subjects || !subjects.children || subjects.children.length === 0) {
     return (
-      <div>
+      <div className="subject-filter-container">
         <div className="sidebar-section-title">
           <Folder size={12} />
           Subjects
         </div>
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '8px 0' }}>
-          No subjects found. Sync your Drive to get started.
+          {!subjects ? 'Loading subjects...' : 'No subjects found. Sync your Drive to get started.'}
         </p>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="sidebar-section-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <div className="subject-filter-container">
+      <div className="sidebar-section-title" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Folder size={12} />
           Subjects
         </span>
-        <button
-          onClick={toggleAll}
-          style={{
-            background: 'none', border: 'none', color: 'var(--accent-indigo-light)',
-            cursor: 'pointer', fontSize: '10px', fontFamily: 'var(--font-sans)', fontWeight: 600
-          }}
-        >
-          {selected.length === subjects.length ? 'None' : 'All'}
-        </button>
-      </div>
-      <ul className="subject-filter-list">
-        {subjects.map((s) => (
-          <li
-            key={s.subject}
-            className="subject-filter-item"
-            onClick={() => toggleSubject(s.subject)}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            onClick={handleRefineAll}
+            className={`text-btn ${isRefining ? 'pulse' : ''}`}
+            disabled={isRefining}
+            title="Use AI index to incrementally update document categories"
           >
-            <input
-              type="checkbox"
-              checked={selected.includes(s.subject)}
-              readOnly
+            {isRefining ? 'Refreshing...' : 'Refresh Subjects'}
+          </button>
+          <button
+            onClick={toggleAll}
+            className="text-btn"
+          >
+            {selected.length > 0 ? 'None' : 'All'}
+          </button>
+        </div>
+      </div>
+      
+      <div className="subject-tree-scroll-container">
+        <div className="subject-tree-root">
+          {subjects.children.map((node, idx) => (
+            <SubjectNode 
+              key={idx} 
+              node={node} 
+              selected={selected} 
+              onToggle={handleToggle} 
             />
-            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {s.subject}
-            </span>
-            <span className="subject-badge">{s.document_count}</span>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

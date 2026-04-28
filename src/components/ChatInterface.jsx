@@ -1,21 +1,42 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, BookOpen, Bot } from 'lucide-react';
+import { Send, BookOpen, Bot, Sparkles, Image as ImageIcon, Camera, X } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 
-export default function ChatInterface({ messages, isTyping, onSendMessage, onOpenPdf, suggestions, onTopicClick }) {
+export default function ChatInterface({ 
+  messages, isTyping, onSendMessage, onOpenPdf, 
+  suggestions, onTopicClick, appMode, onToggleCanvas, onOpenCanvas,
+  onPin, pinnedItems = []
+}) {
   const [input, setInput] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+    if (messages.length > 0 || isTyping) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [messages.length, isTyping]);
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!input.trim() || isTyping) return;
-    onSendMessage(input.trim());
+    if ((!input.trim() && !selectedImage) || isTyping) return;
+    
+    onSendMessage(input.trim(), null, selectedImage);
     setInput('');
+    setSelectedImage(null);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
@@ -30,7 +51,6 @@ export default function ChatInterface({ messages, isTyping, onSendMessage, onOpe
 
   const handleInput = (e) => {
     setInput(e.target.value);
-    // Auto-resize textarea
     e.target.style.height = 'auto';
     e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
   };
@@ -40,22 +60,22 @@ export default function ChatInterface({ messages, isTyping, onSendMessage, onOpe
       {messages.length === 0 ? (
         <div className="chat-empty">
           <BookOpen size={64} style={{ opacity: 0.3, marginBottom: '16px' }} />
-          <h2>Ask Your PDF Library</h2>
+          <h2>{appMode === 'kb' ? 'Ask Your PDF Library' : 'Gemini Suite'}</h2>
           <p>
-            Ask questions about your documents and get AI-powered answers with direct citations to the source pages.
+            {appMode === 'kb' 
+              ? 'Ask questions about your documents, snap photos of your game, and get AI-powered answers.'
+              : 'Chat with Gemini, generate images, or perform deep research.'}
           </p>
           {suggestions && suggestions.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', maxWidth: '600px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', width: '100%', maxWidth: '800px', marginTop: '12px' }}>
               {suggestions.slice(0, 4).map((s, i) => (
                 <button
                   key={i}
-                  className="topic-chip"
+                  className="topic-chip user-message-style"
                   onClick={() => onTopicClick(s.suggested_question)}
                   title={s.topic}
                 >
-                  {s.suggested_question?.length > 50
-                    ? s.suggested_question.substring(0, 50) + '...'
-                    : s.suggested_question}
+                  {s.suggested_question}
                 </button>
               ))}
             </div>
@@ -68,6 +88,9 @@ export default function ChatInterface({ messages, isTyping, onSendMessage, onOpe
               key={i}
               message={msg}
               onOpenPdf={onOpenPdf}
+              onPin={onPin}
+              pinnedItems={pinnedItems}
+              onOpenCanvas={onOpenCanvas}
             />
           ))}
           {isTyping && (
@@ -89,22 +112,63 @@ export default function ChatInterface({ messages, isTyping, onSendMessage, onOpe
       )}
 
       <div className="chat-input-area">
+        {selectedImage && (
+          <div className="upload-preview-container">
+            <div style={{ position: 'relative' }}>
+              <img src={selectedImage} alt="Upload preview" className="image-preview-thumb" />
+              <button 
+                className="remove-upload-btn" 
+                onClick={() => setSelectedImage(null)}
+                title="Remove image"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="chat-input-wrapper">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleImageSelect} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
+          />
+          
           <textarea
             ref={textareaRef}
             className="chat-input"
             value={input}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a question about your PDFs..."
+            placeholder={selectedImage ? "Describe this image or ask a question..." : (appMode === 'kb' ? "Ask about your PDFs..." : "Ask Gemini anything...")}
             rows={1}
             disabled={isTyping}
             id="chat-input"
           />
+          <div className="input-tools">
+            <button 
+              type="button" 
+              className="tool-btn" 
+              title="Take Photo / Upload Image"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Camera size={16} />
+            </button>
+            <button 
+              type="button" 
+              className="tool-btn" 
+              title="Open Canvas"
+              onClick={() => onToggleCanvas(undefined)}
+            >
+              <Sparkles size={16} />
+            </button>
+          </div>
           <button
             type="submit"
             className="chat-send-btn"
-            disabled={!input.trim() || isTyping}
+            disabled={(!input.trim() && !selectedImage) || isTyping}
             id="chat-send-btn"
           >
             <Send size={18} />

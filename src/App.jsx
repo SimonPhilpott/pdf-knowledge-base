@@ -1,309 +1,97 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import Layout from './components/Layout';
 import OnboardingSetup from './components/OnboardingSetup';
+import CatalogBrowser from './components/CatalogBrowser';
+import AdminPortal from './components/AdminPortal';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { useAppLogic } from './hooks/useAppLogic';
+import { Sparkles } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 
-const API = '';
-
+/**
+ * App component serves as the top-level orchestrator.
+ * It uses the useAppLogic hook to manage business logic and state.
+ */
 export default function App() {
-  const [authStatus, setAuthStatus] = useState({ authenticated: false });
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { state, actions } = useAppLogic();
+  const { 
+    authStatus, settings, loading, messages, sidebarWidth, isResizing,
+    sessionId, sessions, isTyping, subjects, selectedSubjects, currentModel,
+    usage, appMode, chatTone, canvasContent, isCanvasVisible, topics,
+    suggestions, syncStatus, pdfViewer, pinnedItems, showCapWarning,
+    showCatalog, showAdmin, isRefining, refineProgress, theme,
+    gems
+  } = state;
 
-  // Chat state
-  const [messages, setMessages] = useState([]);
-  const [sessionId, setSessionId] = useState(null);
-  const [sessions, setSessions] = useState([]);
-  const [isTyping, setIsTyping] = useState(false);
+  const {
+    setMessages, setIsResizing, setSidebarWidth, setSelectedSubjects, 
+    setAppMode, setChatTone, setCanvasContent, setIsCanvasVisible, 
+    setPdfViewer, setShowCapWarning, setShowCatalog, setShowAdmin,
+    sendMessage, triggerSync, refineAllLibrary, loadSession, deleteSession, clearAllHistory,
+    updateModel, handlePin, handleLogin, handleLogout, activateGem
+  } = actions;
 
-  // Filter state
-  const [subjects, setSubjects] = useState([]);
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [currentModel, setCurrentModel] = useState('flash');
-
-  // Usage state
-  const [usage, setUsage] = useState(null);
-
-  // Topic state
-  const [topics, setTopics] = useState({});
-  const [suggestions, setSuggestions] = useState([]);
-
-  // Sync state
-  const [syncStatus, setSyncStatus] = useState(null);
-
-  // PDF viewer state
-  const [pdfViewer, setPdfViewer] = useState(null);
-
-  // Spend cap warning
-  const [showCapWarning, setShowCapWarning] = useState(false);
-  const [pendingMessage, setPendingMessage] = useState(null);
-
-  // Check initial status
+  // Global sidebar resize listener
   useEffect(() => {
-    Promise.all([
-      fetch(`${API}/api/auth/status`).then(r => r.json()),
-      fetch(`${API}/api/settings`).then(r => r.json())
-    ]).then(([auth, settings]) => {
-      setAuthStatus(auth);
-      setSettings(settings);
-      if (settings.preferredModel) setCurrentModel(settings.preferredModel);
-      setLoading(false);
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+      const newWidth = Math.max(200, Math.min(600, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.body.style.cursor = 'default';
+      document.body.style.userSelect = 'auto';
+    };
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing, setSidebarWidth, setIsResizing]);
 
-      if (auth.authenticated && settings.isConfigured) {
-        loadAppData();
-      }
-    }).catch(err => {
-      console.error('Failed to load initial state:', err);
-      setLoading(false);
-    });
-  }, []);
-
-  // Check for auth callback
+  // Auth callback check
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('auth') === 'success') {
       window.history.replaceState({}, '', '/');
-      fetch(`${API}/api/auth/status`).then(r => r.json()).then(setAuthStatus);
-      fetch(`${API}/api/settings`).then(r => r.json()).then(setSettings);
+      window.location.reload(); // Refresh to pick up new tokens
     }
-  }, []);
-
-  const loadAppData = useCallback(async () => {
-    try {
-      const [subjectsRes, sessionsRes, usageRes, topicsRes, suggestionsRes, statusRes] = await Promise.all([
-        fetch(`${API}/api/subjects`).then(r => r.json()),
-        fetch(`${API}/api/chat/history`).then(r => r.json()),
-        fetch(`${API}/api/usage/summary`).then(r => r.json()),
-        fetch(`${API}/api/subjects/topics`).then(r => r.json()),
-        fetch(`${API}/api/subjects/suggestions`).then(r => r.json()),
-        fetch(`${API}/api/drive/status`).then(r => r.json())
-      ]);
-      setSubjects(subjectsRes);
-      setSessions(sessionsRes);
-      setUsage(usageRes);
-      setTopics(topicsRes);
-      setSuggestions(suggestionsRes);
-      setSyncStatus(statusRes);
-    } catch (err) {
-      console.error('Failed to load app data:', err);
-    }
-  }, []);
-
-  const sendMessage = useCallback(async (text, forceModel) => {
-    if (!text.trim()) return;
-
-    // Check spend cap
-    if (usage && usage.percentage >= 95) {
-      setShowCapWarning(true);
-      setPendingMessage(text);
-      return;
-    }
-
-    const modelToUse = forceModel || currentModel;
-
-    // Add user message
-    setMessages(prev => [...prev, { role: 'user', content: text }]);
-    setIsTyping(true);
-
-    try {
-      const res = await fetch(`${API}/api/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          sessionId,
-          subjects: selectedSubjects,
-          model: modelToUse
-        })
-      });
-      const data = await res.json();
-
-      if (data.capWarning) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: data.response,
-          citations: [],
-          model: null
-        }]);
-        setIsTyping(false);
-        return;
-      }
-
-      if (!sessionId && data.sessionId) {
-        setSessionId(data.sessionId);
-      }
-
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: data.response,
-        citations: data.citations || [],
-        model: data.model
-      }]);
-
-      // Refresh usage
-      fetch(`${API}/api/usage/summary`).then(r => r.json()).then(setUsage);
-      // Refresh sessions
-      fetch(`${API}/api/chat/history`).then(r => r.json()).then(setSessions);
-
-    } catch (err) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: '❌ Failed to get a response. Please try again.',
-        citations: [],
-        model: null
-      }]);
-    }
-
-    setIsTyping(false);
-  }, [sessionId, selectedSubjects, currentModel, usage]);
-
-  const proceedDespiteCap = useCallback(() => {
-    setShowCapWarning(false);
-    if (pendingMessage) {
-      const msg = pendingMessage;
-      setPendingMessage(null);
-      // Temporarily bypass cap check by calling directly
-      const sendDirect = async () => {
-        setMessages(prev => [...prev, { role: 'user', content: msg }]);
-        setIsTyping(true);
-        try {
-          const res = await fetch(`${API}/api/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: msg, sessionId, subjects: selectedSubjects, model: currentModel })
-          });
-          const data = await res.json();
-          if (!sessionId && data.sessionId) setSessionId(data.sessionId);
-          setMessages(prev => [...prev, {
-            role: 'assistant', content: data.response,
-            citations: data.citations || [], model: data.model
-          }]);
-          fetch(`${API}/api/usage/summary`).then(r => r.json()).then(setUsage);
-          fetch(`${API}/api/chat/history`).then(r => r.json()).then(setSessions);
-        } catch (err) {
-          setMessages(prev => [...prev, {
-            role: 'assistant', content: '❌ Failed to get a response.',
-            citations: [], model: null
-          }]);
-        }
-        setIsTyping(false);
-      };
-      sendDirect();
-    }
-  }, [pendingMessage, sessionId, selectedSubjects, currentModel]);
-
-  const loadSession = useCallback(async (id) => {
-    try {
-      const msgs = await fetch(`${API}/api/chat/history/${id}`).then(r => r.json());
-      setSessionId(id);
-      setMessages(msgs.map(m => ({
-        role: m.role,
-        content: m.content,
-        citations: m.citations || [],
-        model: m.model_used
-      })));
-    } catch (err) {
-      console.error('Failed to load session:', err);
-    }
-  }, []);
-
-  const deleteSession = useCallback(async (id) => {
-    try {
-      await fetch(`${API}/api/chat/history/${id}`, { method: 'DELETE' });
-      setSessions(prev => prev.filter(s => s.id !== id));
-      if (sessionId === id) {
-        setSessionId(null);
-        setMessages([]);
-      }
-    } catch (err) {
-      console.error('Failed to delete session:', err);
-    }
-  }, [sessionId]);
-
-  const startNewChat = useCallback(() => {
-    setSessionId(null);
-    setMessages([]);
-  }, []);
-
-  const triggerSync = useCallback(async () => {
-    try {
-      await fetch(`${API}/api/drive/sync`, { method: 'POST' });
-      // Poll for status
-      const pollInterval = setInterval(async () => {
-        const status = await fetch(`${API}/api/drive/status`).then(r => r.json());
-        setSyncStatus(status);
-        if (!status.drive.active && !status.indexing.active) {
-          clearInterval(pollInterval);
-          loadAppData();
-        }
-      }, 2000);
-    } catch (err) {
-      console.error('Sync failed:', err);
-    }
-  }, [loadAppData]);
-
-  const handleSetupComplete = useCallback(() => {
-    fetch(`${API}/api/settings`).then(r => r.json()).then(s => {
-      setSettings(s);
-      triggerSync();
-    });
-  }, [triggerSync]);
-
-  const openPdfViewer = useCallback((driveFileId, pageNum, filename) => {
-    setPdfViewer({ driveFileId, pageNum, filename });
-  }, []);
-
-  const updateSpendCap = useCallback(async (cap) => {
-    await fetch(`${API}/api/usage/cap`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cap })
-    });
-    const u = await fetch(`${API}/api/usage/summary`).then(r => r.json());
-    setUsage(u);
-  }, []);
-
-  const updateModel = useCallback(async (model) => {
-    setCurrentModel(model);
-    await fetch(`${API}/api/settings`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferredModel: model })
-    });
-  }, []);
-
-  const handleTopicClick = useCallback((question) => {
-    sendMessage(question);
-  }, [sendMessage]);
-
-  const refreshSuggestions = useCallback(async () => {
-    const s = await fetch(`${API}/api/subjects/suggestions`).then(r => r.json());
-    setSuggestions(s);
   }, []);
 
   if (loading) {
     return (
       <div className="onboarding-overlay">
-        <div style={{ textAlign: 'center' }}>
-          <div className="spinner" style={{ width: 40, height: 40, margin: '0 auto 16px' }}></div>
-          <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 border-4 border-accent-indigo border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-text-secondary font-medium animate-pulse">Initializing System...</p>
         </div>
       </div>
     );
   }
 
-  // Show onboarding if not configured
-  if (!authStatus.authenticated || !settings?.isConfigured) {
+  if (!authStatus.isAuthorized || !settings?.isConfigured) {
     return (
       <OnboardingSetup
         authStatus={authStatus}
-        onComplete={handleSetupComplete}
+        onComplete={() => window.location.reload()}
+        API=""
       />
     );
   }
 
+
   return (
-    <>
+    <div className="h-screen w-screen overflow-hidden bg-bg-primary text-text-primary">
       <Layout
+        sidebarWidth={sidebarWidth}
+        isResizing={isResizing}
+        onResizeStart={() => setIsResizing(true)}
         messages={messages}
         isTyping={isTyping}
         onSendMessage={sendMessage}
@@ -311,42 +99,113 @@ export default function App() {
         activeSessionId={sessionId}
         onLoadSession={loadSession}
         onDeleteSession={deleteSession}
-        onNewChat={startNewChat}
+        onClearHistory={clearAllHistory}
+        isClearingHistory={state.isClearingHistory}
+        onNewChat={() => { setMessages([]); }}
         subjects={subjects}
         selectedSubjects={selectedSubjects}
         onSubjectsChange={setSelectedSubjects}
+        onRefineAll={refineAllLibrary}
         currentModel={currentModel}
         onModelChange={updateModel}
+        chatTone={chatTone}
+        onToneChange={setChatTone}
         usage={usage}
         topics={topics}
         suggestions={suggestions}
-        onTopicClick={handleTopicClick}
-        onRefreshSuggestions={refreshSuggestions}
+        onTopicClick={sendMessage}
+        onRefreshSuggestions={() => actions.loadAppData()}
         syncStatus={syncStatus}
         onSync={triggerSync}
         pdfViewer={pdfViewer}
-        onOpenPdf={openPdfViewer}
+        onOpenPdf={(id, p, f, t) => setPdfViewer(id ? { driveFileId: id, pageNum: p, filename: f, highlightText: t } : null)}
         onClosePdf={() => setPdfViewer(null)}
         settings={settings}
         authStatus={authStatus}
+        onOpenCatalog={() => setShowCatalog(true)}
+        onOpenAdmin={() => setShowAdmin(true)}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
+        appMode={appMode}
+        onModeChange={setAppMode}
+        canvasContent={canvasContent}
+        isCanvasVisible={isCanvasVisible}
+        onCanvasChange={setCanvasContent}
+        onToggleCanvas={(c) => { 
+          if (c) setCanvasContent(c); 
+          setIsCanvasVisible(prev => !prev); 
+        }}
+        onOpenCanvas={(c) => {
+          if (c) setCanvasContent(c);
+          setIsCanvasVisible(true);
+        }}
+        pinnedItems={pinnedItems}
+        onPin={handlePin}
+        theme={theme}
+        onThemeToggle={actions.toggleTheme}
+        gems={gems}
+        onActivateGem={activateGem}
       />
+
+      <ErrorBoundary>
+        {showAdmin && (
+          <AdminPortal 
+            key="admin-portal"
+            isOpen={showAdmin} 
+            onClose={() => setShowAdmin(false)} 
+          />
+        )}
+      </ErrorBoundary>
+
+      {isRefining && (
+        <div className="fixed inset-0 z-[6000] flex items-center justify-center bg-black/80 backdrop-blur-2xl">
+          <div className="bg-bg-secondary/40 backdrop-blur-md border border-glass-border p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-accent-indigo/10 to-transparent pointer-events-none" />
+            <Sparkles size={48} className="mx-auto text-accent-indigo animate-pulse mb-6 relative z-10" />
+            <h3 className="text-xl font-bold mb-2 relative z-10">Refreshing Subjects</h3>
+            <p className="text-sm text-text-muted mb-6 relative z-10">{refineProgress.currentFile}</p>
+            <div className="h-2 w-full bg-bg-tertiary rounded-full overflow-hidden mb-8 border border-glass-border relative z-10">
+              <div 
+                className="h-full bg-primary-gradient shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-500 ease-out" 
+                style={{ width: `${(refineProgress.current / (refineProgress.total || 1)) * 100}%` }}
+              />
+            </div>
+            <button 
+              className="px-6 py-2 rounded-xl text-sm font-semibold border border-glass-border hover:bg-white/5 transition-all relative z-10 hover:border-accent-indigo/50"
+              onClick={() => { window.refine_abort = true; }}
+            >
+              Abort Refinement
+            </button>
+          </div>
+        </div>
+      )}
+
       {showCapWarning && (
-        <div className="warning-modal-overlay" onClick={() => { setShowCapWarning(false); setPendingMessage(null); }}>
-          <div className="warning-modal" onClick={e => e.stopPropagation()}>
-            <div className="warning-icon">⚠️</div>
-            <h2>Approaching Spend Limit</h2>
-            <p>
-              You've used <strong>{usage?.percentage?.toFixed(1)}%</strong> of your monthly spend cap 
-              (${usage?.month?.cost?.toFixed(4)} / ${usage?.spendCap?.toFixed(2)}).
-              Continuing may incur additional costs.
+        <div className="fixed inset-0 z-[6000] flex items-center justify-center bg-black/60 backdrop-blur-xl">
+          <div className="bg-bg-secondary/90 border border-accent-amber/30 p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
+            <div className="text-4xl mb-4">⚠️</div>
+            <h3 className="text-xl font-bold mb-2">Spend Limit Reached</h3>
+            <p className="text-sm text-text-secondary mb-8">
+              You've used <strong>{usage?.percentage?.toFixed(1)}%</strong> of your monthly cap.
+              Proceeding may incur extra costs.
             </p>
-            <div className="warning-modal-buttons">
-              <button className="btn-cancel" onClick={() => { setShowCapWarning(false); setPendingMessage(null); }}>Cancel</button>
-              <button className="btn-proceed" onClick={proceedDespiteCap}>Proceed Anyway</button>
+            <div className="flex gap-3">
+              <button className="flex-1 px-4 py-2 rounded-xl border border-glass-border font-medium" onClick={() => setShowCapWarning(false)}>Cancel</button>
+              <button className="flex-1 px-4 py-2 rounded-xl bg-accent-amber text-bg-primary font-bold shadow-lg shadow-accent-amber/20" onClick={() => setShowCapWarning(false)}>Proceed</button>
             </div>
           </div>
         </div>
       )}
-    </>
+
+      {showCatalog && (
+        <CatalogBrowser 
+          onClose={() => setShowCatalog(false)} 
+          onOpenFile={(id, page, name) => {
+            setShowCatalog(false);
+            setPdfViewer({ driveFileId: id, pageNum: page, filename: name });
+          }}
+        />
+      )}
+    </div>
   );
 }

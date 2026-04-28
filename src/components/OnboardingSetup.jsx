@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-const API = '';
 
-export default function OnboardingSetup({ authStatus, onComplete }) {
+export default function OnboardingSetup({ authStatus, onComplete, API }) {
   const [step, setStep] = useState(authStatus.authenticated ? 2 : 1);
   const [folders, setFolders] = useState([]);
   const [folderPath, setFolderPath] = useState([{ id: 'root', name: 'My Drive' }]);
@@ -11,6 +10,16 @@ export default function OnboardingSetup({ authStatus, onComplete }) {
   const [model, setModel] = useState('flash');
   const [loadingFolders, setLoadingFolders] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Check for errors in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'error') {
+      setError(params.get('message') || 'Authentication failed');
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
 
   // Load folders when on folder picker step
   useEffect(() => {
@@ -74,23 +83,38 @@ export default function OnboardingSetup({ authStatus, onComplete }) {
   return (
     <div className="onboarding-overlay">
       <div className="onboarding-card">
-        <h1>📚 PDF Knowledge Base</h1>
+        <h1>📚 Knowledge Base</h1>
         <p>Connect your Google Drive to start asking questions about your PDF library with AI-powered answers and citations.</p>
 
         {/* Step 1: Connect Google */}
         <div className={`onboarding-step ${step > 1 ? 'completed' : ''}`}>
           <div className="onboarding-step-number">{step > 1 ? '✓' : '1'}</div>
           <div className="onboarding-step-content">
-            <h3>Connect Google Account</h3>
-            <p>{authStatus.authenticated
-              ? `Connected as ${authStatus.email}`
-              : 'Sign in with Google to access your Drive'}</p>
+            <h3>Login & Authorization</h3>
+            <p>{authStatus.email
+              ? (authStatus.isAuthorized ? `Authorized as ${authStatus.email}` : `Restricted: ${authStatus.email} is not authorized`)
+              : 'Sign in with Google to access the knowledge base'}</p>
           </div>
         </div>
 
-        {step === 1 && (
+        {error && (
+          <div className="auth-error-banner" style={{
+            background: 'rgba(255, 0, 0, 0.1)',
+            border: '1px solid rgba(255, 0, 0, 0.3)',
+            color: 'var(--accent-rose)',
+            padding: '12px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            marginBottom: '16px',
+            textAlign: 'center'
+          }}>
+            🚫 {error}
+          </div>
+        )}
+
+        {(!authStatus.isAuthorized) && (
           <button className="onboarding-btn" onClick={handleConnect}>
-            🔗 Connect with Google
+            {authStatus.authenticated ? '👤 Switch Account' : '🔗 Login with Google'}
           </button>
         )}
 

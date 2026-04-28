@@ -28,7 +28,7 @@ export default function TokenUsageMeter({ usage }) {
         />
       </div>
       <span className="token-meter-label">
-        ${displayCost} / ${displayCap}
+        £{displayCost} / £{displayCap}
       </span>
 
       {showTooltip && (
@@ -37,7 +37,7 @@ export default function TokenUsageMeter({ usage }) {
 
           <div className="token-meter-tooltip-row">
             <span className="label">Spend</span>
-            <span className="value">${displayCost} / ${displayCap}</span>
+            <span className="value">£{displayCost} / £{displayCap}</span>
           </div>
           <div className="token-meter-tooltip-row">
             <span className="label">Usage</span>
@@ -64,12 +64,12 @@ export default function TokenUsageMeter({ usage }) {
 
           <div className="token-meter-tooltip-row">
             <span className="label">Today</span>
-            <span className="value">${today?.cost?.toFixed(4) || '0.0000'} ({today?.requests || 0} reqs)</span>
+            <span className="value">£{today?.cost?.toFixed(4) || '0.0000'} ({today?.requests || 0} reqs)</span>
           </div>
           <div className="token-meter-tooltip-row">
             <span className="label">Projected Monthly</span>
             <span className="value" style={{ color: projectedCost > spendCap ? 'var(--accent-rose)' : 'inherit' }}>
-              ${projectedCost?.toFixed(4) || '0.0000'}
+              £{projectedCost?.toFixed(4) || '0.0000'}
             </span>
           </div>
 
@@ -80,7 +80,7 @@ export default function TokenUsageMeter({ usage }) {
               {usage.modelBreakdown.map((m, i) => (
                 <div key={i} className="token-meter-tooltip-row">
                   <span className="label">{m.model?.includes('flash') ? '⚡ Flash' : m.model?.includes('pro') ? '🧠 Pro' : m.model}</span>
-                  <span className="value">${m.cost?.toFixed(4)} ({m.requests} reqs)</span>
+                  <span className="value">£{m.cost?.toFixed(4)} ({m.requests} reqs)</span>
                 </div>
               ))}
             </>
