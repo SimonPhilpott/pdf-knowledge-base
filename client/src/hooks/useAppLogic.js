@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useVoiceEngine } from './useVoiceEngine';
 
 const API = '';
 
@@ -7,6 +8,7 @@ const API = '';
  * This follows the "Modular" rule to keep App.jsx focused on orchestration.
  */
 export function useAppLogic() {
+  const voiceEngine = useVoiceEngine();
   const [authStatus, setAuthStatus] = useState({ authenticated: false });
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -187,6 +189,18 @@ export function useAppLogic() {
     setIsTyping(false);
   }, [sessionId, selectedSubjects, currentModel, chatTone, usage, appMode]);
 
+  // Voice interaction: Speak assistant responses
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'assistant' && !isTyping) {
+        // Only speak the text content, strip citations or markdown if needed
+        // For now, speak the raw content for simplicity
+        voiceEngine.speak(lastMessage.content);
+      }
+    }
+  }, [messages, isTyping, voiceEngine.speak]);
+
   const triggerSync = useCallback(async () => {
     try {
       await fetch(`${API}/api/drive/sync`, { method: 'POST' });
@@ -345,7 +359,8 @@ export function useAppLogic() {
       setPendingMessage, setShowCatalog, setShowAdmin, setIsRefining,
       setRefineProgress, loadAppData, sendMessage, triggerSync,
       refineAllLibrary, loadSession, deleteSession, clearAllHistory, updateModel, handlePin,
-      handleLogin, handleLogout, toggleTheme, activateGem
+      handleLogin, handleLogout, toggleTheme, activateGem,
+      voiceEngine
     }
   };
 }
