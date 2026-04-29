@@ -1,6 +1,6 @@
 import React from 'react';
 import { Heart, Briefcase, Target, Search } from 'lucide-react';
-import { useDraggableScroll } from '../hooks/useDraggableScroll';
+import { Tooltip } from './CursorHover';
 
 /**
  * Tone selector component with draggable horizontal scroll.
@@ -28,19 +28,19 @@ export default function ToneSwitcher({ current, onChange }) {
       {tones.map((tone) => {
         const Icon = tone.icon;
         return (
-          <button
-            key={tone.id}
-            className={`tone-option ${current === tone.id ? 'active' : ''}`}
-            onClick={() => !isDragging && onChange(tone.id)}
-            title={tone.desc}
-            style={{ 
-              flexShrink: 0,
-              pointerEvents: isDragging ? 'none' : 'auto'
-            }}
-          >
-            <Icon size={14} />
-            <span>{tone.label}</span>
-          </button>
+          <Tooltip key={tone.id} text={tone.desc}>
+            <button
+              className={`tone-option ${current === tone.id ? 'active' : ''}`}
+              onClick={() => !isDragging && onChange(tone.id)}
+              style={{ 
+                flexShrink: 0,
+                pointerEvents: isDragging ? 'none' : 'auto'
+              }}
+            >
+              <Icon size={14} />
+              <span>{tone.label}</span>
+            </button>
+          </Tooltip>
         );
       })}
     </div>

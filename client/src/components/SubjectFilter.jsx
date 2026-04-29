@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Folder, ChevronRight, ChevronDown, CheckSquare, Square, MinusSquare, Sparkles } from 'lucide-react';
+import { Tooltip } from './CursorHover';
 
 const SubjectNode = ({ node, selected, onToggle, level = 0 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,45 +39,47 @@ const SubjectNode = ({ node, selected, onToggle, level = 0 }) => {
 
   return (
     <div className="subject-tree-node">
-      <div 
-        className={`subject-tree-item ${node.path === '' ? 'root' : ''}`}
-        style={{ paddingLeft: `${node.path === '' ? 0 : level * 12 + 4}px` }}
-        onClick={isFolder ? toggleOpen : handleToggle}
-      >
-        <span className="subject-tree-chevron" onClick={toggleOpen}>
-          {isFolder ? (
-            isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />
-          ) : (
-            <span style={{ width: 12 }} />
-          )}
-        </span>
-        
-        <span className="subject-tree-checkbox" onClick={handleToggle}>
-          {isSelected ? (
-            <CheckSquare size={14} className="text-accent" />
-          ) : isIndeterminate ? (
-            <MinusSquare size={14} className="text-accent" />
-          ) : (
-            <Square size={14} />
-          )}
-        </span>
+      <Tooltip text={`${node.path || node.name} (${node.documentCount} documents)`}>
+        <div 
+          className={`subject-tree-item ${node.path === '' ? 'root' : ''}`}
+          style={{ paddingLeft: `${node.path === '' ? 0 : level * 12 + 4}px` }}
+          onClick={isFolder ? toggleOpen : handleToggle}
+        >
+          <span className="subject-tree-chevron" onClick={toggleOpen}>
+            {isFolder ? (
+              isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />
+            ) : (
+              <span style={{ width: 12 }} />
+            )}
+          </span>
+          
+          <span className="subject-tree-checkbox" onClick={handleToggle}>
+            {isSelected ? (
+              <CheckSquare size={14} className="text-accent" />
+            ) : isIndeterminate ? (
+              <MinusSquare size={14} className="text-accent" />
+            ) : (
+              <Square size={14} />
+            )}
+          </span>
 
-        <span className="subject-tree-name">
-          {node.source === 'ai' ? (
-            <Sparkles size={12} className="text-accent" style={{ marginRight: '6px', display: 'inline-block' }} />
-          ) : (
-            <Folder size={12} style={{ marginRight: '6px', display: 'inline-block', opacity: 0.6 }} />
+          <span className="subject-tree-name">
+            {node.source === 'ai' ? (
+              <Sparkles size={12} className="text-accent" style={{ marginRight: '6px', display: 'inline-block' }} />
+            ) : (
+              <Folder size={12} style={{ marginRight: '6px', display: 'inline-block', opacity: 0.6 }} />
+            )}
+            {node.name}
+            {node.indexStatus && node.indexStatus !== 'none' && (
+              <span className={`subject-status-dot ${node.indexStatus}`} />
+            )}
+          </span>
+          
+          {node.documentCount > 0 && (
+            <span className="subject-badge">{node.documentCount}</span>
           )}
-          {node.name}
-          {node.indexStatus && node.indexStatus !== 'none' && (
-            <span className={`subject-status-dot ${node.indexStatus}`} title={`${node.indexedCount}/${node.documentCount} indexed`} />
-          )}
-        </span>
-        
-        {node.documentCount > 0 && (
-          <span className="subject-badge">{node.documentCount}</span>
-        )}
-      </div>
+        </div>
+      </Tooltip>
 
       {isFolder && isOpen && (
         <div className="subject-tree-children">
@@ -158,20 +161,23 @@ export default function SubjectFilter({ subjects, selected, onChange, onRefineAl
           Subjects
         </span>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={handleRefineAll}
-            className={`text-btn ${isRefining ? 'pulse' : ''}`}
-            disabled={isRefining}
-            title="Use AI index to incrementally update document categories"
-          >
-            {isRefining ? 'Refreshing...' : 'Refresh Subjects'}
-          </button>
-          <button
-            onClick={toggleAll}
-            className="text-btn"
-          >
-            {selected.length > 0 ? 'None' : 'All'}
-          </button>
+          <Tooltip text="Use AI to automatically categorise files based on content">
+            <button
+              onClick={handleRefineAll}
+              className={`text-btn ${isRefining ? 'pulse' : ''}`}
+              disabled={isRefining}
+            >
+              {isRefining ? 'Refreshing...' : 'Refresh Subjects'}
+            </button>
+          </Tooltip>
+          <Tooltip text={selected.length > 0 ? 'Deselect all subjects' : 'Select all subjects'}>
+            <button
+              onClick={toggleAll}
+              className="text-btn"
+            >
+              {selected.length > 0 ? 'None' : 'All'}
+            </button>
+          </Tooltip>
         </div>
       </div>
       

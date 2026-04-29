@@ -71,7 +71,21 @@ export default function ChatInterface({
           {suggestions && suggestions.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', width: '100%', maxWidth: '800px', marginTop: '12px' }}>
               {suggestions.slice(0, 4).map((s, i) => (
-                <Tooltip key={i} text={s.topic || s.filename || s.suggested_question}>
+                <Tooltip 
+                  key={i} 
+                  content={
+                    <div className="flex flex-col gap-1">
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
+                      <div className="text-[12px] font-bold mb-1">{s.topic}</div>
+                      <div className="flex items-center gap-2 text-[10px] opacity-70">
+                        <span className="font-bold">Book:</span> {s.filename}
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px] opacity-70">
+                        <span className="font-bold">Subject:</span> {s.subject}
+                      </div>
+                    </div>
+                  }
+                >
                   <button
                     className="topic-chip user-message-style"
                     onClick={() => onTopicClick(s.suggested_question)}

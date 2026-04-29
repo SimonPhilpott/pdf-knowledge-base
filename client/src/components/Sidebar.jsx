@@ -1,4 +1,5 @@
 import { Sparkles, Library, Bookmark, Trash2, FileText, Settings } from 'lucide-react';
+import { Tooltip } from './CursorHover';
 import SubjectFilter from './SubjectFilter';
 import ChatHistory from './ChatHistory';
 import ToneSwitcher from './ToneSwitcher';
@@ -29,10 +30,12 @@ export default function Sidebar({
           <div className="sidebar-label" style={{ marginBottom: '12px', fontSize: '10px', opacity: 0.6, letterSpacing: '1px', textTransform: 'uppercase' }}>Quick Tools</div>
           <div className="teleported-grid" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {teleportedIds.includes('settings') && (
-              <button className="sidebar-action-btn" onClick={onOpenAdmin} style={{ justifyContent: 'center', padding: '10px' }}>
-                <Settings size={16} />
-                <span>Admin Portal</span>
-              </button>
+              <Tooltip text="Manage system rules, files, and network configuration">
+                <button className="sidebar-action-btn" onClick={onOpenAdmin} style={{ justifyContent: 'center', padding: '10px' }}>
+                  <Settings size={16} />
+                  <span>Admin Portal</span>
+                </button>
+              </Tooltip>
             )}
             {teleportedIds.includes('usage') && <TokenUsageMeter usage={usage} />}
             {teleportedIds.includes('model') && <ModelSwitcher current={currentModel} onChange={onModelChange} />}
@@ -48,33 +51,41 @@ export default function Sidebar({
 
       <div className="sidebar-section">
         <div className="mode-switcher">
-          <div
-            className={`mode-item ${appMode === 'kb' ? 'active' : ''}`}
-            onClick={() => onModeChange('kb')}
-          >
-            <Library size={14} fill="none" stroke="currentColor" />
-            <span>Library</span>
-          </div>
-          <div
-            className={`mode-item ${appMode === 'general' ? 'active' : ''}`}
-            onClick={() => onModeChange('general')}
-          >
-            <Sparkles size={14} fill="none" stroke="currentColor" />
-            <span>Gemini</span>
-          </div>
+          <Tooltip text="Focus on your uploaded PDF documents and library subjects">
+            <div
+              className={`mode-item ${appMode === 'kb' ? 'active' : ''}`}
+              onClick={() => onModeChange('kb')}
+            >
+              <Library size={14} fill="none" stroke="currentColor" />
+              <span>Library</span>
+            </div>
+          </Tooltip>
+          <Tooltip text="Chat directly with Gemini Pro for general knowledge and research">
+            <div
+              className={`mode-item ${appMode === 'general' ? 'active' : ''}`}
+              onClick={() => onModeChange('general')}
+            >
+              <Sparkles size={14} fill="none" stroke="currentColor" />
+              <span>Gemini</span>
+            </div>
+          </Tooltip>
         </div>
       </div>
 
       <div className="sidebar-section">
-        <button className="new-chat-btn" onClick={onNewChat} id="new-chat-btn" style={{ width: '100%', marginBottom: '8px' }}>
-          <Sparkles size={14} fill="none" stroke="currentColor" />
-          <span>New Chat</span>
-        </button>
+        <Tooltip text="Start a fresh conversation thread">
+          <button className="new-chat-btn" onClick={onNewChat} id="new-chat-btn" style={{ width: '100%', marginBottom: '8px' }}>
+            <Sparkles size={14} fill="none" stroke="currentColor" />
+            <span>New Chat</span>
+          </button>
+        </Tooltip>
 
-        <button className="sidebar-action-btn" onClick={onOpenCatalog} style={{ width: '100%' }}>
-          <Library size={14} fill="none" stroke="currentColor" />
-          <span>Browse Library</span>
-        </button>
+        <Tooltip text="View and manage all files in your Knowledge Base">
+          <button className="sidebar-action-btn" onClick={onOpenCatalog} style={{ width: '100%' }}>
+            <Library size={14} fill="none" stroke="currentColor" />
+            <span>Browse Library</span>
+          </button>
+        </Tooltip>
       </div>
 
       {appMode === 'kb' && (
@@ -116,25 +127,29 @@ export default function Sidebar({
                 background: 'var(--glass-bg)',
                 fontSize: '12px'
               }}>
-                <div
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, overflow: 'hidden' }}
-                  onClick={() => onOpenPdf(pin.drive_file_id, pin.page_num, pin.filename)}
-                >
-                  <FileText size={12} style={{ opacity: 0.6 }} />
-                  <span style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
-                    {pin.filename.replace('.pdf', '')} (p.{pin.page_num})
-                  </span>
-                </div>
-                <button
-                  onClick={() => onPin({ driveFileId: pin.drive_file_id, pageNum: pin.page_num })}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
-                >
-                  <Trash2 size={12} />
-                </button>
+                <Tooltip text={`View content from ${pin.filename}`}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, overflow: 'hidden' }}
+                    onClick={() => onOpenPdf(pin.drive_file_id, pin.page_num, pin.filename)}
+                  >
+                    <FileText size={12} style={{ opacity: 0.6 }} />
+                    <span style={{
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {pin.filename.replace('.pdf', '')} (p.{pin.page_num})
+                    </span>
+                  </div>
+                </Tooltip>
+                <Tooltip text="Remove this pin">
+                  <button
+                    onClick={() => onPin({ driveFileId: pin.drive_file_id, pageNum: pin.page_num })}
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </Tooltip>
               </div>
             ))}
           </div>
