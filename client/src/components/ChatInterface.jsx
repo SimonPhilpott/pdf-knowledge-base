@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, BookOpen, Bot, Sparkles, Image as ImageIcon, Camera, X, Mic, Volume2, VolumeX, MicOff } from 'lucide-react';
 import MessageBubble from './MessageBubble';
+import { Tooltip } from './CursorHover';
 
 export default function ChatInterface({ 
   messages, isTyping, onSendMessage, onOpenPdf, 
@@ -70,14 +71,14 @@ export default function ChatInterface({
           {suggestions && suggestions.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', width: '100%', maxWidth: '800px', marginTop: '12px' }}>
               {suggestions.slice(0, 4).map((s, i) => (
-                <button
-                  key={i}
-                  className="topic-chip user-message-style"
-                  onClick={() => onTopicClick(s.suggested_question)}
-                  title={s.topic}
-                >
-                  {s.suggested_question}
-                </button>
+                <Tooltip key={i} text={s.topic}>
+                  <button
+                    className="topic-chip user-message-style"
+                    onClick={() => onTopicClick(s.suggested_question)}
+                  >
+                    {s.suggested_question}
+                  </button>
+                </Tooltip>
               ))}
             </div>
           )}
@@ -149,56 +150,61 @@ export default function ChatInterface({
             id="chat-input"
           />
           <div className="input-tools">
-            <button 
-              type="button" 
-              className="tool-btn" 
-              title="Take Photo / Upload Image"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Camera size={16} />
-            </button>
-            <button 
-              type="button" 
-              className="tool-btn" 
-              title="Open Canvas"
-              onClick={() => onToggleCanvas(undefined)}
-            >
-              <Sparkles size={16} />
-            </button>
+            <Tooltip text="Take Photo / Upload Image">
+              <button 
+                type="button" 
+                className="tool-btn" 
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Camera size={16} />
+              </button>
+            </Tooltip>
+
+            <Tooltip text="Open Canvas">
+              <button 
+                type="button" 
+                className="tool-btn" 
+                onClick={() => onToggleCanvas(undefined)}
+              >
+                <Sparkles size={16} />
+              </button>
+            </Tooltip>
 
             <div className="voice-tools" style={{ display: 'flex', gap: '4px', marginLeft: '4px', paddingLeft: '8px', borderLeft: '1px solid var(--glass-border)' }}>
-              <button
-                type="button"
-                className={`tool-btn voice-mic-btn ${voiceEngine.isListening ? 'active-listening' : ''}`}
-                title={voiceEngine.isListening ? "Stop Listening" : "Hands-Free Research (Auto-Send)"}
-                onClick={() => voiceEngine.toggleListening({
-                  onResult: (transcript, autoSubmit) => {
-                    if (autoSubmit && transcript.trim()) {
-                      onSendMessage(transcript);
-                      setInput('');
-                    } else {
-                      setInput(prev => prev + (prev ? ' ' : '') + transcript);
-                    }
-                  },
-                  autoSubmit: true
-                })}
-              >
-                {voiceEngine.isListening ? (
-                  <div className="flex items-center gap-1">
-                    <Mic size={16} className="animate-pulse text-red-500" />
-                    <Sparkles size={10} className="animate-spin text-[var(--accent-indigo)]" />
-                  </div>
-                ) : <Mic size={16} />}
-              </button>
+              <Tooltip text={voiceEngine.isListening ? "Stop Listening" : "Hands-Free Research (Auto-Send)"}>
+                <button
+                  type="button"
+                  className={`tool-btn voice-mic-btn ${voiceEngine.isListening ? 'active-listening' : ''}`}
+                  onClick={() => voiceEngine.toggleListening({
+                    onResult: (transcript, autoSubmit) => {
+                      if (autoSubmit && transcript.trim()) {
+                        onSendMessage(transcript);
+                        setInput('');
+                      } else {
+                        setInput(prev => prev + (prev ? ' ' : '') + transcript);
+                      }
+                    },
+                    autoSubmit: true
+                  })}
+                >
+                  {voiceEngine.isListening ? (
+                    <div className="flex items-center gap-1">
+                      <Mic size={16} className="animate-pulse text-red-500" />
+                      <Sparkles size={10} className="animate-spin text-[var(--accent-indigo)]" />
+                    </div>
+                  ) : <Mic size={16} />}
+                </button>
+              </Tooltip>
               
-              <button
-                type="button"
-                className={`tool-btn ${voiceEngine.isTtsEnabled ? 'text-[var(--accent-indigo)]' : 'text-[var(--text-muted)]'}`}
-                title={voiceEngine.isTtsEnabled ? "Disable Voice Responses" : "Enable Voice Responses"}
-                onClick={() => voiceEngine.toggleTts()}
-              >
-                {voiceEngine.isTtsEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              </button>
+              <Tooltip text={voiceEngine.isTtsEnabled ? "Disable Voice Responses" : "Enable Voice Responses"}>
+                <button
+                  type="button"
+                  className={`tool-btn ${voiceEngine.isTtsEnabled ? 'text-[var(--accent-indigo)]' : 'text-[var(--text-muted)]'}`}
+                  onClick={() => voiceEngine.toggleTts()}
+                >
+                  {voiceEngine.isTtsEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                </button>
+              </Tooltip>
             </div>
           </div>
           <button

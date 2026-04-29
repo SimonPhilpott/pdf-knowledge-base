@@ -31,7 +31,7 @@ export function useCursorFollow() {
 /**
  * CursorTooltip: High-fidelity floating text block that follows the cursor.
  */
-export function CursorTooltip({ text, isVisible }) {
+export function CursorTooltip({ text, content, isVisible }) {
   const { position, alignment } = useCursorFollow();
 
   const getStyle = () => {
@@ -68,11 +68,11 @@ export function CursorTooltip({ text, isVisible }) {
             fontSize: '11px',
             fontWeight: 600,
             boxShadow: 'var(--shadow-lg)',
-            maxWidth: '240px',
+            maxWidth: '300px',
             lineHeight: 1.5,
             whiteSpace: 'pre-wrap'
           }}>
-            {text}
+            {content || text}
           </div>
         </motion.div>
       )}
@@ -153,5 +153,39 @@ export function CursorPopover({ isVisible, children, title }) {
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+/**
+ * Tooltip: Simple wrapper to add premium cursor-following hover text to any element.
+ */
+export function Tooltip({ children, text, content, delay = 0 }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const timeoutRef = useRef(null);
+
+  const handleEnter = () => {
+    if (delay > 0) {
+      timeoutRef.current = setTimeout(() => setIsVisible(true), delay);
+    } else {
+      setIsVisible(true);
+    }
+  };
+
+  const handleLeave = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setIsVisible(false);
+  };
+
+  if (!text && !content) return children;
+
+  return (
+    <div 
+      className="tooltip-trigger-wrapper"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+      style={{ display: 'contents' }}
+    >
+      {children}
+      <CursorTooltip text={text} content={content} isVisible={isVisible} />
+    </div>
   );
 }

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import { Search, Lightbulb, Dice5, X } from 'lucide-react';
+import { Tooltip } from './CursorHover';
 
 export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRefresh }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -65,15 +65,15 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {suggestions.map((s, i) => (
-                    <button
-                      key={i}
-                      className="topic-chip user-message-style"
-                      onClick={() => onTopicClick(s.suggested_question)}
-                      style={{ textAlign: 'left', width: '100%', marginBottom: '4px' }}
-                      title={`From: ${s.filename}`}
-                    >
-                      {s.suggested_question}
-                    </button>
+                    <Tooltip key={i} text={`From: ${s.filename}`}>
+                      <button
+                        className="topic-chip user-message-style"
+                        onClick={() => onTopicClick(s.suggested_question)}
+                        style={{ textAlign: 'left', width: '100%', marginBottom: '4px' }}
+                      >
+                        {s.suggested_question}
+                      </button>
+                    </Tooltip>
                   ))}
                 </div>
               </div>
@@ -99,14 +99,14 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
                 <div className="topic-subject-name">{subject}</div>
                 <div className="topic-chips">
                   {filteredTopics[subject].map((topic, i) => (
-                    <button
-                      key={i}
-                      className="topic-chip"
-                      onClick={() => onTopicClick(topic.suggestedQuestion || `Tell me about ${topic.topic}`)}
-                      title={topic.description || topic.topic}
-                    >
-                      {topic.topic}
-                    </button>
+                    <Tooltip key={i} text={topic.description || topic.topic}>
+                      <button
+                        className="topic-chip"
+                        onClick={() => onTopicClick(topic.suggestedQuestion || `Tell me about ${topic.topic}`)}
+                      >
+                        {topic.topic}
+                      </button>
+                    </Tooltip>
                   ))}
                 </div>
               </div>
