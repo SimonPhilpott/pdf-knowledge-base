@@ -1,3 +1,4 @@
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, Lightbulb, Dice5, X } from 'lucide-react';
 import { Tooltip } from './CursorHover';
 
@@ -65,7 +66,7 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {suggestions.map((s, i) => (
-                    <Tooltip key={i} text={`From: ${s.filename}`}>
+                    <Tooltip key={i} text={s.topic || s.filename || s.suggested_question}>
                       <button
                         className="topic-chip user-message-style"
                         onClick={() => onTopicClick(s.suggested_question)}
