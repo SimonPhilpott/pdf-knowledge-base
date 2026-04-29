@@ -10,23 +10,29 @@ export function useVoiceEngine() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const recognitionRef = useRef(null);
 
-  // Initialize Speech Recognition
+  // Initialize Speech Recognition and Voices
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
-      recognition.interimResults = false; // Final results only for cleaner input
+      recognition.interimResults = false;
       recognition.lang = 'en-GB';
-
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
       recognition.onerror = (event) => {
         console.error('[VoiceEngine] Recognition error:', event.error);
         setIsListening(false);
       };
-      
       recognitionRef.current = recognition;
+    }
+
+    // Warm up voices
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
     }
   }, []);
 
@@ -85,10 +91,12 @@ export function useVoiceEngine() {
     const cleanText = text.replace(/[*_#`\[\]()]/g, '').replace(/https?:\/\/\S+/g, 'link');
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'en-GB';
     
     // Find a premium Google voice (usually sounds most like Gemini)
     const voices = window.speechSynthesis.getVoices();
     const googleVoice = voices.find(v => v.name.includes('Google') && v.lang.startsWith('en')) || 
+                        voices.find(v => v.lang.startsWith('en-GB')) ||
                         voices.find(v => v.lang.startsWith('en'));
                         
     if (googleVoice) utterance.voice = googleVoice;
@@ -98,7 +106,10 @@ export function useVoiceEngine() {
     
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+    utterance.onerror = (e) => {
+      console.error('[VoiceEngine] TTS Error:', e);
+      setIsSpeaking(false);
+    };
     
     window.speechSynthesis.speak(utterance);
   }, [isTtsEnabled]);

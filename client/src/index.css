@@ -2472,22 +2472,30 @@ a:hover {
   }
 
   .chat-input-wrapper {
-    flex-wrap: wrap;
-    padding: 8px !important;
+    flex-direction: column;
+    padding: 12px !important;
+    gap: 8px;
   }
 
   .chat-input {
     width: 100% !important;
     flex: none !important;
-    margin-bottom: 8px;
+    padding-right: 8px !important; /* Reset padding since tools moved */
   }
 
   .input-tools {
-    flex: 1;
+    width: 100%;
     border-right: none !important;
     margin-right: 0 !important;
     padding-right: 0 !important;
+    padding-top: 8px;
+    border-top: 1px solid var(--glass-border);
     justify-content: flex-start;
+  }
+
+  .chat-send-btn {
+    align-self: flex-end;
+    margin-top: -36px; /* Pull button up into tools row */
   }
 }
 
