@@ -472,8 +472,8 @@ function NetworkView({ status, onToggle, isTransitioning }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-10">
-      <div className="bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-[24px] p-8 shadow-xl">
+    <div className="max-w-4xl mx-auto py-6 flex flex-col md:flex-row gap-8">
+      <div className="flex-1 bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-[24px] p-8 shadow-xl">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${status.active ? "bg-green-500/20 text-green-500" : "bg-slate-500/20 text-slate-500"}`}>
@@ -481,38 +481,38 @@ function NetworkView({ status, onToggle, isTransitioning }) {
             </div>
             <div>
               <h3 className="text-lg font-bold text-[var(--text-primary)]">External Access Control</h3>
-              <p className="text-xs text-[var(--text-muted)] font-medium">Manage secure public tunnel via Ngrok</p>
+              <p className="text-xs text-[var(--text-muted)] font-medium">Secure public tunnel via Ngrok</p>
             </div>
           </div>
           
-          <button
-            onClick={onToggle}
-            disabled={isTransitioning}
-            className={`px-6 py-2.5 rounded-full text-xs font-bold transition-all duration-300 flex items-center gap-2 ${
-              status.active 
-                ? "bg-red-500/10 text-red-500 border border-red-500/30 hover:bg-red-500/20" 
-                : "bg-[var(--accent-indigo)]/10 text-[var(--accent-indigo)] border border-[var(--accent-indigo)]/30 hover:bg-[var(--accent-indigo)]/20"
-            }`}
-          >
-            {isTransitioning ? (
-              <Zap size={14} className="animate-pulse" />
-            ) : (
-              <Zap size={14} />
-            )}
-            {status.active ? "Deactivate Tunnel" : "Activate Tunnel"}
-          </button>
+          <div className="flex items-center gap-4">
+            <span className={`text-[10px] font-bold tracking-widest ${status.active ? 'text-green-500' : 'text-slate-500'}`}>
+              {status.active ? 'ONLINE' : 'OFFLINE'}
+            </span>
+            <button
+              onClick={onToggle}
+              disabled={isTransitioning}
+              className={`relative w-14 h-7 rounded-full transition-all duration-300 ${status.active ? "bg-green-500" : "bg-slate-600"} p-1 cursor-pointer outline-none border-none`}
+            >
+              <motion.div
+                animate={{ x: status.active ? 28 : 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="w-5 h-5 bg-white rounded-full shadow-lg flex items-center justify-center"
+              >
+                {isTransitioning && <Zap size={10} className="text-slate-400 animate-pulse" />}
+              </motion.div>
+            </button>
+          </div>
         </div>
 
         <div className="space-y-6">
           <div className={`p-6 rounded-2xl border transition-all duration-300 ${status.active ? "bg-green-500/5 border-green-500/20" : "bg-slate-500/5 border-slate-500/10"}`}>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Tunnel Status</span>
-              {status.active ? (
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full">
-                  <CheckCircle2 size={10} /> ACTIVE
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Live URL</span>
+              {status.active && (
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-500">
+                  <CheckCircle2 size={10} /> TLS 1.3 SECURE
                 </span>
-              ) : (
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-500/10 px-2 py-0.5 rounded-full">INACTIVE</span>
               )}
             </div>
             
@@ -529,22 +529,40 @@ function NetworkView({ status, onToggle, isTransitioning }) {
                 </button>
               </div>
             ) : (
-              <p className="text-sm text-[var(--text-muted)] italic">Tunnel is offline. Activate to enable external access.</p>
+              <p className="text-sm text-[var(--text-muted)] italic">Tunnel is offline. Toggle the switch to activate.</p>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Protocol</span>
-              <span className="text-xs font-bold text-[var(--text-primary)]">HTTPS / TLS 1.3</span>
+              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Region</span>
+              <span className="text-xs font-bold text-[var(--text-primary)]">Europe (uk)</span>
             </div>
             <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Domain</span>
-              <span className="text-xs font-bold text-[var(--text-primary)] truncate">filling-flail-islamic.ngrok-free.dev</span>
+              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Domain Type</span>
+              <span className="text-xs font-bold text-[var(--text-primary)]">Static Endpoint</span>
             </div>
           </div>
         </div>
       </div>
+
+      {status.active && (
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="w-full md:w-64 bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-[24px] p-6 flex flex-col items-center justify-center text-center"
+        >
+          <div className="bg-white p-3 rounded-xl mb-4 shadow-inner">
+            <img 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(status.url)}`}
+              alt="Tunnel QR Code"
+              className="w-32 h-32"
+            />
+          </div>
+          <h4 className="text-xs font-bold text-[var(--text-primary)] mb-1">Quick Mobile Access</h4>
+          <p className="text-[10px] text-[var(--text-muted)] px-2">Scan to open the mobile-optimised interface on your device.</p>
+        </motion.div>
+      )}
     </div>
   );
 }
