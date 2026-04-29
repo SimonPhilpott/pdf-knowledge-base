@@ -81,6 +81,12 @@
       "name": "Oatmeal Design System & Admin Portal UX",
       "description": "Premium visual consistency across light/dark themes with fluid typography, micro-interactions, and refined executive dashboard aesthetics.",
       "status": "implemented"
+    },
+    {
+      "id": "FEAT-014",
+      "name": "Responsive Utility Teleportation & Draggable Toggles",
+      "description": "Adaptive top-bar utility management with 50% clipping detection and unified draggable horizontal scroll hooks for mobile and desktop accessibility.",
+      "status": "implemented"
     }
   ]
 }
