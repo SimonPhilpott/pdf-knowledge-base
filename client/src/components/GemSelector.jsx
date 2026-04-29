@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, Search, Shield, Book } from 'lucide-react';
 import { useDraggableScroll } from '../hooks/useDraggableScroll';
+import { Tooltip } from './CursorHover';
 
 const ICON_MAP = {
   Sparkles: <Sparkles size={14} />,
@@ -37,21 +38,31 @@ export default function GemSelector({ gems, onSelect, compact = false }) {
         }}
       >
         {gems.map(gem => (
-          <button
-            key={gem.id}
-            className={`tone-option ${gem.id === activeGem.id ? 'active' : ''}`}
-            onClick={() => !isDragging && onSelect(gem.id)}
-            title={gem.instruction}
-            style={{ 
-              flexShrink: 0, 
-              minWidth: 'fit-content',
-              padding: '8px 16px',
-              pointerEvents: isDragging ? 'none' : 'auto'
-            }}
+          <Tooltip 
+            key={gem.id} 
+            text={gem.instruction}
+            content={
+              <div className="flex flex-col gap-1">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Persona Focus</div>
+                <div className="text-[12px] font-bold mb-1">{gem.name}</div>
+                <div className="text-[11px] opacity-90 leading-relaxed">{gem.instruction}</div>
+              </div>
+            }
           >
-            {ICON_MAP[gem.icon] || <Sparkles size={14} />}
-            <span style={{ fontSize: '11px', fontWeight: 600 }}>{gem.name}</span>
-          </button>
+            <button
+              className={`tone-option ${gem.id === activeGem.id ? 'active' : ''}`}
+              onClick={() => !isDragging && onSelect(gem.id)}
+              style={{ 
+                flexShrink: 0, 
+                minWidth: 'fit-content',
+                padding: '8px 16px',
+                pointerEvents: isDragging ? 'none' : 'auto'
+              }}
+            >
+              {ICON_MAP[gem.icon] || <Sparkles size={14} />}
+              <span style={{ fontSize: '11px', fontWeight: 600 }}>{gem.name}</span>
+            </button>
+          </Tooltip>
         ))}
       </div>
     </div>

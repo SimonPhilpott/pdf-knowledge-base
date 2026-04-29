@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
@@ -51,19 +52,24 @@ export function CursorTooltip({ text, content, isVisible }) {
       x = position.x - box.width - offset;
     }
 
+    // Boundary Awareness: Flip to right if hitting left edge (when flipped)
+    if (x < 10) {
+      x = position.x + offset;
+    }
+
     // Boundary Awareness: Flip to top if hitting bottom edge
     if (y + box.height > height - 20) {
       y = position.y - box.height - offset;
     }
 
-    // Ensure we don't go off-screen at the top or left either
-    x = Math.max(10, x);
-    y = Math.max(10, y);
+    // Final safety constraints
+    x = Math.max(10, Math.min(width - box.width - 10, x));
+    y = Math.max(10, Math.min(height - box.height - 10, y));
 
     setCoords({ x, y, opacity: 1 });
   }, [position, isVisible]);
 
-  return (
+  const portalContent = (
     <AnimatePresence>
       {isVisible && (
         <motion.div
@@ -76,20 +82,20 @@ export function CursorTooltip({ text, content, isVisible }) {
             position: 'fixed',
             left: coords.x,
             top: coords.y,
-            zIndex: 1000000,
+            zIndex: 2147483647, // Max z-index for portal
             pointerEvents: 'none'
           }}
         >
           <div style={{
             padding: '10px 14px',
-            background: 'var(--glass-bg)',
-            backdropFilter: 'blur(20px)',
+            background: 'var(--bg-secondary)',
+            backdropFilter: 'blur(30px)',
             border: '1px solid var(--glass-border)',
             borderRadius: 'var(--radius-md)',
             color: 'var(--text-primary)',
             fontSize: '11px',
             fontWeight: 600,
-            boxShadow: 'var(--shadow-xl)',
+            boxShadow: 'var(--shadow-lg)',
             maxWidth: '320px',
             lineHeight: 1.5,
             whiteSpace: 'pre-wrap'
@@ -100,6 +106,8 @@ export function CursorTooltip({ text, content, isVisible }) {
       )}
     </AnimatePresence>
   );
+
+  return createPortal(portalContent, document.body);
 }
 
 /**
@@ -116,13 +124,13 @@ export function CursorPopover({ isVisible, children, title }) {
       position: 'fixed',
       left: position.x,
       top: position.y,
-      zIndex: 1000000,
+      zIndex: 2147483647, // Max z-index for portal
       pointerEvents: 'none',
       transform: `translate(${h === 'left' ? `calc(-100% - ${offset}px)` : `${offset}px`}, ${v === 'top' ? `calc(-100% - ${offset}px)` : `${offset}px`})`
     };
   };
 
-  return (
+  const portalContent = (
     <AnimatePresence>
       {isVisible && (
         <motion.div
@@ -176,7 +184,10 @@ export function CursorPopover({ isVisible, children, title }) {
       )}
     </AnimatePresence>
   );
+
+  return createPortal(portalContent, document.body);
 }
+
 /**
  * Tooltip: Simple wrapper to add premium cursor-following hover text to any element.
  */
