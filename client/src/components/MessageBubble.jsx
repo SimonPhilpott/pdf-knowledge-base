@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, Bot, Zap, Brain, Sparkles, Copy, Check, ShieldCheck, Info, Loader2 } from 'lucide-react';
 import CitationCard from './CitationCard';
+import { Tooltip } from './CursorHover';
 
 export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems = [], onOpenCanvas }) {
   const { role, content, citations, model, canvasUpdate, id } = message;
@@ -283,23 +284,23 @@ export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems =
         const { text: citationText, data: citationData } = cite;
         if (citationData && citationData.driveFileId) {
           parts.push(
-            <button
-              key={`cite-${lineKey}-${match.index}`}
-              className="citation-badge"
-              onClick={() => {
-                onOpenPdf(
-                  citationData.driveFileId || citationData.drive_file_id, 
-                  citationData.pageNum || citationData.page_num, 
-                  citationData.filename,
-                  citationData.text || citationText
-                );
-              }}
-              title={`Open ${citationData.filename} at page ${citationData.pageNum}`}
-            >
-              <span className="citation-icon">📄</span>
-              {citationData.filename?.replace('.pdf', '')}, p.{citationData.pageNum}
-              <span style={{ marginLeft: '4px', fontSize: '10px', opacity: 0.7 }}>↗</span>
-            </button>
+            <Tooltip key={`cite-${lineKey}-${match.index}`} text={`Open ${citationData.filename} at page ${citationData.pageNum}`}>
+              <button
+                className="citation-badge"
+                onClick={() => {
+                  onOpenPdf(
+                    citationData.driveFileId || citationData.drive_file_id, 
+                    citationData.pageNum || citationData.page_num, 
+                    citationData.filename,
+                    citationData.text || citationText
+                  );
+                }}
+              >
+                <span className="citation-icon">📄</span>
+                {citationData.filename?.replace('.pdf', '')}, p.{citationData.pageNum}
+                <span style={{ marginLeft: '4px', fontSize: '10px', opacity: 0.7 }}>↗</span>
+              </button>
+            </Tooltip>
           );
         } else {
           parts.push(
@@ -370,15 +371,16 @@ export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems =
 
         {role === 'assistant' && (
           <div className="message-actions">
-            <button 
-              className={`verify-btn ${isVerifying ? 'loading' : ''}`} 
-              onClick={handleVerify}
-              disabled={isVerifying}
-              title="Double-Check with Google Search"
-            >
-              {isVerifying ? <Loader2 size={12} className="animate-spin" /> : <ShieldCheck size={12} />}
-              <span>{isVerifying ? 'Verifying...' : 'Verify Response'}</span>
-            </button>
+            <Tooltip text="Double-Check with Google Search">
+              <button 
+                className={`verify-btn ${isVerifying ? 'loading' : ''}`} 
+                onClick={handleVerify}
+                disabled={isVerifying}
+              >
+                {isVerifying ? <Loader2 size={12} className="animate-spin" /> : <ShieldCheck size={12} />}
+                <span>{isVerifying ? 'Verifying...' : 'Verify Response'}</span>
+              </button>
+            </Tooltip>
           </div>
         )}
 
@@ -436,14 +438,15 @@ function CodeBlock({ code, language, onOpenCanvas }) {
       <div className="code-block-header">
         <span className="code-block-lang">{language || 'code'}</span>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button 
-            className="code-copy-btn" 
-            onClick={() => onOpenCanvas(code)}
-            title="Open in Workspace"
-          >
-            <Sparkles size={14} />
-            <span>Workspace</span>
-          </button>
+          <Tooltip text="Open in Workspace">
+            <button 
+              className="code-copy-btn" 
+              onClick={() => onOpenCanvas(code)}
+            >
+              <Sparkles size={14} />
+              <span>Workspace</span>
+            </button>
+          </Tooltip>
           <button className="code-copy-btn" onClick={handleCopy}>
             {copied ? <Check size={14} /> : <Copy size={14} />}
             <span>{copied ? 'Copied!' : 'Copy'}</span>

@@ -4,6 +4,7 @@ import {
   X, Shield, FileText, Code, Star, Trash2, Settings, Sparkles, Grid, Activity, Terminal, Globe, Copy, Zap, CheckCircle2
 } from 'lucide-react';
 import { useDraggableScroll } from '../../hooks/useDraggableScroll';
+import { Tooltip } from '../CursorHover';
 
 /**
  * AdminPortal: Executive Control Interface.
@@ -15,8 +16,6 @@ export default function AdminPortal({ isOpen, onClose }) {
   const [data, setData] = useState({ structure: null, rules: [], devRules: '', features: null });
   const [loading, setLoading] = useState(false);
   const [newRule, setNewRule] = useState('');
-  const [hoverDetail, setHoverDetail] = useState(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [ngrokStatus, setNgrokStatus] = useState({ active: false, url: null });
   const [isNgrokTransitioning, setIsNgrokTransitioning] = useState(false);
 
@@ -55,9 +54,7 @@ export default function AdminPortal({ isOpen, onClose }) {
     }
   };
 
-  const handleMouseMove = (e) => {
-    setMousePos({ x: e.clientX, y: e.clientY });
-  };
+
 
   const loadTabData = async (tab) => {
     setLoading(true);
@@ -108,7 +105,6 @@ export default function AdminPortal({ isOpen, onClose }) {
   return (
     <div 
       className="fixed inset-0 z-[2000] flex items-center justify-center p-6 md:p-12 overflow-hidden"
-      onMouseMove={handleMouseMove}
     >
       <motion.div
         initial={{ opacity: 0 }}
@@ -191,7 +187,7 @@ export default function AdminPortal({ isOpen, onClose }) {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {activeTab === 'structure' && <StructureView structure={data.structure} loading={loading} onHover={setHoverDetail} />}
+              {activeTab === 'structure' && <StructureView structure={data.structure} loading={loading} />}
               {activeTab === 'rules' && (
                 <RulesView
                   rules={data.rules}
@@ -203,7 +199,7 @@ export default function AdminPortal({ isOpen, onClose }) {
                 />
               )}
               {activeTab === 'dev-rules' && <DevRulesView content={data.devRules} loading={loading} />}
-              {activeTab === 'features' && <FeaturesView features={data.features} loading={loading} onHover={setHoverDetail} />}
+              {activeTab === 'features' && <FeaturesView features={data.features} loading={loading} />}
               {activeTab === 'network' && (
                 <NetworkView 
                   status={ngrokStatus} 
@@ -215,26 +211,13 @@ export default function AdminPortal({ isOpen, onClose }) {
           </AnimatePresence>
         </main>
         
-        {hoverDetail && (
-          <div 
-            style={{ 
-              position: 'fixed',
-              left: mousePos.x > window.innerWidth / 2 ? mousePos.x - 20 : mousePos.x + 20,
-              top: mousePos.y + 15,
-              transform: mousePos.x > window.innerWidth / 2 ? 'translateX(-100%)' : 'none',
-              zIndex: 1000000 
-            }}
-            className="px-3 py-2 bg-[var(--glass-bg)] backdrop-blur-[12px] border border-[var(--glass-border)] text-[var(--text-primary)] text-[11px] font-bold rounded-[var(--radius-md)] shadow-2xl pointer-events-none transition-all duration-75"
-          >
-            {hoverDetail}
-          </div>
-        )}
+
       </motion.div>
     </div>
   );
 }
 
-function StructureView({ structure, loading, onHover }) {
+function StructureView({ structure, loading }) {
   if (loading && !structure) return <LoadingPulse />;
   if (!structure) return <div className="text-slate-500 p-20 text-center font-bold uppercase tracking-widest text-xs">No Matrix Data</div>;
 
@@ -251,17 +234,16 @@ function StructureView({ structure, loading, onHover }) {
 
           <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
             {Object.entries(files || {}).map(([path, desc]) => (
-              <div 
-                key={path} 
-                onMouseEnter={() => onHover(`${path}: ${desc}`)}
-                onMouseLeave={() => onHover(null)}
-                className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-2 hover:border-[var(--accent-indigo)] transition-all group cursor-help"
-              >
-                <div className="w-8 h-8 rounded-lg bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] mb-2 group-hover:scale-110 transition-transform mx-auto">
-                  {path.endsWith('.js') || path.endsWith('.jsx') ? <Code size={14} /> : <FileText size={14} />}
+              <Tooltip key={path} text={`${path}: ${desc}`}>
+                <div 
+                  className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-2 hover:border-[var(--accent-indigo)] transition-all group cursor-help"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] mb-2 group-hover:scale-110 transition-transform mx-auto">
+                    {path.endsWith('.js') || path.endsWith('.jsx') ? <Code size={14} /> : <FileText size={14} />}
+                  </div>
+                  <h4 className="text-[9px] font-mono font-bold text-[var(--text-primary)] text-center truncate">{path}</h4>
                 </div>
-                <h4 className="text-[9px] font-mono font-bold text-[var(--text-primary)] text-center truncate">{path}</h4>
-              </div>
+              </Tooltip>
             ))}
           </div>
         </section>
@@ -405,7 +387,7 @@ function DevRulesView({ content, loading }) {
   );
 }
 
-function FeaturesView({ features, loading, onHover }) {
+function FeaturesView({ features, loading }) {
   if (loading && !features) return <LoadingPulse />;
   const items = features?.features || [];
   return (
@@ -423,27 +405,26 @@ function FeaturesView({ features, loading, onHover }) {
           const isImplemented = status === 'implemented';
           
           return (
-            <div 
-              key={f.id} 
-              onMouseEnter={() => onHover(f.description)}
-              onMouseLeave={() => onHover(null)}
-              className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-3 hover:border-[var(--accent-indigo)] transition-all group cursor-help flex flex-col gap-3"
-            >
-              <div className="flex items-start justify-between">
-                <div className="w-8 h-8 rounded-lg bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] group-hover:scale-110 transition-transform">
-                  <Star size={14} fill={isImplemented ? "currentColor" : "none"} />
+            <Tooltip key={f.id} text={f.description}>
+              <div 
+                className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-3 hover:border-[var(--accent-indigo)] transition-all group cursor-help flex flex-col gap-3"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] group-hover:scale-110 transition-transform">
+                    <Star size={14} fill={isImplemented ? "currentColor" : "none"} />
+                  </div>
+                  <span className={`status-badge ${status}`}>
+                    {f.status}
+                  </span>
                 </div>
-                <span className={`status-badge ${status}`}>
-                  {f.status}
-                </span>
+                <div>
+                  <h4 className="text-[10px] font-bold text-[var(--text-primary)] tracking-wider mb-1 line-clamp-1">
+                    {f.name}
+                  </h4>
+                  <div className="h-0.5 w-8 bg-[var(--accent-indigo)]/30 rounded-full" />
+                </div>
               </div>
-              <div>
-                <h4 className="text-[10px] font-bold text-[var(--text-primary)] tracking-wider mb-1 line-clamp-1">
-                  {f.name}
-                </h4>
-                <div className="h-0.5 w-8 bg-[var(--accent-indigo)]/30 rounded-full" />
-              </div>
-            </div>
+            </Tooltip>
           );
         })}
       </div>
