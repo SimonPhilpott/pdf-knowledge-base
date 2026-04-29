@@ -32,43 +32,65 @@ export function useCursorFollow() {
  * CursorTooltip: High-fidelity floating text block that follows the cursor.
  */
 export function CursorTooltip({ text, content, isVisible }) {
-  const { position, alignment } = useCursorFollow();
+  const { position } = useCursorFollow();
+  const boxRef = useRef(null);
+  const [coords, setCoords] = useState({ x: 0, y: 0, opacity: 0 });
 
-  const getStyle = () => {
-    const offset = 15;
-    const [v, h] = alignment.split('-');
-    
-    return {
-      position: 'fixed',
-      left: position.x,
-      top: position.y,
-      zIndex: 1000000,
-      pointerEvents: 'none',
-      transform: `translate(${h === 'left' ? `calc(-100% - ${offset}px)` : `${offset}px`}, ${v === 'top' ? `calc(-100% - ${offset}px)` : `${offset}px`})`
-    };
-  };
+  useEffect(() => {
+    if (!isVisible || !boxRef.current) return;
+
+    const box = boxRef.current.getBoundingClientRect();
+    const offset = 24; // Larger gap to avoid 'help' cursor question mark
+    const { innerWidth: width, innerHeight: height } = window;
+
+    let x = position.x + offset;
+    let y = position.y + offset;
+
+    // Boundary Awareness: Flip to left if hitting right edge
+    if (x + box.width > width - 20) {
+      x = position.x - box.width - offset;
+    }
+
+    // Boundary Awareness: Flip to top if hitting bottom edge
+    if (y + box.height > height - 20) {
+      y = position.y - box.height - offset;
+    }
+
+    // Ensure we don't go off-screen at the top or left either
+    x = Math.max(10, x);
+    y = Math.max(10, y);
+
+    setCoords({ x, y, opacity: 1 });
+  }, [position, isVisible]);
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
+          ref={boxRef}
           initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          animate={{ opacity: coords.opacity, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-          style={getStyle()}
+          transition={{ duration: 0.1, ease: 'easeOut' }}
+          style={{
+            position: 'fixed',
+            left: coords.x,
+            top: coords.y,
+            zIndex: 1000000,
+            pointerEvents: 'none'
+          }}
         >
           <div style={{
-            padding: '8px 12px',
+            padding: '10px 14px',
             background: 'var(--glass-bg)',
-            backdropFilter: 'blur(12px)',
+            backdropFilter: 'blur(20px)',
             border: '1px solid var(--glass-border)',
             borderRadius: 'var(--radius-md)',
             color: 'var(--text-primary)',
             fontSize: '11px',
             fontWeight: 600,
-            boxShadow: 'var(--shadow-lg)',
-            maxWidth: '300px',
+            boxShadow: 'var(--shadow-xl)',
+            maxWidth: '320px',
             lineHeight: 1.5,
             whiteSpace: 'pre-wrap'
           }}>
@@ -182,7 +204,7 @@ export function Tooltip({ children, text, content, delay = 0 }) {
       className="tooltip-trigger-wrapper"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
-      style={{ display: 'contents' }}
+      style={{ display: 'block', width: '100%' }}
     >
       {children}
       <CursorTooltip text={text} content={content} isVisible={isVisible} />

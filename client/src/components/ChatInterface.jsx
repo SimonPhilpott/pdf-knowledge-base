@@ -71,7 +71,7 @@ export default function ChatInterface({
           {suggestions && suggestions.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', width: '100%', maxWidth: '800px', marginTop: '12px' }}>
               {suggestions.slice(0, 4).map((s, i) => (
-                <Tooltip key={i} text={s.topic}>
+                <Tooltip key={i} text={s.topic || s.filename || s.suggested_question}>
                   <button
                     className="topic-chip user-message-style"
                     onClick={() => onTopicClick(s.suggested_question)}
