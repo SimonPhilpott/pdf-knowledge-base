@@ -145,6 +145,7 @@ export default function App() {
         onThemeToggle={actions.toggleTheme}
         gems={gems}
         onActivateGem={activateGem}
+        voiceEngine={actions.voiceEngine}
       />
 
       <ErrorBoundary>

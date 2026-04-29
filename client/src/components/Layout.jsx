@@ -32,7 +32,8 @@ export default function Layout({
   chatTone, onToneChange,
   theme, onThemeToggle,
   gems, onActivateGem,
-  isClearingHistory
+  isClearingHistory,
+  voiceEngine
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
@@ -269,6 +270,7 @@ export default function Layout({
               onOpenCanvas={onOpenCanvas}
               onPin={onPin}
               pinnedItems={pinnedItems}
+              voiceEngine={voiceEngine}
             />
           </div>
 

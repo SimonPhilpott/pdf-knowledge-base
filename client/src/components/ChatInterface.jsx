@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, BookOpen, Bot, Sparkles, Image as ImageIcon, Camera, X } from 'lucide-react';
+import { Send, BookOpen, Bot, Sparkles, Image as ImageIcon, Camera, X, Mic, Volume2, VolumeX, MicOff } from 'lucide-react';
 import MessageBubble from './MessageBubble';
 
 export default function ChatInterface({ 
   messages, isTyping, onSendMessage, onOpenPdf, 
   suggestions, onTopicClick, appMode, onToggleCanvas, onOpenCanvas,
-  onPin, pinnedItems = []
+  onPin, pinnedItems = [],
+  voiceEngine
 }) {
   const [input, setInput] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
@@ -164,6 +165,41 @@ export default function ChatInterface({
             >
               <Sparkles size={16} />
             </button>
+
+            <div className="voice-tools" style={{ display: 'flex', gap: '4px', marginLeft: '4px', paddingLeft: '8px', borderLeft: '1px solid var(--glass-border)' }}>
+              <button
+                type="button"
+                className={`tool-btn voice-mic-btn ${voiceEngine.isListening ? 'active-listening' : ''}`}
+                title={voiceEngine.isListening ? "Stop Listening" : "Hands-Free Research (Auto-Send)"}
+                onClick={() => voiceEngine.toggleListening({
+                  onResult: (transcript, autoSubmit) => {
+                    if (autoSubmit && transcript.trim()) {
+                      onSendMessage(transcript);
+                      setInput('');
+                    } else {
+                      setInput(prev => prev + (prev ? ' ' : '') + transcript);
+                    }
+                  },
+                  autoSubmit: true
+                })}
+              >
+                {voiceEngine.isListening ? (
+                  <div className="flex items-center gap-1">
+                    <Mic size={16} className="animate-pulse text-red-500" />
+                    <Sparkles size={10} className="animate-spin text-[var(--accent-indigo)]" />
+                  </div>
+                ) : <Mic size={16} />}
+              </button>
+              
+              <button
+                type="button"
+                className={`tool-btn ${voiceEngine.isTtsEnabled ? 'text-[var(--accent-indigo)]' : 'text-[var(--text-muted)]'}`}
+                title={voiceEngine.isTtsEnabled ? "Disable Voice Responses" : "Enable Voice Responses"}
+                onClick={() => voiceEngine.toggleTts()}
+              >
+                {voiceEngine.isTtsEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+              </button>
+            </div>
           </div>
           <button
             type="submit"
