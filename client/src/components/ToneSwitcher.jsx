@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, Briefcase, Target, Search } from 'lucide-react';
+import { useDraggableScroll } from '../hooks/useDraggableScroll';
 import { Tooltip } from './CursorHover';
 
 /**

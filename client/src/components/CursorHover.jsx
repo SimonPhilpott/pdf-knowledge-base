@@ -204,7 +204,7 @@ export function Tooltip({ children, text, content, delay = 0 }) {
       className="tooltip-trigger-wrapper"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
-      style={{ display: 'block', width: '100%' }}
+      style={{ display: 'contents' }}
     >
       {children}
       <CursorTooltip text={text} content={content} isVisible={isVisible} />

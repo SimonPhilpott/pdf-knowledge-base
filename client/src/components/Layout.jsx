@@ -45,7 +45,12 @@ export default function Layout({
   const [teleportedIds, setTeleportedIds] = useState([]);
   const topbarRef = React.useRef(null);
   const toolWidthsRef = React.useRef({
-    logo: 180 
+    logo: 180,
+    tone: 220,
+    gem: 100,
+    model: 240,
+    usage: 160,
+    settings: 48
   });
 
   // PDF Pane state
