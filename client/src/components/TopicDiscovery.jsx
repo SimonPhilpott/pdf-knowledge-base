@@ -73,12 +73,12 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
                       content={
                         <div className="flex flex-col gap-1">
                           <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
-                          <div className="text-[12px] font-bold mb-1">{s.topic}</div>
+                          <div className="text-[12px] font-bold mb-1">{s.topic || 'Suggested Exploration'}</div>
                           <div className="flex items-center gap-2 text-[10px] opacity-70">
-                            <span className="font-bold">Book:</span> {s.filename}
+                            <span className="font-bold">Book:</span> {s.filename || 'Knowledge Base'}
                           </div>
                           <div className="flex items-center gap-2 text-[10px] opacity-70">
-                            <span className="font-bold">Subject:</span> {s.subject}
+                            <span className="font-bold">Subject:</span> {s.subject || 'General Research'}
                           </div>
                         </div>
                       }
