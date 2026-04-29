@@ -2,40 +2,41 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 /* =============================================
-   Knowledge Base â€” Design System
+   Knowledge Base ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Design System
    Premium dark theme with glassmorphism
    ============================================= */
 
 /* --- CSS Custom Properties --- */
 :root {
   /* Core palette - Oatmeal Light Mode */
-  --bg-primary: #F5F1E9;
-  --bg-secondary: #FBF9F6;
+  --bg-primary: #F1EFE9;
+  --bg-secondary: #FBF9F7;
   --bg-tertiary: #EDE5D8;
   --bg-elevated: #E5DCCB;
 
   /* Glass effect backgrounds */
-  --glass-bg: rgba(245, 241, 233, 0.75);
-  --glass-border: rgba(45, 41, 36, 0.12);
+  --glass-bg: rgba(251, 249, 247, 0.75);
+  --glass-border: rgba(46, 43, 39, 0.1);
   --glass-blur: blur(30px);
-  --accent-glow: 0 0 40px rgba(140, 115, 85, 0.1);
-  --glass-border-hover: rgba(140, 115, 85, 0.3);
+  --accent-glow: 0 0 40px rgba(137, 153, 129, 0.08);
+  --glass-border-hover: rgba(137, 153, 129, 0.25);
 
   /* Text - Optimised for warm backgrounds */
-  --text-primary: #2D2924;
-  --text-secondary: #5C5449;
-  --text-muted: #8A7F70;
-  --text-accent: #7D6B5D;
+  --text-primary: #2E2B27;
+  --text-secondary: #4A443F;
+  --text-muted: #6A645D;
+  --text-accent: #000000;
 
   /* Accent colors - Warm Oatmeal Palette */
-  --accent-indigo: #8C7355;
-  --accent-indigo-light: #7D6B5D;
-  --accent-violet: #A88F6C;
-  --accent-cyan: #96897B;
-  --accent-emerald: #848D78;
-  --accent-amber: #D4C4A8;
-  --accent-rose: #B58B82;
-  --accent-orange: #C49F86;
+  --accent-indigo: #899981;
+  --accent-indigo-light: #A5B39D;
+  --accent-sage: #899981;
+  --accent-violet: #4F46E5;
+  --accent-cyan: #0891B2;
+  --accent-emerald: #059669;
+  --accent-amber: #D97706;
+  --accent-rose: #E11D48;
+  --accent-orange: #EA580C;
 
   /* Status colors */
   --status-green: #10b981;
@@ -45,18 +46,18 @@
   --status-critical: #dc2626;
 
   /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.1);
-  --shadow-glow-hover: 0 0 30px rgba(99, 102, 241, 0.15);
+  --shadow-sm: 0 2px 8px rgba(46, 43, 39, 0.05);
+  --shadow-md: 0 4px 16px rgba(46, 43, 39, 0.08);
+  --shadow-lg: 0 8px 32px rgba(46, 43, 39, 0.12);
+  --shadow-glow: 0 0 20px rgba(137, 153, 129, 0.15);
+  --shadow-glow-hover: 0 0 30px rgba(137, 153, 129, 0.25);
 
   /* Gradients */
   /* Gradients - Oatmeal Palette */
-  --gradient-primary: linear-gradient(135deg, #8C7355 0%, #B5A084 50%, #D4C4A8 100%);
-  --gradient-secondary: linear-gradient(135deg, #7D6B5D 0%, #8C7355 100%);
-  --gradient-warm: linear-gradient(135deg, #A88F6C 0%, #7D6B5D 100%);
-  --gradient-surface: linear-gradient(145deg, rgba(251, 249, 246, 0.95) 0%, rgba(245, 241, 233, 1) 100%);
+  --gradient-primary: linear-gradient(135deg, #899981 0%, #6A7A62 100%);
+  --gradient-secondary: linear-gradient(135deg, #A5B39D 0%, #899981 100%);
+  --gradient-warm: linear-gradient(135deg, #899981 0%, #2E2B27 100%);
+  --gradient-surface: linear-gradient(145deg, rgba(251, 249, 247, 0.95) 0%, rgba(241, 239, 233, 1) 100%);
 
   /* Shared Properties */
   --space-xs: 4px;
@@ -91,8 +92,8 @@
   /* Glass effect backgrounds */
   --glass-bg: rgba(17, 24, 39, 0.7);
   --glass-bg-light: rgba(30, 38, 66, 0.5);
-  --glass-border: rgba(99, 102, 241, 0.15);
-  --glass-border-hover: rgba(99, 102, 241, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-hover: color-mix(in srgb, var(--accent-indigo), transparent 0.35);
 
   /* Text */
   --text-primary: #f0f2f8;
@@ -114,8 +115,8 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
-  --shadow-glow-hover: 0 0 30px rgba(99, 102, 241, 0.25);
+  --shadow-glow: 0 0 20px color-mix(in srgb, var(--accent-indigo), transparent 0.15);
+  --shadow-glow-hover: 0 0 30px color-mix(in srgb, var(--accent-indigo), transparent 0.25);
 
   /* Gradients - Reverted to Purple for Dark Mode */
   --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
@@ -124,13 +125,71 @@
   --gradient-surface: linear-gradient(145deg, rgba(30, 38, 66, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%);
 }
 
-/* --- Reset & Base --- */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* --- AI Workspace (Canvas) Theme Support --- */
+.side-canvas {
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+
+.canvas-header {
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+
+.canvas-footer {
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.canvas-editor-wrapper {
+  background: var(--bg-primary);
+}
+
+/* Quill Editor Oatmeal Adaptation */
+.ql-toolbar.ql-snow {
+  border: none !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+  background: var(--bg-tertiary) !important;
+}
+
+.ql-container.ql-snow {
+  border: none !important;
+  background: var(--bg-primary) !important;
+}
+
+.ql-editor {
+  color: var(--text-primary) !important;
+  font-family: var(--font-body) !important;
+}
+
+.ql-snow .ql-stroke {
+  stroke: var(--text-secondary) !important;
+}
+
+.ql-snow .ql-fill {
+  fill: var(--text-secondary) !important;
+}
+
+.ql-snow .ql-picker {
+  color: var(--text-secondary) !important;
+}
+
+/* Global Icon Fix - Restore stroke-only behavior for standard icons */
+svg:not(.fill-current):not(.status-indicator) path,
+svg:not(.fill-current):not(.status-indicator) circle,
+svg:not(.fill-current):not(.status-indicator) rect {
+  fill: transparent !important;
+  transition: transform var(--transition-fast), stroke var(--transition-fast), fill var(--transition-fast);
+}
+
+/* Ensure icons that ARE meant to be filled stay filled */
+.index-status-badge svg *,
+.status-indicator,
+.fill-current {
+  fill: currentColor !important;
 }
 
 html,
@@ -159,7 +218,7 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 50%, color-mix(in srgb, var(--accent-indigo), transparent 0.08) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
     radial-gradient(ellipse at 50% 80%, rgba(34, 211, 238, 0.04) 0%, transparent 50%);
   pointer-events: none;
@@ -186,12 +245,12 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.25);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 75%);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.4);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 50%);
 }
 
 /* --- Layout --- */
@@ -257,7 +316,7 @@ a:hover {
   width: 45%;
   height: 100%;
   border-left: 1px solid var(--glass-border);
-  background: rgba(13, 17, 23, 0.6);
+  background: var(--bg-secondary);
   backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
@@ -290,7 +349,7 @@ a:hover {
   font-size: 13px;
   font-weight: 600;
   color: var(--accent-primary);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.5px;
 }
 
@@ -511,7 +570,7 @@ a:hover {
 
 .sync-btn.active {
   color: var(--accent-indigo-light);
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: color-mix(in srgb, var(--accent-indigo), transparent 0.4);
 }
 
 .mode-switcher {
@@ -599,7 +658,8 @@ a:hover {
   align-items: center; gap: 8px;
   justify-content: space-between;
   
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .canvas-close {
@@ -725,7 +785,7 @@ a:hover {
 }
 
 .admin-glass-card:hover {
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: color-mix(in srgb, var(--accent-indigo), transparent 0.4);
   box-shadow: var(--accent-glow);
 }
 
@@ -738,6 +798,37 @@ a:hover {
 .bento-item-large {
   grid-column: span 2;
   grid-row: span 2;
+}
+
+/* --- Status Badges --- */
+.status-badge {
+  font-size: 8px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: none;
+  letter-spacing: 0.05em;
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-muted);
+  border: 1px solid transparent;
+}
+
+.status-badge.implemented {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--status-green);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.status-badge.stable {
+  background: color-mix(in srgb, var(--accent-indigo), transparent 0.1);
+  color: var(--accent-indigo);
+  border-color: color-mix(in srgb, var(--accent-indigo), transparent 0.2);
+}
+
+.status-badge.in-progress {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--status-yellow);
+  border-color: rgba(245, 158, 11, 0.2);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -796,7 +887,7 @@ a:hover {
 .sidebar-resizer:hover,
 .sidebar-resizer.active {
   background: var(--accent-indigo);
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-indigo), transparent 0.5);
 }
 
 .sidebar-section {
@@ -807,7 +898,7 @@ a:hover {
 .sidebar-section-title {
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.08em;
   color: var(--text-muted);
   margin-bottom: var(--space-sm);
@@ -857,7 +948,7 @@ a:hover {
 }
 
 .subject-filter-item input[type="checkbox"]:checked::after {
-  content: 'âœ“';
+  content: 'ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -903,8 +994,8 @@ a:hover {
 }
 
 .chat-history-item.active {
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid var(--glass-border-hover);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 85%);
+  border: 1px solid color-mix(in srgb, var(--accent-indigo), transparent 70%);
 }
 
 .chat-history-title {
@@ -1162,7 +1253,7 @@ a:hover {
 
 .message-content code {
   font-family: var(--font-mono);
-  background: rgba(99, 102, 241, 0.15);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 0.15);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 13px;
@@ -1201,12 +1292,12 @@ a:hover {
   align-items: center; gap: 8px;
   gap: 4px;
   padding: 3px 10px;
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 85%);
+  border: 1px solid color-mix(in srgb, var(--accent-indigo), transparent 70%);
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 500;
-  color: var(--accent-indigo-light);
+  color: color-mix(in srgb, var(--accent-indigo), black 40%);
   cursor: pointer;
   transition: all var(--transition-fast);
   margin: 2px 4px;
@@ -1217,10 +1308,14 @@ a:hover {
 }
 
 .citation-badge:hover {
-  background: rgba(99, 102, 241, 0.25);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 75%);
   border-color: var(--accent-indigo);
 
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent-indigo), transparent 80%);
+}
+
+.dark .citation-badge {
+  color: var(--accent-indigo-light);
 }
 
 .citation-badge .citation-icon {
@@ -1517,6 +1612,7 @@ a:hover {
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
+  z-index: 500;
   transition: transform var(--transition-base), width var(--transition-base);
 }
 
@@ -1550,7 +1646,7 @@ a:hover {
 .topic-subject-name {
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.08em;
   color: var(--text-muted);
   margin-bottom: var(--space-sm);
@@ -1578,7 +1674,7 @@ a:hover {
   outline: none;
   border-color: var(--accent-indigo);
   background: var(--glass-bg-light);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-indigo), transparent 0.1);
 }
 
 .topic-search-wrapper .search-icon {
@@ -1616,6 +1712,7 @@ a:hover {
 .topic-chip {
   padding: 10px 16px;
   border-radius: var(--radius-md);
+  border-bottom-right-radius: var(--space-xs);
   font-size: 13px;
   line-height: 1.4;
   font-weight: 500;
@@ -1637,33 +1734,19 @@ a:hover {
 }
 
 .topic-chip:hover {
-  background: rgba(99, 102, 241, 0.15);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 85%);
   border-color: var(--accent-indigo);
-  color: var(--accent-indigo-light);
+  color: var(--accent-indigo);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-indigo), transparent 90%);
 }
 
-.topic-chip:nth-child(6n+1) {
-  border-color: rgba(99, 102, 241, 0.3);
+.topic-chip:nth-child(2n+1) {
+  border-color: color-mix(in srgb, var(--accent-indigo), transparent 70%);
 }
 
-.topic-chip:nth-child(6n+2) {
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.topic-chip:nth-child(6n+3) {
-  border-color: rgba(34, 211, 238, 0.3);
-}
-
-.topic-chip:nth-child(6n+4) {
-  border-color: rgba(52, 211, 153, 0.3);
-}
-
-.topic-chip:nth-child(6n+5) {
-  border-color: rgba(251, 191, 36, 0.3);
-}
-
-.topic-chip:nth-child(6n+6) {
-  border-color: rgba(251, 113, 133, 0.3);
+.topic-chip:nth-child(2n+2) {
+  border-color: color-mix(in srgb, var(--accent-indigo), transparent 80%);
 }
 
 .surprise-btn {
@@ -1887,9 +1970,9 @@ a:hover {
 }
 
 .folder-item.selected {
-  background: rgba(99, 102, 241, 0.15);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 0.15);
   color: var(--accent-indigo-light);
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  border: 1px solid color-mix(in srgb, var(--accent-indigo), transparent 0.3);
 }
 
 .folder-item .folder-icon {
@@ -2088,8 +2171,8 @@ a:hover {
 /* --- Sync Progress --- */
 .sync-progress {
   padding: var(--space-md);
-  background: rgba(99, 102, 241, 0.05);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 0.05);
+  border: 1px solid color-mix(in srgb, var(--accent-indigo), transparent 0.2);
   border-radius: var(--radius-md);
   margin: var(--space-md) 0;
 }
@@ -2495,7 +2578,7 @@ a:hover {
 }
 
 .catalog-item.selected {
-  background: rgba(99, 102, 241, 0.1);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 0.1);
 }
 
 .catalog-name {
@@ -2529,7 +2612,7 @@ a:hover {
   font-weight: 600;
   padding: 2px 6px;
   border-radius: 4px;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .index-status-badge.indexed {
@@ -2598,7 +2681,7 @@ a:hover {
 }
 
 .catalog-open-link:hover {
-  background: rgba(99, 102, 241, 0.2);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 0.2);
   color: white;
 }
 
@@ -2710,7 +2793,7 @@ a:hover {
 }
 
 .subject-tree-scroll-container::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.2);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 0.2);
 }
 
 .subject-filter-container .text-btn {
@@ -2841,7 +2924,7 @@ a:hover {
 }
 
 .catalog-item.selected {
-  background: rgba(99, 102, 241, 0.08);
+  background: color-mix(in srgb, var(--accent-indigo), transparent 0.08);
 }
 
 .catalog-actions {
@@ -3077,7 +3160,7 @@ a:hover {
 .tone-option.active {
   color: white;
   background: var(--gradient-primary);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-indigo), transparent 0.3);
 }
 
 .tone-option:not(.active):hover {
@@ -3145,8 +3228,8 @@ a:hover {
   margin-left: 8px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+  text-transform: none;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-indigo), transparent 0.3);
   display: inline-flex;
   align-items: center; gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -3157,12 +3240,12 @@ a:hover {
   color: white;
   font-weight: 700;
   border: none;
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--accent-indigo), transparent 0.4);
 }
 
 .message.assistant .message-image-container {
   border: 1px solid var(--accent-indigo);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-indigo), transparent 0.15);
   position: relative;
   overflow: hidden;
 }
@@ -3258,7 +3341,7 @@ a:hover {
 .tone-option.active {
   color: white;
   background: var(--gradient-primary);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-indigo), transparent 0.3);
 }
 
 .tone-option:not(.active):hover {
@@ -3326,8 +3409,8 @@ a:hover {
   margin-left: 8px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  text-transform: uppercase;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+  text-transform: none;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-indigo), transparent 0.3);
   display: inline-flex;
   align-items: center; gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -3338,12 +3421,12 @@ a:hover {
   color: white;
   font-weight: 700;
   border: none;
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 15px color-mix(in srgb, var(--accent-indigo), transparent 0.4);
 }
 
 .message.assistant .message-image-container {
   border: 1px solid var(--accent-indigo);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent-indigo), transparent 0.15);
   position: relative;
   overflow: hidden;
 }
@@ -3611,7 +3694,7 @@ body,
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
 }
 
@@ -3845,7 +3928,7 @@ body,
   color: #10b981;
   margin-bottom: 8px;
   font-size: 11px;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
 }
 
@@ -3871,7 +3954,7 @@ body,
   border-radius: var(--radius-sm);
   font-size: 11px;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.05em;
   display: inline-block;
 }
@@ -3921,9 +4004,9 @@ body,
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(99, 102, 241, 0.1) 25%,
-    rgba(99, 102, 241, 0.3) 50%,
-    rgba(99, 102, 241, 0.1) 75%
+    color-mix(in srgb, var(--accent-indigo), transparent 0.1) 25%,
+    color-mix(in srgb, var(--accent-indigo), transparent 0.3) 50%,
+    color-mix(in srgb, var(--accent-indigo), transparent 0.1) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 2s infinite linear;
@@ -3952,3 +4035,5 @@ body,
   transform: translateY(4px);
   pointer-events: all;
 }
+
+

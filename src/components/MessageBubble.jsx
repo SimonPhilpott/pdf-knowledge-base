@@ -287,7 +287,6 @@ export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems =
               key={`cite-${lineKey}-${match.index}`}
               className="citation-badge"
               onClick={() => {
-                console.log('[MessageBubble] Citation click:', citationData);
                 onOpenPdf(
                   citationData.driveFileId || citationData.drive_file_id, 
                   citationData.pageNum || citationData.page_num, 

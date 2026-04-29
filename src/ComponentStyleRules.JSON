@@ -194,8 +194,8 @@
           "font_size": "13px"
         },
         "states": {
-          "selected": "rgba(99, 102, 241, 0.1)",
-          "hover": "rgba(255, 255, 255, 0.02)",
+          "selected": "color-mix(in srgb, var(--accent-indigo), transparent 90%)",
+          "hover": "var(--glass-bg-light)",
           "ai_accent": "var(--accent-indigo)"
         }
       }

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Layout from './components/Layout';
 import OnboardingSetup from './components/OnboardingSetup';
 import CatalogBrowser from './components/CatalogBrowser';
-import AdminPortal from './components/AdminPortal';
+import AdminPortal from './components/Admin/AdminPortal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAppLogic } from './hooks/useAppLogic';
 import { Sparkles } from 'lucide-react';

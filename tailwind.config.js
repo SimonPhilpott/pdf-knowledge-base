@@ -3,38 +3,47 @@ export default {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
-    "./src/components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
-        bg: {
-          primary: '#0a0e1a',
-          secondary: '#111827',
-          tertiary: '#1a2035',
-          elevated: '#1e2642',
+        primary: "var(--bg-primary)",
+        secondary: "var(--bg-secondary)",
+        tertiary: "var(--bg-tertiary)",
+        elevated: "var(--bg-elevated)",
+        glass: {
+          bg: "var(--glass-bg)",
+          border: "var(--glass-border)",
         },
         text: {
-          primary: '#ffffff',
-          secondary: 'rgba(255, 255, 255, 0.7)',
-          muted: 'rgba(255, 255, 255, 0.4)',
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          muted: "var(--text-muted)",
+          accent: "var(--text-accent)",
         },
         accent: {
-          indigo: '#6366f1',
-          'indigo-light': '#a5b4fc',
-          violet: '#8b5cf6',
-          cyan: '#22d3ee',
-          emerald: '#34d399',
-          amber: '#fbbf24',
-          rose: '#fb7185',
+          indigo: "var(--accent-indigo)",
+          "indigo-light": "var(--accent-indigo-light)",
+          violet: "var(--accent-violet)",
+          cyan: "var(--accent-cyan)",
+          emerald: "var(--accent-emerald)",
+          amber: "var(--accent-amber)",
+          rose: "var(--accent-rose)",
         }
       },
-      backgroundImage: {
-        'glass-gradient': 'linear-gradient(145deg, rgba(30, 38, 66, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%)',
-        'primary-gradient': 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%)',
+      spacing: {
+        xs: "var(--space-xs)",
+        sm: "var(--space-sm)",
+        md: "var(--space-md)",
+        lg: "var(--space-lg)",
+        xl: "var(--space-xl)",
+        "2xl": "var(--space-2xl)",
       },
-      backdropBlur: {
-        'xs': '2px',
+      borderRadius: {
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
       }
     },
   },

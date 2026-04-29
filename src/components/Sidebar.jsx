@@ -32,14 +32,14 @@ export default function Sidebar({
             className={`mode-item ${appMode === 'kb' ? 'active' : ''}`}
             onClick={() => onModeChange('kb')}
           >
-            <Library size={14} />
+            <Library size={14} fill="none" stroke="currentColor" />
             <span>Library</span>
           </div>
           <div
             className={`mode-item ${appMode === 'general' ? 'active' : ''}`}
             onClick={() => onModeChange('general')}
           >
-            <Sparkles size={14} />
+            <Sparkles size={14} fill="none" stroke="currentColor" />
             <span>Gemini</span>
           </div>
         </div>
@@ -47,12 +47,12 @@ export default function Sidebar({
 
       <div className="sidebar-section">
         <button className="new-chat-btn" onClick={onNewChat} id="new-chat-btn" style={{ width: '100%', marginBottom: '8px' }}>
-          <Sparkles size={14} />
+          <Sparkles size={14} fill="none" stroke="currentColor" />
           <span>New Chat</span>
         </button>
 
         <button className="sidebar-action-btn" onClick={onOpenCatalog} style={{ width: '100%' }}>
-          <Library size={14} />
+          <Library size={14} fill="none" stroke="currentColor" />
           <span>Browse Library</span>
         </button>
       </div>
