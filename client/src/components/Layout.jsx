@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Library, User, Settings, Menu, Compass, X } from 'lucide-react';
+import { Tooltip } from './CursorHover';
 import Sidebar from './Sidebar';
 import ChatInterface from './ChatInterface';
 import TopicDiscovery from './TopicDiscovery';
@@ -156,9 +157,11 @@ export default function Layout({
       {/* Top Bar */}
       <header className="app-topbar" ref={topbarRef}>
         <div className="app-topbar-left">
-          <button className="mobile-toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-            <Menu size={20} />
-          </button>
+          <Tooltip text="Toggle Navigation Sidebar">
+            <button className="mobile-toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <Menu size={20} />
+            </button>
+          </Tooltip>
           <div className="app-logo">
             <Library className="app-logo-icon" size={20} />
             <span className="logo-text">Knowledge Base</span>
@@ -189,21 +192,24 @@ export default function Layout({
               </div>
             )}
           </div>
-          <button
-            className="mobile-toggle-btn topic-toggle-btn"
-            onClick={() => setIsTopicsOpen(!isTopicsOpen)}
-          >
-            <Compass size={20} />
-          </button>
+          <Tooltip text="Toggle Topic Discovery Panel">
+            <button
+              className="mobile-toggle-btn topic-toggle-btn"
+              onClick={() => setIsTopicsOpen(!isTopicsOpen)}
+            >
+              <Compass size={20} />
+            </button>
+          </Tooltip>
           {!teleportedIds.includes('settings') && (
             <div data-tool-id="settings">
-              <button
-                className="settings-cog-btn"
-                title="System Administration"
-                onClick={onOpenAdmin}
-              >
-                <Settings size={18} />
-              </button>
+              <Tooltip text="System Administration & Configuration">
+                <button
+                  className="settings-cog-btn"
+                  onClick={onOpenAdmin}
+                >
+                  <Settings size={18} />
+                </button>
+              </Tooltip>
             </div>
           )}
         </div>
@@ -363,7 +369,9 @@ export default function Layout({
                 </span>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <SyncStatus syncStatus={syncStatus} onSync={onSync} compact={true} />
-                  <button className="auth-btn logout" onClick={onLogout}>Logout</button>
+                  <Tooltip text="Sign out of your account">
+                    <button className="auth-btn logout" onClick={onLogout}>Logout</button>
+                  </Tooltip>
                 </div>
               </div>
             </div>

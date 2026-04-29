@@ -53,10 +53,12 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
       <div className="topic-panel-content">
         {!searchQuery && (
           <div style={{ marginBottom: '16px' }}>
-            <button className="surprise-btn" onClick={onRefresh} id="surprise-btn" style={{ width: '100%', marginBottom: '8px' }}>
-              <Dice5 size={14} />
-              Ask Your Knowledge Base
-            </button>
+            <Tooltip text="Generate a random thought-provoking question from your library">
+              <button className="surprise-btn" onClick={onRefresh} id="surprise-btn" style={{ width: '100%', marginBottom: '8px' }}>
+                <Dice5 size={14} />
+                Ask Your Knowledge Base
+              </button>
+            </Tooltip>
 
             {showSuggestions && (
               <div>
@@ -66,7 +68,21 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {suggestions.map((s, i) => (
-                    <Tooltip key={i} text={s.topic || s.filename || s.suggested_question}>
+                    <Tooltip 
+                      key={i} 
+                      content={
+                        <div className="flex flex-col gap-1">
+                          <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
+                          <div className="text-[12px] font-bold mb-1">{s.topic}</div>
+                          <div className="flex items-center gap-2 text-[10px] opacity-70">
+                            <span className="font-bold">Book:</span> {s.filename}
+                          </div>
+                          <div className="flex items-center gap-2 text-[10px] opacity-70">
+                            <span className="font-bold">Subject:</span> {s.subject}
+                          </div>
+                        </div>
+                      }
+                    >
                       <button
                         className="topic-chip user-message-style"
                         onClick={() => onTopicClick(s.suggested_question)}
@@ -100,7 +116,19 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
                 <div className="topic-subject-name">{subject}</div>
                 <div className="topic-chips">
                   {filteredTopics[subject].map((topic, i) => (
-                    <Tooltip key={i} text={topic.description || topic.topic}>
+                    <Tooltip 
+                      key={i} 
+                      content={
+                        <div className="flex flex-col gap-1">
+                          <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
+                          <div className="text-[12px] font-bold mb-1">{topic.topic}</div>
+                          {topic.description && <div className="text-[11px] mb-1 opacity-90">{topic.description}</div>}
+                          <div className="flex items-center gap-2 text-[10px] opacity-70">
+                            <span className="font-bold">Book:</span> {topic.filename}
+                          </div>
+                        </div>
+                      }
+                    >
                       <button
                         className="topic-chip"
                         onClick={() => onTopicClick(topic.suggestedQuestion || `Tell me about ${topic.topic}`)}
