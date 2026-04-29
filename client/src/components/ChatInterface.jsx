@@ -1,0 +1,180 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, BookOpen, Bot, Sparkles, Image as ImageIcon, Camera, X } from 'lucide-react';
+import MessageBubble from './MessageBubble';
+
+export default function ChatInterface({ 
+  messages, isTyping, onSendMessage, onOpenPdf, 
+  suggestions, onTopicClick, appMode, onToggleCanvas, onOpenCanvas,
+  onPin, pinnedItems = []
+}) {
+  const [input, setInput] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (messages.length > 0 || isTyping) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [messages.length, isTyping]);
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if ((!input.trim() && !selectedImage) || isTyping) return;
+    
+    onSendMessage(input.trim(), null, selectedImage);
+    setInput('');
+    setSelectedImage(null);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
+  const handleInput = (e) => {
+    setInput(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+  };
+
+  return (
+    <div className="chat-container">
+      {messages.length === 0 ? (
+        <div className="chat-empty">
+          <BookOpen size={64} style={{ opacity: 0.3, marginBottom: '16px' }} />
+          <h2>{appMode === 'kb' ? 'Ask Your PDF Library' : 'Gemini Suite'}</h2>
+          <p>
+            {appMode === 'kb' 
+              ? 'Ask questions about your documents, snap photos of your game, and get AI-powered answers.'
+              : 'Chat with Gemini, generate images, or perform deep research.'}
+          </p>
+          {suggestions && suggestions.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', width: '100%', maxWidth: '800px', marginTop: '12px' }}>
+              {suggestions.slice(0, 4).map((s, i) => (
+                <button
+                  key={i}
+                  className="topic-chip user-message-style"
+                  onClick={() => onTopicClick(s.suggested_question)}
+                  title={s.topic}
+                >
+                  {s.suggested_question}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="chat-messages">
+          {messages.map((msg, i) => (
+            <MessageBubble
+              key={i}
+              message={msg}
+              onOpenPdf={onOpenPdf}
+              onPin={onPin}
+              pinnedItems={pinnedItems}
+              onOpenCanvas={onOpenCanvas}
+            />
+          ))}
+          {isTyping && (
+            <div className="message assistant">
+              <div className="message-avatar">
+                <Bot size={16} />
+              </div>
+              <div className="message-content">
+                <div className="typing-indicator">
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                  <div className="typing-dot"></div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      )}
+
+      <div className="chat-input-area">
+        {selectedImage && (
+          <div className="upload-preview-container">
+            <div style={{ position: 'relative' }}>
+              <img src={selectedImage} alt="Upload preview" className="image-preview-thumb" />
+              <button 
+                className="remove-upload-btn" 
+                onClick={() => setSelectedImage(null)}
+                title="Remove image"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          </div>
+        )}
+        
+        <form onSubmit={handleSubmit} className="chat-input-wrapper">
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleImageSelect} 
+            accept="image/*" 
+            style={{ display: 'none' }} 
+          />
+          
+          <textarea
+            ref={textareaRef}
+            className="chat-input"
+            value={input}
+            onChange={handleInput}
+            onKeyDown={handleKeyDown}
+            placeholder={selectedImage ? "Describe this image or ask a question..." : (appMode === 'kb' ? "Ask about your PDFs..." : "Ask Gemini anything...")}
+            rows={1}
+            disabled={isTyping}
+            id="chat-input"
+          />
+          <div className="input-tools">
+            <button 
+              type="button" 
+              className="tool-btn" 
+              title="Take Photo / Upload Image"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Camera size={16} />
+            </button>
+            <button 
+              type="button" 
+              className="tool-btn" 
+              title="Open Canvas"
+              onClick={() => onToggleCanvas(undefined)}
+            >
+              <Sparkles size={16} />
+            </button>
+          </div>
+          <button
+            type="submit"
+            className="chat-send-btn"
+            disabled={(!input.trim() && !selectedImage) || isTyping}
+            id="chat-send-btn"
+          >
+            <Send size={18} />
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
