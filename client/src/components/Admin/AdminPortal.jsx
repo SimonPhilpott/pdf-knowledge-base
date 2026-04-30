@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Shield, FileText, Code, Star, Trash2, Settings, Sparkles, Grid, Activity, Terminal, Globe, Copy, Zap, CheckCircle2,
-  MousePointer2, Layers, Type, Folder, Search, MessageSquare, ChevronDown, ChevronRight
+  MousePointer2, Layers, Type, Folder, Search, MessageSquare, ChevronDown, ChevronRight, Camera, Mic, Send
 } from 'lucide-react';
 import { useDraggableScroll } from '../../hooks/useDraggableScroll';
 import { Tooltip } from '../CursorHover';
@@ -656,13 +656,32 @@ function VisualPreview({ type, variant, specs }) {
           {isHovered && <Trash2 size={13} className="text-[var(--status-red)] opacity-60 hover:opacity-100 transition-opacity" />}
         </div>
         {isHovered && (
-          <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[var(--bg-primary)] border border-[var(--glass-border)] px-4 py-3 rounded-xl shadow-2xl z-10 w-[300px] text-left leading-relaxed">
-             <span className="block text-[8px] font-black uppercase tracking-[2px] text-[var(--accent-indigo)] mb-1">Full Summary (Zero Truncation)</span>
+          <div className="absolute top-0 right-full mr-4 bg-[var(--bg-primary)] border border-[var(--glass-border)] px-4 py-3 rounded-xl shadow-2xl z-10 w-[300px] text-left leading-relaxed animate-in fade-in slide-in-from-right-2">
+             <span className="block text-[8px] font-black uppercase tracking-[2px] text-[var(--accent-indigo)] mb-1">Quadrant: NW (Flip to Prevent Clipping)</span>
              <p className="text-[10px] font-medium text-[var(--text-primary)]">
                What are the essential physical components needed to play Blood on the Blade, and how do they interact to define the game's initial setup?
              </p>
           </div>
         )}
+      </div>
+    );
+  }
+
+  if (type === 'prompt_action_icons') {
+    return (
+      <div className="p-4 bg-black/5 rounded-xl flex flex-col items-center justify-center border border-dashed border-[var(--glass-border)] h-32 relative">
+        <div className="flex items-center gap-2 p-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--glass-border)] shadow-sm">
+           <Camera size={16} className="text-[var(--text-muted)] hover:text-[var(--accent-indigo)] cursor-pointer" />
+           <Sparkles size={16} className="text-[var(--text-muted)] hover:text-[var(--accent-indigo)] cursor-pointer" />
+           <div className="w-px h-4 bg-[var(--glass-border)] mx-1" />
+           <div className="p-1.5 rounded-lg bg-red-500/10 text-red-500 animate-pulse">
+             <Mic size={16} />
+           </div>
+           <div className="p-1.5 rounded-lg bg-[var(--gradient-primary)] text-white shadow-lg">
+             <Send size={18} />
+           </div>
+        </div>
+        <span className="mt-3 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">Chat Workspace Interaction</span>
       </div>
     );
   }
@@ -681,13 +700,15 @@ function VisualPreview({ type, variant, specs }) {
       });
     };
 
+    const isFlipped = mousePos.x > 250; // Flip if mouse is on the right side of the 500px area
+
     return (
       <div 
         ref={containerRef}
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="p-4 bg-black/5 rounded-xl flex flex-col gap-4 items-center justify-center border border-dashed border-[var(--glass-border)] relative h-48 cursor-crosshair"
+        className="p-4 bg-black/5 rounded-xl flex flex-col gap-4 items-center justify-center border border-dashed border-[var(--glass-border)] relative h-48 cursor-crosshair overflow-hidden"
       >
         <div className="absolute top-0 right-0 bottom-0 w-px bg-[var(--accent-indigo)]/20 border-r border-dashed border-[var(--accent-indigo)]/40 pointer-events-none">
            <span className="absolute top-2 right-2 text-[7px] font-black uppercase text-[var(--accent-indigo)]/60">Viewport Edge</span>
@@ -700,18 +721,20 @@ function VisualPreview({ type, variant, specs }) {
           <div 
             style={{ 
               position: 'absolute',
-              left: mousePos.x + 12,
+              left: isFlipped ? mousePos.x - (isPopover ? 292 : 160) : mousePos.x + 12,
               top: mousePos.y + 12,
               zIndex: 10,
               pointerEvents: 'none',
-              transition: 'opacity 0.2s ease'
+              transition: 'opacity 0.2s ease, left 0.1s ease'
             }}
           >
             {isPopover ? (
               <div style={{ width: '280px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', overflow: 'hidden' }}>
                 <header style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                    <div className="w-1 h-3 bg-[var(--accent-indigo)] rounded-full" />
-                   <span className="text-[9px] font-black uppercase text-[var(--accent-indigo)] tracking-widest">PERSONA FOCUS</span>
+                   <span className="text-[9px] font-black uppercase text-[var(--accent-indigo)] tracking-widest">
+                     {isFlipped ? 'QUADRANT: NW (FLIPPED)' : 'QUADRANT: NE'}
+                   </span>
                 </header>
                 <div style={{ padding: '12px' }}>
                   <h4 className="text-xs font-bold text-[var(--text-primary)] mb-1">Fact Checker</h4>
@@ -720,7 +743,7 @@ function VisualPreview({ type, variant, specs }) {
               </div>
             ) : (
               <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', fontSize: '10px', color: 'var(--text-primary)', fontWeight: 800, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
-                Cursor-Relative Trace: +12px Offset
+                {isFlipped ? 'Flipped Trace (-Offset)' : 'Standard Trace (+Offset)'}
               </div>
             )}
           </div>
@@ -885,7 +908,7 @@ function ComponentRulesView({ rules, loading }) {
         <div className="h-px flex-1 bg-[var(--glass-border)]" />
       </div>
 
-      <TypographyView typography={rules.tokens.typography} />
+      {rules.design_system?.typography && <TypographyView typography={rules.design_system.typography} />}
 
       <div className="grid grid-cols-1 gap-12 mt-16">
         {Object.entries(rules.components).map(([compName, compData]) => (
