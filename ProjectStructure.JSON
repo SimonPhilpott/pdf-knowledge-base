@@ -1,5 +1,5 @@
 {
-  "project": "PDF Knowledge Base",
+  "project": "Knowledge Base",
   "architecture": "Client-Server (MERN-like with SQLite)",
   "structure": {
     "root": {
