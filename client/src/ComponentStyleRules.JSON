@@ -1,7 +1,7 @@
 {
-  "version": "1.5.0",
+  "version": "1.6.0",
   "project": "Knowledge Base",
-  "audit_status": "Production-Locked",
+  "audit_status": "Production-Locked (Exhaustive)",
   "tokens": {
     "themes": {
       "oatmeal": {
@@ -17,7 +17,31 @@
       "topbar_height": "56px",
       "sidebar_width": "260px",
       "topic_panel_width": "320px",
-      "status_bar_height": "36px"
+      "status_bar_height": "36px",
+      "mobile_breakpoint": "768px"
+    },
+    "interaction_gestures": {
+      "drag_threshold": "5px",
+      "scroll_multiplier": 2,
+      "press_scale": "0.98",
+      "hover_scale": "1.1",
+      "click_delay_mask": "50ms"
+    },
+    "voice_intelligence": {
+      "default_lang": "en-GB",
+      "engine": "Web Speech API (Google Premium)",
+      "stt_auto_submit": true,
+      "tts_rate": 1.05,
+      "tts_pitch": 1.0,
+      "mic_pulse_color": "#ef4444",
+      "markdown_stripping": [
+        "#",
+        "*",
+        "_",
+        "`",
+        "[]",
+        "()"
+      ]
     },
     "motion": {
       "transition_fast": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
@@ -30,60 +54,23 @@
       "shadow_glow_hover": "0 0 30px rgba(137, 153, 129, 0.25)",
       "glass_blur": "blur(30px)",
       "glass_blur_deep": "blur(40px)"
-    },
-    "opacity": {
-      "glass_overlay": "0.75",
-      "glass_border": "0.1",
-      "glass_border_hover": "0.25",
-      "ghost_icon": "0.8"
-    },
-    "typography": {
-      "headings": {
-        "manifest_heading": "24px / 800 / var(--manifest-heading)",
-        "manifest_subheading": "18px / 700 / var(--manifest-subheading)",
-        "section_title": "11px / 900 / 4px letter-spacing",
-        "card_title": "14px / 700"
-      },
-      "body": {
-        "manifest_text": "14px / 1.6 / 500 / var(--manifest-text)",
-        "interface_medium": "12px / 1.5 / 600",
-        "interface_regular": "12px / 1.5 / 400",
-        "caption": "11px / 1.5 / 700"
-      }
     }
   },
   "components": {
     "buttons": {
       "description": "Premium glassmorphism actions with icon-centric interaction protocols.",
-      "classes": [
-        "sync-btn",
-        "glass-btn"
-      ],
       "interaction": {
         "hover_background": "var(--glass-bg-light)",
         "hover_border": "var(--glass-border-hover)",
-        "hover_icon": "scale(1.1) transform",
+        "press_state": "scale(0.98)",
         "transition": "var(--transition-fast)"
       },
       "variants": {
-        "status_action": {
+        "voice_mic": {
           "specs": {
-            "padding": "4px 12px",
-            "background": "var(--bg-tertiary)",
-            "border": "1px solid var(--glass-border)",
-            "radius": "var(--radius-full)",
-            "font_size": "11px",
-            "font_weight": 600,
-            "icon_size": 14
-          }
-        },
-        "primary_action": {
-          "specs": {
-            "padding": "10px 20px",
-            "background": "var(--gradient-primary)",
-            "radius": "var(--radius-full)",
-            "active_text": "white",
-            "icon_size": 16
+            "active_color": "#ef4444",
+            "active_animation": "pulse 2s infinite",
+            "secondary_animation": "spin 3s linear infinite (Sparkles)"
           }
         }
       }
@@ -92,47 +79,12 @@
       "description": "Production-accurate persona switchers. Track-based geometry with floating active pills.",
       "specs": {
         "container_padding": "3px",
-        "container_radius": "var(--radius-full)",
         "container_background": "var(--bg-tertiary)",
-        "item_padding": "8px 16px",
-        "item_radius": "var(--radius-full)",
         "active_background": "var(--gradient-primary)",
         "active_text": "white",
         "active_shadow": "var(--shadow-glow)",
         "font_size": "11px",
-        "font_weight": 700,
-        "between_item_gap": "2px",
-        "internal_icon_gap": "8px",
-        "icon_size": 14,
-        "icon_opacity": 0.8
-      },
-      "interaction": {
-        "hover_unselected": "var(--glass-bg-light)",
-        "hover_icon": "scale(1.1)",
-        "transition": "all var(--transition-fast)"
-      }
-    },
-    "messages": {
-      "description": "Static document intelligence blocks with flat hover states.",
-      "variants": {
-        "user_prompt": {
-          "specs": {
-            "background": "var(--bg-elevated)",
-            "radius": "20px",
-            "border_bottom_right_radius": "4px"
-          }
-        },
-        "ai_response": {
-          "specs": {
-            "background": "var(--bg-secondary)",
-            "border": "1px solid var(--glass-border)",
-            "radius": "20px",
-            "border_bottom_left_radius": "4px"
-          }
-        }
-      },
-      "interaction": {
-        "hover": "none (static)"
+        "font_weight": 700
       }
     },
     "hover_components": {
@@ -140,31 +92,31 @@
       "protocol": {
         "positioning": "fixed cursor-relative",
         "offset": "12px",
-        "viewport_intelligence": "quadrant-aware flipping",
-        "boundary_safety": "10px safety margin"
+        "viewport_intelligence": "quadrant-aware flipping"
       },
       "variants": {
-        "context_tooltip": {
-          "specs": {
-            "padding": "10px 14px",
-            "background": "var(--bg-secondary)",
-            "blur": "30px",
-            "font_size": "11px",
-            "shadow": "var(--shadow-lg)"
-          }
-        },
         "cursor_popover": {
           "specs": {
             "width": "320px",
             "header_bg": "rgba(255, 255, 255, 0.02)",
             "header_font": "10px / 900 / uppercase",
-            "body_padding": "16px",
-            "blur": "40px",
-            "radius": "var(--radius-xl)",
-            "shadow": "var(--shadow-xl)"
+            "body_padding": "16px"
           }
         }
       }
+    }
+  },
+  "mobile_overrides": {
+    "chat_input": {
+      "flex_wrap": "wrap",
+      "padding": "12px",
+      "textarea_basis": "100%",
+      "tools_border": "none"
+    },
+    "interactions": {
+      "hover": "disabled",
+      "scroll": "native momentum",
+      "drag": "touch-action: pan-y"
     }
   }
 }

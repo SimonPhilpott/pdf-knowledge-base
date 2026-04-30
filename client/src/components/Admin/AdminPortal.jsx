@@ -155,7 +155,7 @@ export default function AdminPortal({ isOpen, onClose }) {
                 { id: 'style-rules', label: 'Components', icon: Sparkles },
                 { id: 'rules', label: 'Logic', icon: Shield },
                 { id: 'dev-rules', label: 'Manifest', icon: Terminal },
-                { id: 'features', label: 'Matrix', icon: Activity },
+                { id: 'features', label: 'Features', icon: Activity },
                 { id: 'network', label: 'Network', icon: Globe },
               ].map((tab) => (
                 <button
@@ -228,6 +228,10 @@ function StructureView({ structure, loading }) {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-6 opacity-60">
+        <Layers size={12} className="text-[var(--accent-indigo)]" />
+        <span className="text-[9px] font-black uppercase tracking-[3px] text-[var(--accent-indigo)]">SOURCE: GEMINI.MD</span>
+      </div>
       {Object.entries(structure.structure).map(([moduleName, files]) => (
         <section key={moduleName} className="mb-6 last:mb-0">
           <div className="flex items-center gap-3 mb-3">
@@ -370,9 +374,12 @@ function DevRulesView({ content, loading }) {
       <div style={{ padding: '10px 20px', background: 'rgba(255, 255, 255, 0.03)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <Terminal size={13} style={{ color: '#475569', marginRight: '10px' }} />
-          <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px' }}>
-            System Manifest {filePath && <span style={{ opacity: 0.5 }}>- {filePath.split('\\').pop() || filePath.split('/').pop()}</span>}
-          </span>
+          <div className="flex flex-col">
+            <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px' }}>
+              System Manifest {filePath && <span style={{ opacity: 0.5 }}>- {filePath.split('\\').pop() || filePath.split('/').pop()}</span>}
+            </span>
+            <span style={{ fontSize: '8px', fontWeight: 900, color: 'var(--accent-indigo)', letterSpacing: '2px', marginTop: '2px' }}>SOURCE: GEMINI.MD</span>
+          </div>
         </div>
         <div>
           {isEditing ? (
@@ -415,9 +422,15 @@ function FeaturesView({ features, loading }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3 mb-4">
-        <h3 className="text-[9px] font-bold text-[var(--accent-indigo)] tracking-[2px] bg-[var(--accent-indigo)]/10 px-2.5 py-1 rounded-md border border-[var(--accent-indigo)]/30">
-          Feature Matrix
-        </h3>
+        <div>
+          <h3 className="text-[9px] font-bold text-[var(--accent-indigo)] tracking-[2px] bg-[var(--accent-indigo)]/10 px-2.5 py-1 rounded-md border border-[var(--accent-indigo)]/30">
+            Feature Registry
+          </h3>
+          <div className="flex items-center gap-1.5 mt-1.5 px-1">
+             <Activity size={10} className="text-[var(--accent-indigo)]" />
+             <span className="text-[8px] font-black uppercase tracking-[2px] text-[var(--accent-indigo)] opacity-60">SOURCE: FEATURE.JSON</span>
+          </div>
+        </div>
         <div className="h-px flex-1 bg-[var(--glass-border)]" />
       </div>
 
@@ -786,9 +799,15 @@ function ComponentRulesView({ rules, loading }) {
   return (
     <div className="space-y-12 pb-20">
       <div className="flex items-center gap-3 mb-6">
-        <h3 className="text-[11px] font-black text-[var(--accent-indigo)] tracking-[5px] bg-[var(--accent-indigo)]/10 px-5 py-2.5 rounded-xl border-2 border-[var(--accent-indigo)]/40 uppercase shadow-glow-sm">
-          System Design Protocol v{rules.version}
-        </h3>
+        <div>
+          <h3 className="text-[11px] font-black text-[var(--accent-indigo)] tracking-[5px] bg-[var(--accent-indigo)]/10 px-5 py-2.5 rounded-xl border-2 border-[var(--accent-indigo)]/40 uppercase shadow-glow-sm">
+            System Design Protocol v{rules.version}
+          </h3>
+          <div className="flex items-center gap-1.5 mt-2 px-1">
+             <Sparkles size={10} className="text-[var(--accent-indigo)]" />
+             <span className="text-[8px] font-black uppercase tracking-[2px] text-[var(--accent-indigo)] opacity-60">SOURCE: COMPONENTSTYLERULES.JSON</span>
+          </div>
+        </div>
         <div className="h-px flex-1 bg-[var(--glass-border)]" />
       </div>
 
@@ -944,7 +963,11 @@ function NetworkView({ status, onToggle, isTransitioning }) {
             </div>
             <div>
               <h3 className="text-lg font-bold text-[var(--text-primary)]">External Access Control</h3>
-              <p className="text-xs text-[var(--text-muted)] font-medium">Secure public tunnel via Ngrok</p>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[var(--text-muted)] font-medium">Secure public tunnel</span>
+                <div className="w-1 h-1 rounded-full bg-[var(--glass-border)]" />
+                <span className="text-[8px] font-black text-[var(--accent-indigo)] uppercase tracking-widest">SOURCE: ADMIN SERVICE</span>
+              </div>
             </div>
           </div>
           
