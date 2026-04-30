@@ -619,34 +619,37 @@ function VisualPreview({ type, variant, specs }) {
   if (type === 'hover_components') {
     const isPopover = variant === 'cursor_popover';
     return (
-      <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] overflow-visible relative h-32">
+      <div className="p-4 bg-black/5 rounded-xl flex flex-col gap-4 items-center justify-center border border-dashed border-[var(--glass-border)] overflow-visible relative h-40">
         <div 
-          className="flex flex-col items-center gap-2"
+          className="flex flex-col items-center gap-3"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-full text-[10px] font-bold transition-all duration-300 ${isHovered ? 'bg-[var(--accent-indigo)] text-white border-[var(--accent-indigo)]' : 'bg-[var(--bg-primary)] text-[var(--accent-indigo)] border-[var(--accent-indigo)]/30'}`}>
-             <MousePointer2 size={10} /> {isHovered ? 'PROTOCOL ACTIVE' : 'HOVER TO INSPECT'}
+          <div className={`flex items-center gap-3 px-4 py-2 border rounded-full text-[11px] font-black transition-all duration-300 ${isHovered ? 'bg-[var(--accent-indigo)] text-white border-[var(--accent-indigo)]' : 'bg-[var(--bg-primary)] text-[var(--accent-indigo)] border-[var(--accent-indigo)]/40 shadow-sm'}`}>
+             <MousePointer2 size={12} /> {isHovered ? 'PROTOCOL ACTIVE' : 'HOVER TO TRIGGER'}
           </div>
           
-          <div className={`absolute top-full mt-2 z-10 transition-all duration-300 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
+          <div className={`absolute top-full mt-3 z-10 transition-all duration-500 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
             {isPopover ? (
-              <div style={{ width: '200px', background: 'var(--bg-secondary)', borderRadius: '16px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', padding: '12px' }}>
-                <div className="flex items-center justify-between mb-2">
+              <div style={{ width: '220px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', padding: '16px' }}>
+                <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/5">
                    <div className="flex items-center gap-2">
-                    <Shield size={12} className="text-indigo-500" />
-                    <span className="text-[10px] font-black uppercase text-[var(--text-primary)]">Insight</span>
+                    <Shield size={14} className="text-[var(--accent-indigo)]" />
+                    <span className="text-[11px] font-black uppercase text-[var(--text-primary)]">Viewport Node</span>
                   </div>
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 </div>
-                <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">Multimodal synthesis active. Surfacing document provenance metadata.</p>
+                <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed font-bold italic">"Quadrant-aware flipping: Protocol active."</p>
               </div>
             ) : (
-              <div style={{ padding: specs.padding, background: 'var(--glass-bg)', backdropFilter: `blur(${specs.blur})`, borderRadius: '8px', border: '1px solid var(--glass-border)', fontSize: specs.font_size, color: 'var(--text-primary)', fontWeight: 700, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
-                Provenance: Page 24
+              <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', fontSize: '11px', color: 'var(--text-primary)', fontWeight: 800, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
+                Cursor-Relative Trace: +24px Offset
               </div>
             )}
           </div>
+        </div>
+        <div className="text-center space-y-1">
+           <span className="text-[9px] font-black text-[var(--accent-indigo)] uppercase tracking-[2px]">Viewport Intelligence Engine</span>
+           <p className="text-[8px] text-[var(--text-muted)] italic max-w-[180px]">Monitors screen edges (width/height) to flip alignment and prevent content clipping.</p>
         </div>
       </div>
     );
