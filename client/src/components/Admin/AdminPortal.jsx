@@ -690,8 +690,11 @@ function VisualPreview({ type, variant, specs }) {
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="p-4 bg-black/5 rounded-xl flex flex-col gap-4 items-center justify-center border border-dashed border-[var(--glass-border)] overflow-hidden relative h-48 cursor-crosshair"
+        className="p-4 bg-black/5 rounded-xl flex flex-col gap-4 items-center justify-center border border-dashed border-[var(--glass-border)] relative h-48 cursor-crosshair"
       >
+        <div className="absolute top-0 right-0 bottom-0 w-px bg-[var(--accent-indigo)]/20 border-r border-dashed border-[var(--accent-indigo)]/40 pointer-events-none">
+           <span className="absolute top-2 right-2 text-[7px] font-black uppercase text-[var(--accent-indigo)]/60">Viewport Edge</span>
+        </div>
         <div className={`flex items-center gap-3 px-4 py-2 border rounded-full text-[11px] font-black transition-all duration-300 ${isHovered ? 'bg-[var(--accent-indigo)] text-white border-[var(--accent-indigo)]' : 'bg-[var(--bg-primary)] text-[var(--accent-indigo)] border-[var(--accent-indigo)]/40 shadow-sm'}`}>
            <MousePointer2 size={12} /> {isHovered ? 'CURSOR_LOCKED' : 'HOVER_AREA'}
         </div>
@@ -734,25 +737,32 @@ function VisualPreview({ type, variant, specs }) {
     );
   }
 
-  if (type === 'modals') {
+  if (type === 'administrative_overlays') {
     return (
-      <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] h-32 relative overflow-hidden">
+      <div className="p-4 bg-black/5 rounded-xl flex flex-col items-center justify-center border border-dashed border-[var(--glass-border)] h-40 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20 backdrop-blur-[10px]" />
         <div 
           style={{
-            width: '120px',
-            height: '60px',
+            width: '140px',
+            height: '70px',
             background: 'var(--bg-secondary)',
             borderRadius: specs.window_radius,
             border: specs.border,
             boxShadow: specs.shadow,
             zIndex: 10,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            gap: '4px'
           }}
         >
-          <Shield size={20} className="text-[var(--accent-indigo)]" />
+          <Shield size={18} className="text-[var(--accent-indigo)]" />
+          <span className="text-[8px] font-black uppercase tracking-tighter opacity-60">System Modal</span>
+        </div>
+        <div className="mt-4 z-10 flex flex-col items-center gap-1">
+           <span className="text-[9px] font-black text-white/40 uppercase tracking-[2px]">Usage Context</span>
+           <p className="text-[8px] text-white/30 italic">Admin Portal • Auth Gateway • Intelligence Drawer</p>
         </div>
       </div>
     );
