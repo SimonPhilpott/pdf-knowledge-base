@@ -323,19 +323,17 @@ function DevRulesView({ content, loading }) {
   const formatRules = (text) => {
     if (!text) return '';
     return text.split('\n').map((line, i) => {
-      let color = 'var(--text-primary)';
+      let color = 'var(--manifest-text)';
       let fontWeight = '400';
-      let opacity = '0.85';
+      let opacity = '1';
       let paddingLeft = line.startsWith(' ') ? '15px' : '0';
 
       // Parse line for structure
       if (line.startsWith('#')) {
-        color = 'var(--accent-indigo)';
+        color = 'var(--manifest-heading)';
         fontWeight = '800';
-        opacity = '1';
       } else if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
-        color = 'var(--text-muted)';
-        opacity = '0.8';
+        opacity = '0.75'; // Soften list markers slightly
       }
 
       // Handle Bold Sub-headings (**Text:**)
@@ -346,7 +344,7 @@ function DevRulesView({ content, loading }) {
         return (
           <div key={i} style={{ color, fontWeight, opacity, paddingLeft, minHeight: '1.2em', marginBottom: '2px' }}>
             {parts[0]}
-            <span style={{ color: 'var(--accent-indigo)', fontWeight: '700', opacity: 1 }}>{content}</span>
+            <span style={{ color: 'var(--manifest-subheading)', fontWeight: '700' }}>{content}</span>
             {parts[1]}
           </div>
         );
