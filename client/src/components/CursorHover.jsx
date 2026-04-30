@@ -41,7 +41,7 @@ export function CursorTooltip({ text, content, isVisible }) {
     if (!isVisible || !boxRef.current) return;
 
     const box = boxRef.current.getBoundingClientRect();
-    const offset = 24; // Larger gap to avoid 'help' cursor question mark
+    const offset = 12; // Halved from 24 for tighter proximity
     const { innerWidth: width, innerHeight: height } = window;
 
     let x = position.x + offset;
@@ -117,7 +117,7 @@ export function CursorPopover({ isVisible, children, title }) {
   const { position, alignment } = useCursorFollow();
 
   const getStyle = () => {
-    const offset = 20;
+    const offset = 12;
     const [v, h] = alignment.split('-');
     
     return {

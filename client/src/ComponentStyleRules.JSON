@@ -139,7 +139,7 @@
       "description": "Viewport-intelligent floating nodes that follow the cursor context.",
       "protocol": {
         "positioning": "fixed cursor-relative",
-        "offset": "24px",
+        "offset": "12px",
         "viewport_intelligence": "quadrant-aware flipping",
         "boundary_safety": "10px safety margin"
       },
@@ -156,6 +156,9 @@
         "cursor_popover": {
           "specs": {
             "width": "320px",
+            "header_bg": "rgba(255, 255, 255, 0.02)",
+            "header_font": "10px / 900 / uppercase",
+            "body_padding": "16px",
             "blur": "40px",
             "radius": "var(--radius-xl)",
             "shadow": "var(--shadow-xl)"
