@@ -42,10 +42,7 @@ export default function ToneSwitcher({ current, onChange }) {
             <button
               className={`tone-option ${current === tone.id ? 'active' : ''}`}
               onClick={() => !isDragging && onChange(tone.id)}
-              style={{ 
-                flexShrink: 0,
-                pointerEvents: isDragging ? 'none' : 'auto'
-              }}
+              style={{ flexShrink: 0 }}
             >
               <Icon size={14} />
               <span>{tone.label}</span>

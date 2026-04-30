@@ -9,12 +9,13 @@ import { useState, useRef } from 'react';
 export function useDraggableScroll() {
   const scrollRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [hasDragged, setHasDragged] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
   const onMouseDown = (e) => {
     if (!scrollRef.current) return;
-    setIsDragging(true);
+    setHasDragged(false);
     setStartX(e.pageX - scrollRef.current.offsetLeft);
     setScrollLeft(scrollRef.current.scrollLeft);
   };
@@ -24,20 +25,30 @@ export function useDraggableScroll() {
   };
 
   const onMouseUp = () => {
-    setIsDragging(false);
+    // Small delay to ensure onClick handlers can check isDragging
+    setTimeout(() => {
+      setIsDragging(false);
+    }, 50);
   };
 
   const onMouseMove = (e) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
+    if (!scrollRef.current || e.buttons !== 1) return;
     const x = e.pageX - scrollRef.current.offsetLeft;
     const walk = (x - startX) * 2; // Scroll speed multiplier
-    scrollRef.current.scrollLeft = scrollLeft - walk;
+    
+    // Only consider it a drag if we've moved more than 5px
+    if (Math.abs(x - startX) > 5) {
+      if (!isDragging) setIsDragging(true);
+      setHasDragged(true);
+      e.preventDefault();
+      scrollRef.current.scrollLeft = scrollLeft - walk;
+    }
   };
 
   return {
     scrollRef,
     isDragging,
+    hasDragged,
     handlers: {
       onMouseDown,
       onMouseLeave,

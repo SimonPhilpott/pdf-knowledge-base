@@ -43,10 +43,7 @@ export default function ModelSwitcher({ current, onChange }) {
               key={model.id}
               className={`tone-option ${current === model.id ? 'active' : ''}`}
               onClick={() => !isDragging && onChange(model.id)}
-              style={{ 
-                flexShrink: 0,
-                pointerEvents: isDragging ? 'none' : 'auto'
-              }}
+              style={{ flexShrink: 0 }}
             >
               <Icon size={14} />
               <span>{model.label}</span>
