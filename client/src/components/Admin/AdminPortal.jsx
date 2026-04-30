@@ -323,18 +323,37 @@ function DevRulesView({ content, loading }) {
   const formatRules = (text) => {
     if (!text) return '';
     return text.split('\n').map((line, i) => {
-      let color = 'var(--text-muted)';
-      let fontWeight = 'normal';
+      let color = 'var(--text-primary)';
+      let fontWeight = '400';
+      let opacity = '0.85';
+      let paddingLeft = line.startsWith(' ') ? '15px' : '0';
+
+      // Parse line for structure
       if (line.startsWith('#')) {
         color = 'var(--accent-indigo)';
-        fontWeight = 'bold';
+        fontWeight = '800';
+        opacity = '1';
       } else if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
-        color = 'var(--status-green)';
-        // Ensure visible in light mode by checking if dark is NOT applied?
-        // Actually, status-green is generally fine.
+        color = 'var(--text-muted)';
+        opacity = '0.8';
       }
+
+      // Handle Bold Sub-headings (**Text:**)
+      const boldMatch = line.match(/\*\*(.*?)\*\*/);
+      if (boldMatch) {
+        const [full, content] = boldMatch;
+        const parts = line.split(full);
+        return (
+          <div key={i} style={{ color, fontWeight, opacity, paddingLeft, minHeight: '1.2em', marginBottom: '2px' }}>
+            {parts[0]}
+            <span style={{ color: 'var(--accent-indigo)', fontWeight: '700', opacity: 1 }}>{content}</span>
+            {parts[1]}
+          </div>
+        );
+      }
+
       return (
-        <div key={i} style={{ color, fontWeight, paddingLeft: line.startsWith(' ') ? '15px' : '0', minHeight: '1em' }}>
+        <div key={i} style={{ color, fontWeight, opacity, paddingLeft, minHeight: '1.2em', marginBottom: '2px' }}>
           {line}
         </div>
       );

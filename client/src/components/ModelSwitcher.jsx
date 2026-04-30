@@ -9,10 +9,10 @@ import { Tooltip } from './CursorHover';
 export default function ModelSwitcher({ current, onChange }) {
   const { scrollRef, isDragging, handlers } = useDraggableScroll();
   const models = [
-    { id: 'flash', label: 'Flash', icon: Zap, desc: 'Fast & cost-effective (£0.24/1M)' },
-    { id: 'thinking', label: 'Thinking', icon: MessageSquare, desc: 'Logical reasoning & problem solving' },
-    { id: 'pro', label: 'Pro', icon: Brain, desc: 'Higher quality (£1.00/1M)' },
-    { id: 'research', label: 'Research', icon: Search, desc: 'Deep multi-step analysis' }
+    { id: 'flash', label: 'Flash', icon: Zap, desc: 'Ultra-fast, concise responses. Cost: Free/Low' },
+    { id: 'pro', label: 'Gemini', icon: Sparkles, desc: 'Complex reasoning & research. Cost: Paid/Medium' },
+    { id: 'thinking', label: 'Thinking', icon: Brain, desc: 'Deep logical chains & step-by-step analysis. Cost: Paid/Premium' },
+    { id: 'research', label: 'Research', icon: Search, desc: 'Exhaustive data exploration & synthesis. Cost: Paid/Premium' }
   ];
 
   return (
