@@ -13,7 +13,7 @@ import { Tooltip } from '../CursorHover';
 export default function AdminPortal({ isOpen, onClose }) {
   const { scrollRef, isDragging, handlers } = useDraggableScroll();
   const [activeTab, setActiveTab] = useState('structure');
-  const [data, setData] = useState({ structure: null, rules: [], devRules: '', features: null });
+  const [data, setData] = useState({ structure: null, rules: [], devRules: '', features: null, styleRules: null });
   const [loading, setLoading] = useState(false);
   const [newRule, setNewRule] = useState('');
   const [ngrokStatus, setNgrokStatus] = useState({ active: false, url: null });
@@ -54,22 +54,24 @@ export default function AdminPortal({ isOpen, onClose }) {
     }
   };
 
-
-
   const loadTabData = async (tab) => {
+    if (tab === 'network') return;
     setLoading(true);
     try {
       const endpoints = {
         structure: '/api/admin/structure',
         rules: '/api/admin/rules',
         'dev-rules': '/api/admin/dev-rules',
-        features: '/api/admin/features'
+        features: '/api/admin/features',
+        'style-rules': '/api/admin/style-rules'
       };
       const res = await fetch(endpoints[tab]);
       const result = await res.json();
       
       if (tab === 'dev-rules') {
         setData(prev => ({ ...prev, devRules: result }));
+      } else if (tab === 'style-rules') {
+        setData(prev => ({ ...prev, styleRules: result }));
       } else {
         setData(prev => ({ ...prev, [tab]: result }));
       }
@@ -149,6 +151,7 @@ export default function AdminPortal({ isOpen, onClose }) {
             >
               {[
                 { id: 'structure', label: 'Architecture', icon: Grid },
+                { id: 'style-rules', label: 'Components', icon: Sparkles },
                 { id: 'rules', label: 'Logic', icon: Shield },
                 { id: 'dev-rules', label: 'Manifest', icon: Terminal },
                 { id: 'features', label: 'Matrix', icon: Activity },
@@ -188,6 +191,7 @@ export default function AdminPortal({ isOpen, onClose }) {
               transition={{ duration: 0.2 }}
             >
               {activeTab === 'structure' && <StructureView structure={data.structure} loading={loading} />}
+              {activeTab === 'style-rules' && <ComponentRulesView rules={data.styleRules} loading={loading} />}
               {activeTab === 'rules' && (
                 <RulesView
                   rules={data.rules}
@@ -449,11 +453,85 @@ function FeaturesView({ features, loading }) {
   );
 }
 
+function ComponentRulesView({ rules, loading }) {
+  if (loading && !rules) return <LoadingPulse />;
+  if (!rules || !rules.components) return <div className="text-slate-500 p-20 text-center font-bold uppercase tracking-widest text-xs">No Component Data</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 mb-4">
+        <h3 className="text-[9px] font-bold text-[var(--accent-indigo)] tracking-[2px] bg-[var(--accent-indigo)]/10 px-2.5 py-1 rounded-md border border-[var(--accent-indigo)]/30">
+          Native Design System
+        </h3>
+        <div className="h-px flex-1 bg-[var(--glass-border)]" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {Object.entries(rules.components).map(([compName, compData]) => (
+          <Tooltip 
+            key={compName} 
+            content={
+              <div className="flex flex-col gap-2">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Component Specs</div>
+                <div className="text-[12px] font-bold">{compName}</div>
+                <div className="text-[11px] opacity-90">{compData.description}</div>
+                <div className="h-px bg-white/10 my-1" />
+                {compData.specs && Object.entries(compData.specs).map(([key, val]) => (
+                  <div key={key} className="flex justify-between text-[10px] gap-4">
+                    <span className="opacity-60">{key.replace(/_/g, ' ')}:</span>
+                    <span className="font-mono text-indigo-300">{val}</span>
+                  </div>
+                ))}
+              </div>
+            }
+          >
+            <div 
+              className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 hover:border-[var(--accent-indigo)] transition-all group cursor-help flex flex-col gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] group-hover:scale-110 transition-transform shadow-sm">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <h4 className="text-[12px] font-bold text-[var(--text-primary)] tracking-tight">
+                    {compName.charAt(0).toUpperCase() + compName.slice(1).replace(/_/g, ' ')}
+                  </h4>
+                  <p className="text-[9px] font-medium text-[var(--text-muted)] tracking-wider uppercase opacity-60">
+                    UI Component
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
+                  {compData.description}
+                </p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {(compData.classes || []).slice(0, 3).map(cls => (
+                    <span key={cls} className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--glass-border)] text-[var(--text-muted)]">
+                      .{cls.split(' ')[0]}
+                    </span>
+                  ))}
+                  {(compData.classes || []).length > 3 && (
+                    <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--glass-border)] text-[var(--text-muted)]">
+                      +{compData.classes.length - 3}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Tooltip>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function LoadingPulse() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '350px', gap: '20px' }}>
       <div style={{ width: '32px', height: '32px', border: '3px solid var(--glass-border)', borderTopColor: 'var(--accent-indigo)', borderRadius: '50%' }} className="animate-spin"></div>
-      <span style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)' }}>Syncing Library...</span>
+      <span style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '1px', color: 'var(--text-muted)' }}>Syncing Matrix...</span>
     </div>
   );
 }
