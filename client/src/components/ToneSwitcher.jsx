@@ -29,7 +29,16 @@ export default function ToneSwitcher({ current, onChange }) {
       {tones.map((tone) => {
         const Icon = tone.icon;
         return (
-          <Tooltip key={tone.id} text={tone.desc}>
+          <Tooltip 
+            key={tone.id} 
+            content={
+              <div className="flex flex-col gap-1">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Tone Strategy</div>
+                <div className="text-[12px] font-bold mb-1">{tone.label}</div>
+                <div className="text-[11px] opacity-90 leading-relaxed">{tone.desc}</div>
+              </div>
+            }
+          >
             <button
               className={`tone-option ${current === tone.id ? 'active' : ''}`}
               onClick={() => !isDragging && onChange(tone.id)}

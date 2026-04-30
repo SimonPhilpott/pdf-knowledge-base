@@ -29,7 +29,16 @@ export default function ModelSwitcher({ current, onChange }) {
       {models.map((model) => {
         const Icon = model.icon;
         return (
-          <Tooltip key={model.id} text={model.desc}>
+          <Tooltip 
+            key={model.id} 
+            content={
+              <div className="flex flex-col gap-1">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Model Intelligence</div>
+                <div className="text-[12px] font-bold mb-1">{model.label}</div>
+                <div className="text-[11px] opacity-90 leading-relaxed">{model.desc}</div>
+              </div>
+            }
+          >
             <button
               key={model.id}
               className={`tone-option ${current === model.id ? 'active' : ''}`}
