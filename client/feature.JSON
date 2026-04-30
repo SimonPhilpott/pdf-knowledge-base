@@ -1,6 +1,6 @@
 {
   "project": "Knowledge Base",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "currency": "GBP",
   "features": [
     {
@@ -99,6 +99,24 @@
       "id": "FEAT-016",
       "name": "Voice Interruption Protocol",
       "description": "Intelligent system logic that automatically cancels AI speech when user voice input is detected.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-017",
+      "name": "Zero Truncation Summary Protocol",
+      "description": "Enforced architectural constraint ensuring full text visibility for conversation summaries through expanded 480px viewport-aware tooltips.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-018",
+      "name": "Subject-Aware Discovery Mechanism",
+      "description": "Dynamic synchronization of 'Suggested Questions' based on the user's active sidebar subject selection, enabling context-specific exploration.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-019",
+      "name": "Architectural Traceability",
+      "description": "Admin Portal feature that maps every UI component to its source file, facilitating rapid maintenance and design parity verification.",
       "status": "implemented"
     }
   ]

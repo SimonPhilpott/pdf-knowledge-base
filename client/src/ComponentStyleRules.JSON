@@ -1,79 +1,39 @@
 {
-  "version": "1.6.1",
+  "version": "1.6.6",
   "project": "Knowledge Base",
-  "audit_status": "Production-Locked (Full Restore)",
-  "tokens": {
-    "themes": {
-      "oatmeal": {
-        "bg_primary": "#F1EFE9",
-        "bg_secondary": "#FBF9F7",
-        "bg_tertiary": "#EDE5D8",
-        "accent": "#899981",
-        "text_primary": "#2E2B27",
-        "text_muted": "#6A645D"
-      }
-    },
-    "layout": {
-      "topbar_height": "56px",
-      "sidebar_width": "260px",
-      "topic_panel_width": "320px",
-      "status_bar_height": "36px",
-      "mobile_breakpoint": "768px"
-    },
-    "interaction_gestures": {
-      "drag_threshold": "5px",
-      "scroll_multiplier": 2,
-      "press_scale": "0.98",
-      "hover_scale": "1.1",
-      "click_delay_mask": "50ms"
-    },
-    "voice_intelligence": {
-      "default_lang": "en-GB",
-      "engine": "Web Speech API (Google Premium)",
-      "stt_auto_submit": true,
-      "tts_rate": 1.05,
-      "tts_pitch": 1.0,
-      "mic_pulse_color": "#ef4444",
-      "markdown_stripping": [
-        "#",
-        "*",
-        "_",
-        "`",
-        "[]",
-        "()"
-      ]
-    },
-    "motion": {
-      "transition_fast": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
-      "transition_base": "250ms cubic-bezier(0.4, 0, 0.2, 1)",
-      "transition_slow": "400ms cubic-bezier(0.4, 0, 0.2, 1)",
-      "hover_timing": "cubic-bezier(0.34, 1.56, 0.64, 1)"
-    },
-    "effects": {
-      "shadow_glow": "0 0 20px rgba(137, 153, 129, 0.15)",
-      "shadow_glow_hover": "0 0 30px rgba(137, 153, 129, 0.25)",
-      "glass_blur": "blur(30px)",
-      "glass_blur_deep": "blur(40px)"
-    },
-    "opacity": {
-      "glass_overlay": "0.75",
-      "glass_border": "0.1",
-      "glass_border_hover": "0.25",
-      "ghost_icon": "0.8"
+  "last_updated": "2026-04-30",
+  "design_system": {
+    "palette": {
+      "oatmeal_ivory": "#F1EFE9",
+      "oatmeal_warm_white": "#FBF9F7",
+      "sage_green_gradient": "linear-gradient(135deg, #899981 0%, #708269 100%)",
+      "accent_indigo": "#6366f1",
+      "glass_bg_light": "rgba(255, 255, 255, 0.03)",
+      "glass_border": "rgba(255, 255, 255, 0.08)",
+      "glass_border_hover": "rgba(255, 255, 255, 0.15)"
     },
     "typography": {
       "headings": {
-        "manifest_heading": "24px / 800 / var(--manifest-heading)",
-        "manifest_subheading": "18px / 700 / var(--manifest-subheading)",
-        "section_title": "11px / 900 / 4px letter-spacing",
-        "card_title": "14px / 700"
+        "primary_heading": "32px / 900 / -0.02em / Publico",
+        "secondary_heading": "24px / 800 / -0.01em / Publico",
+        "manifest_heading": "18px / 700 / 0.05em / Inter"
       },
       "body": {
-        "manifest_text": "14px / 1.6 / 500 / var(--manifest-text)",
-        "interface_medium": "12px / 1.5 / 600",
-        "interface_regular": "12px / 1.5 / 400",
-        "caption": "11px / 1.5 / 700"
+        "primary_copy": "14px / 1.6 / 400 / Inter",
+        "secondary_copy": "12px / 1.5 / 500 / Inter",
+        "interface_labels": "10px / 1.2 / 900 / Inter"
+      },
+      "mono": {
+        "code_snippet": "11px / 1.4 / 500 / JetBrains Mono"
       }
+    },
+    "tokens": {
+      "radius_xl": "24px",
+      "radius_lg": "16px",
+      "radius_md": "12px",
+      "radius_full": "9999px",
+      "shadow_glow": "0 0 20px rgba(99, 102, 241, 0.2)",
+      "transition_smooth": "cubic-bezier(0.4, 0, 0.2, 1) 250ms"
     }
   },
   "components": {
@@ -86,7 +46,7 @@
       ],
       "interaction": {
         "hover_background": "var(--glass-bg-light)",
-        "hover_border": "var(--glass-border-hover)",
+        "hover_border": "var(--glass-border_hover)",
         "press_state": "scale(0.98)",
         "transition": "var(--transition-fast)"
       },
@@ -110,14 +70,25 @@
             "active_text": "white",
             "icon_size": 16
           }
-        },
-        "voice_mic": {
-          "specs": {
-            "active_color": "#ef4444",
-            "active_animation": "pulse 2s infinite",
-            "secondary_animation": "spin 3s linear infinite (Sparkles)"
-          }
         }
+      }
+    },
+    "prompt_action_icons": {
+      "description": "Critical interaction nodes within the primary chat workspace. Supports multi-state logic for image capture, canvas orchestration, and voice-assisted research.",
+      "maintaining_file": "ChatInterface.jsx",
+      "specs": {
+        "icon_size": 16,
+        "padding": "8px",
+        "radius": "10px",
+        "transition": "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        "hover_bg": "var(--bg-tertiary)",
+        "active_tint": "var(--accent-indigo)"
+      },
+      "interaction": {
+        "camera": "Triggers file_input_ref for local media acquisition.",
+        "sparkles": "Toggles rich-text Canvas workspace overlay.",
+        "voice_mic": "Toggles en-GB speech recognition with pulse animation (active: red).",
+        "send_btn": "Elevated gradient action (Send icon: 18px)."
       }
     },
     "segment_toggles": {
@@ -167,7 +138,8 @@
       "protocol": {
         "positioning": "fixed cursor-relative",
         "offset": "12px",
-        "viewport_intelligence": "quadrant-aware flipping",
+        "viewport_intelligence": "quadrant-aware flipping (NE, NW, SE, SW)",
+        "clipping_prevention": "Mandatory flip to opposite axis if content exceeds 24px from viewport edge.",
         "truncation": "strictly forbidden for history summaries"
       },
       "variants": {
@@ -248,28 +220,6 @@
         "shadow": "var(--shadow-2xl)",
         "border": "1px solid var(--glass-border)"
       }
-    },
-    "layout_z_index": {
-      "description": "Depth registry for absolute layer management.",
-      "specs": {
-        "tooltips": 1000000,
-        "modals": 9000,
-        "app_topbar": 1000,
-        "side_panels": 500
-      }
-    }
-  },
-  "mobile_overrides": {
-    "chat_input": {
-      "flex_wrap": "wrap",
-      "padding": "12px",
-      "textarea_basis": "100%",
-      "tools_border": "none"
-    },
-    "interactions": {
-      "hover": "disabled",
-      "scroll": "native momentum",
-      "drag": "touch-action: pan-y"
     }
   }
 }
