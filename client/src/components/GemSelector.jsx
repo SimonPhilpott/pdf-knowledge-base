@@ -55,8 +55,7 @@ export default function GemSelector({ gems, onSelect, compact = false }) {
               style={{ 
                 flexShrink: 0, 
                 minWidth: 'fit-content',
-                padding: '8px 16px',
-                pointerEvents: isDragging ? 'none' : 'auto'
+                padding: '8px 16px'
               }}
             >
               {ICON_MAP[gem.icon] || <Sparkles size={14} />}
