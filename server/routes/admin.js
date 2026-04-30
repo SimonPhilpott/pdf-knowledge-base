@@ -103,7 +103,13 @@ router.put('/features', (req, res) => {
   res.json({ success: true });
 });
 
-// 5. Ngrok Tunnel Management
+// 5. Component Style Rules View
+router.get('/style-rules', (req, res) => {
+  const rules = readJsonFile('client/src/ComponentStyleRules.JSON');
+  res.json(rules);
+});
+
+// 6. Ngrok Tunnel Management
 let ngrokListener = null;
 
 export const startNgrok = async () => {
