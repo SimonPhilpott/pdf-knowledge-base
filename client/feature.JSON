@@ -82,6 +82,24 @@
       "description": "Premium visual consistency with refined executive dashboard aesthetics, prioritised Admin access, and integrated Ngrok administrative tunneling.",
       "status": "implemented",
       "notes": "Optimised tool teleportation to ensure Admin access remains prioritised across all breakpoints."
+    },
+    {
+      "id": "FEAT-014",
+      "name": "Hands-Free Voice Research (STT)",
+      "description": "Integrated en-GB speech recognition with auto-submit protocol for seamless conversational research.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-015",
+      "name": "Premium Voice Feedback (TTS)",
+      "description": "Automated text-to-speech engine using Google Premium voices with markdown-stripping for natural auditory feedback.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-016",
+      "name": "Voice Interruption Protocol",
+      "description": "Intelligent system logic that automatically cancels AI speech when user voice input is detected.",
+      "status": "implemented"
     }
   ]
 }
