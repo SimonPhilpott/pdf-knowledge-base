@@ -194,12 +194,27 @@ export function useAppLogic() {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'assistant' && !isTyping) {
-        // Only speak the text content, strip citations or markdown if needed
-        // For now, speak the raw content for simplicity
         voiceEngine.speak(lastMessage.content);
       }
     }
   }, [messages, isTyping, voiceEngine.speak]);
+
+  const fetchSuggestions = useCallback(async (selected) => {
+    try {
+      const subjectsParam = selected.length > 0 ? `?subjects=${selected.map(encodeURIComponent).join(',')}` : '';
+      const res = await fetch(`${API}/api/subjects/suggestions${subjectsParam}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setSuggestions(data);
+    } catch (err) {
+      console.warn('[API] Failed to fetch suggestions:', err);
+    }
+  }, []);
+
+  // Update suggestions when selected subjects change
+  useEffect(() => {
+    fetchSuggestions(selectedSubjects);
+  }, [selectedSubjects, fetchSuggestions]);
 
   const triggerSync = useCallback(async () => {
     try {

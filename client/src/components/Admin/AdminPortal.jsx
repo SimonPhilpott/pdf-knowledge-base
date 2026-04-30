@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Shield, FileText, Code, Star, Trash2, Settings, Sparkles, Grid, Activity, Terminal, Globe, Copy, Zap, CheckCircle2,
-  MousePointer2, Layers, Type, Folder, Search
+  MousePointer2, Layers, Type, Folder, Search, MessageSquare, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { useDraggableScroll } from '../../hooks/useDraggableScroll';
 import { Tooltip } from '../CursorHover';
@@ -906,6 +906,13 @@ function ComponentRulesView({ rules, loading }) {
                     <span className="text-[10px] font-black text-[var(--accent-indigo)] tracking-widest uppercase">
                       Architecture Node
                     </span>
+                    <div className="w-1 h-1 rounded-full bg-[var(--glass-border)]" />
+                    <div className="flex items-center gap-1">
+                      <FileText size={10} className="text-[var(--text-muted)]" />
+                      <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase italic">
+                        {compData.maintaining_file || 'Multiple Sources'}
+                      </span>
+                    </div>
                     <div className="w-1 h-1 rounded-full bg-[var(--glass-border)]" />
                     <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase italic">
                       {compData.classes?.length || 0} Selectors Bound

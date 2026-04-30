@@ -79,6 +79,7 @@
   "components": {
     "buttons": {
       "description": "Premium glassmorphism actions with icon-centric interaction protocols.",
+      "maintaining_file": "index.css",
       "classes": [
         "sync-btn",
         "glass-btn"
@@ -121,6 +122,7 @@
     },
     "segment_toggles": {
       "description": "Production-accurate persona switchers. Track-based geometry with floating active pills.",
+      "maintaining_file": "ToneSwitcher.jsx",
       "specs": {
         "container_padding": "3px",
         "container_radius": "var(--radius-full)",
@@ -140,6 +142,7 @@
     },
     "messages": {
       "description": "Static document intelligence blocks with flat hover states.",
+      "maintaining_file": "MessageBubble.jsx",
       "variants": {
         "user_prompt": {
           "specs": {
@@ -160,6 +163,7 @@
     },
     "hover_components": {
       "description": "Viewport-intelligent floating nodes that follow the cursor context.",
+      "maintaining_file": "CursorHover.jsx",
       "protocol": {
         "positioning": "fixed cursor-relative",
         "offset": "12px",
@@ -191,6 +195,7 @@
     },
     "navigation_tree": {
       "description": "Hierarchical subject and document navigation with state-aware chevrons and AI categorisation indicators.",
+      "maintaining_file": "SubjectFilter.jsx",
       "classes": [
         "catalog-item",
         "catalog-tree",
@@ -212,6 +217,7 @@
     },
     "history_item": {
       "description": "Compact conversation snapshots with contextual hover summaries.",
+      "maintaining_file": "ChatHistory.jsx",
       "classes": [
         "chat-history-item",
         "chat-history-title"
@@ -230,6 +236,7 @@
     },
     "administrative_overlays": {
       "description": "High-priority contextual windows for system configuration and authentication. Employs a 40px backdrop blur and absolute z-index priority (9000+) to isolate critical administrative tasks from the primary research workspace.",
+      "maintaining_file": "AdminPortal.jsx",
       "classes": [
         "admin-portal-overlay",
         "auth-gateway",
