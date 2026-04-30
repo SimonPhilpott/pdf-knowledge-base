@@ -642,18 +642,19 @@ function VisualPreview({ type, variant, specs }) {
           
           <div className={`absolute top-full mt-3 z-10 transition-all duration-500 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
             {isPopover ? (
-              <div style={{ width: '220px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', padding: '16px' }}>
-                <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/5">
-                   <div className="flex items-center gap-2">
-                    <Shield size={14} className="text-[var(--accent-indigo)]" />
-                    <span className="text-[11px] font-black uppercase text-[var(--text-primary)]">Viewport Node</span>
-                  </div>
+              <div style={{ width: '300px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', overflow: 'hidden' }}>
+                <header style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                   <div className="w-1 h-3 bg-[var(--accent-indigo)] rounded-full" />
+                   <span className="text-[10px] font-black uppercase text-[var(--accent-indigo)] tracking-widest">PERSONA FOCUS</span>
+                </header>
+                <div style={{ padding: '16px' }}>
+                  <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1">Fact Checker</h4>
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed italic">"Rigorously verifies document provenance and identifies potential synthesis ambiguities."</p>
                 </div>
-                <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed font-bold italic">"Quadrant-aware flipping: Protocol active."</p>
               </div>
             ) : (
               <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', fontSize: '11px', color: 'var(--text-primary)', fontWeight: 800, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
-                Cursor-Relative Trace: +24px Offset
+                Cursor-Relative Trace: +12px Offset
               </div>
             )}
           </div>
