@@ -112,7 +112,10 @@ router.get('/topics', (req, res) => {
 router.get('/suggestions', (req, res) => {
   try {
     const count = parseInt(req.query.count) || 5;
-    const suggestions = getRandomSuggestions(count);
+    const subjectsRaw = req.query.subjects;
+    const subjects = subjectsRaw ? subjectsRaw.split(',').filter(s => s.trim() !== '') : [];
+    
+    const suggestions = getRandomSuggestions(count, subjects);
     res.json(suggestions);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -117,7 +117,20 @@ export function getTopicsBySubject() {
 /**
  * Get random suggested questions across the library
  */
-export function getRandomSuggestions(count = 5) {
+export function getRandomSuggestions(count = 5, subjects = []) {
+  if (subjects && subjects.length > 0) {
+    const placeholders = subjects.map(() => '?').join(',');
+    return db.prepare(`
+      SELECT topic, suggested_question, subject, 
+        (SELECT filename FROM documents WHERE id = topics.document_id) as filename
+      FROM topics
+      WHERE suggested_question IS NOT NULL AND suggested_question != ''
+      AND subject IN (${placeholders})
+      ORDER BY RANDOM()
+      LIMIT ?
+    `).all(...subjects, count);
+  }
+
   return db.prepare(`
     SELECT topic, suggested_question, subject, 
       (SELECT filename FROM documents WHERE id = topics.document_id) as filename
