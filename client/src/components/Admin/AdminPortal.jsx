@@ -482,29 +482,76 @@ function BoxModel({ specs }) {
 }
 
 function VisualPreview({ type, variant, specs }) {
-  const isDark = document.body.classList.contains('dark');
+  const [isHovered, setIsHovered] = React.useState(false);
   
+  if (variant === 'segment_toggles') {
+    const items = ['RESEARCH', 'CRITIC', 'GURU'];
+    return (
+      <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)]">
+        <div 
+          style={{ 
+            padding: specs.container_padding, 
+            borderRadius: specs.container_radius,
+            background: 'var(--bg-elevated)',
+            border: '1px solid var(--glass-border)',
+            display: 'flex',
+            gap: specs.between_item_gap
+          }}
+        >
+          {items.map((item, i) => (
+            <div 
+              key={item}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              style={{
+                padding: specs.item_padding,
+                borderRadius: specs.item_radius,
+                background: i === 0 ? specs.active_background : (isHovered && i === 1 ? 'var(--glass-bg-light)' : 'transparent'),
+                color: i === 0 ? specs.active_text : 'var(--text-muted)',
+                fontSize: specs.font_size,
+                fontWeight: specs.font_weight,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: specs.internal_icon_gap,
+                transition: 'all 0.2s ease-out'
+              }}
+            >
+              {i === 0 && <Star size={10} />}
+              {item}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (type === 'buttons') {
     const style = {
       padding: specs.padding,
       borderRadius: specs.radius || 'var(--radius-full)',
       background: specs.background || 'var(--bg-tertiary)',
-      border: specs.border || '1px solid var(--glass-border)',
+      border: isHovered ? '1px solid var(--accent-indigo)' : (specs.border || '1px solid var(--glass-border)'),
       color: specs.active_text || (specs.background?.includes('gradient') ? 'white' : 'var(--text-primary)'),
       fontSize: specs.font_size || '12px',
       fontWeight: specs.font_weight || 600,
       display: 'flex',
       alignItems: 'center',
       gap: specs.internal_icon_gap || '8px',
-      boxShadow: specs.shadow || 'none',
-      opacity: 1,
-      cursor: 'default'
+      boxShadow: isHovered ? (specs.shadow || 'var(--shadow-lg)') : 'none',
+      transform: isHovered ? 'scale(1.05)' : 'scale(1)',
+      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+      cursor: 'pointer'
     };
 
     return (
       <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)]">
-        <div style={style}>
-          <Sparkles size={specs.icon_size || 14} />
+        <div 
+          style={style}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <Sparkles size={specs.icon_size || 14} style={{ transform: isHovered ? 'rotate(15deg) scale(1.2)' : 'none', transition: 'transform 0.3s' }} />
           <span>{variant.charAt(0).toUpperCase() + variant.slice(1).replace(/_/g, ' ')}</span>
         </div>
       </div>
@@ -523,11 +570,17 @@ function VisualPreview({ type, variant, specs }) {
       color: specs.color || 'var(--text-primary)',
       fontSize: '13px',
       lineHeight: 1.5,
-      maxWidth: '180px'
+      maxWidth: '180px',
+      transform: isHovered ? 'translateY(-2px)' : 'none',
+      transition: 'all 0.3s'
     };
 
     return (
-      <div className={`p-4 bg-black/5 rounded-xl flex flex-col gap-2 border border-dashed border-[var(--glass-border)] ${isUser ? 'items-end' : 'items-start'}`}>
+      <div 
+        className={`p-4 bg-black/5 rounded-xl flex flex-col gap-2 border border-dashed border-[var(--glass-border)] ${isUser ? 'items-end' : 'items-start'}`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <div style={style}>
           {isUser ? 'Researcher Query Protocol' : 'Intelligence Synthesis Reply'}
         </div>
@@ -535,9 +588,142 @@ function VisualPreview({ type, variant, specs }) {
     );
   }
 
+  if (variant === 'file_explorer') {
+    return (
+      <div className="p-4 bg-black/5 rounded-xl flex flex-col gap-1 border border-dashed border-[var(--glass-border)]">
+        <div className="flex items-center gap-2 p-1.5 opacity-60">
+          <Folder size={14} className="text-indigo-400" />
+          <span className="text-xs font-bold text-[var(--text-primary)]">Knowledge Base Root</span>
+        </div>
+        <div 
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={{ 
+            marginLeft: specs.indent_step,
+            background: isHovered ? 'var(--accent-indigo)' : 'var(--accent-indigo)1a', // 10% opacity
+            color: isHovered ? 'white' : 'var(--accent-indigo)',
+            borderColor: isHovered ? 'transparent' : 'var(--accent-indigo)33' // 20% opacity
+          }} 
+          className="flex items-center gap-2 p-1.5 rounded border transition-colors cursor-pointer"
+        >
+          <Folder size={14} className={isHovered ? 'text-white' : 'text-indigo-500'} />
+          <span className="text-xs font-bold">Active Research Subject</span>
+        </div>
+        <div style={{ marginLeft: `calc(${specs.indent_step} * 2)` }} className="flex items-center gap-2 p-1.5 opacity-80 hover:bg-black/5 rounded cursor-default">
+          <FileText size={14} className="text-slate-400" />
+          <span className="text-xs font-medium text-[var(--text-primary)]">Executive_Summary.pdf</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'hover_components') {
+    const isPopover = variant === 'cursor_popover';
+    return (
+      <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] overflow-visible relative h-32">
+        <div 
+          className="flex flex-col items-center gap-2"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-full text-[10px] font-bold transition-all duration-300 ${isHovered ? 'bg-[var(--accent-indigo)] text-white border-[var(--accent-indigo)] scale-110' : 'bg-[var(--bg-primary)] text-[var(--accent-indigo)] border-[var(--accent-indigo)]/30'}`}>
+             <MousePointer2 size={10} className={isHovered ? 'animate-bounce' : ''} /> {isHovered ? 'PROTOCOL ACTIVE' : 'HOVER TO INSPECT'}
+          </div>
+          
+          <div className={`absolute top-full mt-2 z-10 transition-all duration-300 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
+            {isPopover ? (
+              <div style={{ width: '200px', background: 'var(--bg-secondary)', borderRadius: '16px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', padding: '12px' }}>
+                <div className="flex items-center justify-between mb-2">
+                   <div className="flex items-center gap-2">
+                    <Shield size={12} className="text-indigo-500" />
+                    <span className="text-[10px] font-black uppercase text-[var(--text-primary)]">Insight</span>
+                  </div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">Multimodal synthesis active. Surfacing document provenance metadata.</p>
+              </div>
+            ) : (
+              <div style={{ padding: specs.padding, background: 'var(--glass-bg)', backdropFilter: `blur(${specs.blur})`, borderRadius: '8px', border: '1px solid var(--glass-border)', fontSize: specs.font_size, color: 'var(--text-primary)', fontWeight: 700, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
+                Provenance: Page 24
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] italic text-[10px] text-[var(--text-muted)]">
-      Visual Proxy for {variant}
+    <div className="p-8 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] italic text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-black">
+       Proxy Node_{variant.toUpperCase()}
+    </div>
+  );
+}
+
+function TypographyView({ typography }) {
+  if (!typography) return null;
+  return (
+    <div className="mt-12 space-y-8">
+      <div className="flex items-center gap-3 mb-6">
+        <h3 className="text-[10px] font-bold text-[var(--accent-indigo)] tracking-[4px] bg-[var(--accent-indigo)]/10 px-4 py-2 rounded-md border border-[var(--accent-indigo)]/50 uppercase">
+          Typography & Readability
+        </h3>
+        <div className="h-px flex-1 bg-[var(--glass-border)]" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[32px] p-8 shadow-xl">
+           <div className="flex items-center gap-3 mb-6">
+              <Type size={20} className="text-[var(--accent-indigo)]" />
+              <h4 className="text-xl font-black text-[var(--text-primary)]">Heading Hierarchy</h4>
+           </div>
+           <div className="space-y-6">
+              {Object.entries(typography.headings).map(([key, val]) => (
+                <div key={key} className="flex flex-col gap-2">
+                   <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{key.replace(/_/g, ' ')}</span>
+                   <div className="flex items-baseline gap-4">
+                      <span 
+                        style={{ 
+                          fontSize: val.split(' / ')[0], 
+                          fontWeight: val.split(' / ')[1].split(' ')[0],
+                          letterSpacing: val.includes('letter-spacing') ? val.split(' / ')[2].split(' ')[0] : 'normal'
+                        }}
+                        className="text-[var(--text-primary)]"
+                      >
+                        Executive Research Interface
+                      </span>
+                   </div>
+                   <span className="text-[10px] font-mono text-[var(--accent-indigo)] opacity-60">{val}</span>
+                </div>
+              ))}
+           </div>
+        </div>
+
+        <div className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[32px] p-8 shadow-xl">
+           <div className="flex items-center gap-3 mb-6">
+              <FileText size={20} className="text-[var(--accent-indigo)]" />
+              <h4 className="text-xl font-black text-[var(--text-primary)]">Body & Copy</h4>
+           </div>
+           <div className="space-y-6">
+              {Object.entries(typography.body).map(([key, val]) => (
+                <div key={key} className="flex flex-col gap-2">
+                   <span className="text-[9px] font-black text-[var(--text-muted)] uppercase tracking-widest">{key.replace(/_/g, ' ')}</span>
+                   <p 
+                    style={{ 
+                      fontSize: val.split(' / ')[0], 
+                      lineHeight: val.split(' / ')[1].split(' ')[0],
+                      fontWeight: val.includes('weight') ? val.split(' / ')[2].split(' ')[0] : 400
+                    }}
+                    className="text-[var(--text-secondary)]"
+                   >
+                    Synthesizing intelligence from multimodal knowledge bases requires a consistent structural hierarchy and readability focus across all research viewports.
+                   </p>
+                   <span className="text-[10px] font-mono text-[var(--accent-indigo)] opacity-60">{val}</span>
+                </div>
+              ))}
+           </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -555,7 +741,10 @@ function ComponentRulesView({ rules, loading }) {
         <div className="h-px flex-1 bg-[var(--glass-border)]" />
       </div>
 
-      <div className="grid grid-cols-1 gap-12">
+      {/* Typography Section */}
+      <TypographyView typography={rules.tokens.typography} />
+
+      <div className="grid grid-cols-1 gap-12 mt-12">
         {Object.entries(rules.components).map(([compName, compData]) => (
           <div 
             key={compName} 
@@ -611,7 +800,7 @@ function ComponentRulesView({ rules, loading }) {
 
               <div className="lg:col-span-8 space-y-8">
                 <h5 className="text-[11px] font-black text-[var(--text-primary)] uppercase tracking-[2px] mb-4 flex items-center gap-2">
-                  <Sparkles size={12} className="text-[var(--accent-indigo)]" /> Rendered Variants
+                  <Sparkles size={12} className="text-[var(--accent-indigo)]" /> Rendered Variants & Hover Protocols
                 </h5>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -625,6 +814,16 @@ function ComponentRulesView({ rules, loading }) {
                         
                         <VisualPreview type={compName} variant={vName} specs={vData.specs} />
                         
+                        <div className="space-y-3">
+                           <div className="flex items-center gap-2">
+                              <MousePointer2 size={10} className="text-[var(--accent-indigo)]" />
+                              <span className="text-[9px] font-black text-[var(--text-primary)] uppercase tracking-wider">Hover Spec</span>
+                           </div>
+                           <p className="text-[10px] text-[var(--text-muted)] italic pl-4 border-l border-[var(--accent-indigo)]/30">
+                              Triggers: {vData.specs?.shadow ? 'Depth Shift, ' : ''}{vData.specs?.icon_size ? 'Icon Scaling, ' : ''}{vData.specs?.background?.includes('gradient') ? 'Glow Intensity' : 'Border Highlight'}
+                           </p>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-2 mt-auto">
                           {Object.entries(vData.specs || {}).slice(0, 4).map(([sk, sv]) => (
                             <div key={sk} className="bg-[var(--bg-primary)] p-2 rounded-lg border border-[var(--glass-border)]">
