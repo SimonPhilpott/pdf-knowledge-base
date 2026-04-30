@@ -629,39 +629,63 @@ function VisualPreview({ type, variant, specs }) {
 
   if (type === 'hover_components') {
     const isPopover = variant === 'cursor_popover';
+    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+    const containerRef = React.useRef(null);
+
+    const handleMouseMove = (e) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      setMousePos({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    };
+
     return (
-      <div className="p-4 bg-black/5 rounded-xl flex flex-col gap-4 items-center justify-center border border-dashed border-[var(--glass-border)] overflow-visible relative h-40">
-        <div 
-          className="flex flex-col items-center gap-3"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div className={`flex items-center gap-3 px-4 py-2 border rounded-full text-[11px] font-black transition-all duration-300 ${isHovered ? 'bg-[var(--accent-indigo)] text-white border-[var(--accent-indigo)]' : 'bg-[var(--bg-primary)] text-[var(--accent-indigo)] border-[var(--accent-indigo)]/40 shadow-sm'}`}>
-             <MousePointer2 size={12} /> {isHovered ? 'PROTOCOL ACTIVE' : 'HOVER TO TRIGGER'}
-          </div>
-          
-          <div className={`absolute top-full mt-3 z-10 transition-all duration-500 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+      <div 
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="p-4 bg-black/5 rounded-xl flex flex-col gap-4 items-center justify-center border border-dashed border-[var(--glass-border)] overflow-hidden relative h-48 cursor-crosshair"
+      >
+        <div className={`flex items-center gap-3 px-4 py-2 border rounded-full text-[11px] font-black transition-all duration-300 ${isHovered ? 'bg-[var(--accent-indigo)] text-white border-[var(--accent-indigo)]' : 'bg-[var(--bg-primary)] text-[var(--accent-indigo)] border-[var(--accent-indigo)]/40 shadow-sm'}`}>
+           <MousePointer2 size={12} /> {isHovered ? 'CURSOR_LOCKED' : 'HOVER_AREA'}
+        </div>
+        
+        {isHovered && (
+          <div 
+            style={{ 
+              position: 'absolute',
+              left: mousePos.x + 12,
+              top: mousePos.y + 12,
+              zIndex: 10,
+              pointerEvents: 'none',
+              transition: 'opacity 0.2s ease'
+            }}
+          >
             {isPopover ? (
-              <div style={{ width: '300px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', overflow: 'hidden' }}>
-                <header style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '280px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', overflow: 'hidden' }}>
+                <header style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                    <div className="w-1 h-3 bg-[var(--accent-indigo)] rounded-full" />
-                   <span className="text-[10px] font-black uppercase text-[var(--accent-indigo)] tracking-widest">PERSONA FOCUS</span>
+                   <span className="text-[9px] font-black uppercase text-[var(--accent-indigo)] tracking-widest">PERSONA FOCUS</span>
                 </header>
-                <div style={{ padding: '16px' }}>
-                  <h4 className="text-sm font-bold text-[var(--text-primary)] mb-1">Fact Checker</h4>
-                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed italic">"Rigorously verifies document provenance and identifies potential synthesis ambiguities."</p>
+                <div style={{ padding: '12px' }}>
+                  <h4 className="text-xs font-bold text-[var(--text-primary)] mb-1">Fact Checker</h4>
+                  <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed italic">"Rigorously verifies document provenance."</p>
                 </div>
               </div>
             ) : (
-              <div style={{ padding: '10px 14px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', fontSize: '11px', color: 'var(--text-primary)', fontWeight: 800, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
+              <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', fontSize: '10px', color: 'var(--text-primary)', fontWeight: 800, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
                 Cursor-Relative Trace: +12px Offset
               </div>
             )}
           </div>
-        </div>
-        <div className="text-center space-y-1">
+        )}
+
+        <div className="text-center space-y-1 pointer-events-none">
            <span className="text-[9px] font-black text-[var(--accent-indigo)] uppercase tracking-[2px]">Viewport Intelligence Engine</span>
-           <p className="text-[8px] text-[var(--text-muted)] italic max-w-[180px]">Monitors screen edges (width/height) to flip alignment and prevent content clipping.</p>
+           <p className="text-[8px] text-[var(--text-muted)] italic max-w-[180px]">Monitors coordinates to maintain fixed 12px offset from the active cursor context.</p>
         </div>
       </div>
     );
