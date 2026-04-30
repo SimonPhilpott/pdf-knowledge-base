@@ -1,6 +1,6 @@
 {
   "system": "Knowledge Base",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "tokens": {
     "spacing": {
       "xs": "var(--space-xs) (4px)",
@@ -242,15 +242,32 @@
           "cursor_idle": "grab",
           "cursor_active": "grabbing",
           "scroll_speed_multiplier": 2,
-          "click_prevention_during_drag": true
+          "click_prevention_during_drag": true,
+          "motion_threshold": "5px"
+        }
+      },
+      "mobile_stability_overrides": {
+        "description": "Fail-safe layout grounding using inline React styles for mobile viewports.",
+        "specs": {
+          "sidebar_offset": "margin-top: var(--topbar-height) !important",
+          "prompt_wrapping": "flex-wrap: wrap, flex-basis: 100% (textarea)",
+          "breakpoint": "768px (CSS) / 1024px (JS detection)"
         }
       }
     },
     "layout_z_index": {
-      "app_topbar": 1000,
-      "tooltips": 1001,
-      "side_panels": 100,
+      "app_topbar": 9999,
+      "tooltips": 1000000,
+      "side_panels": 1000,
       "modals": 2000
+    },
+    "manifest_visuals": {
+      "description": "Structural color hierarchy for System Manifests and rule lists.",
+      "specs": {
+        "heading_2": "var(--manifest-heading) / 800 weight",
+        "subheading_bold": "var(--manifest-subheading) / 700 weight",
+        "body_text": "var(--manifest-text) / 100% opacity in Dark Mode"
+      }
     }
   }
 }
