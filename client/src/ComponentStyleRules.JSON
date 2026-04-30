@@ -1,13 +1,16 @@
 {
-  "version": "1.4.0",
+  "version": "1.5.0",
   "project": "Knowledge Base",
+  "audit_status": "Production-Locked",
   "tokens": {
     "themes": {
       "oatmeal": {
-        "primary": "#F1EFE9",
-        "secondary": "#FBF9F7",
+        "bg_primary": "#F1EFE9",
+        "bg_secondary": "#FBF9F7",
+        "bg_tertiary": "#EDE5D8",
         "accent": "#899981",
-        "text": "#2E2B27"
+        "text_primary": "#2E2B27",
+        "text_muted": "#6A645D"
       }
     },
     "layout": {
@@ -32,7 +35,7 @@
       "glass_overlay": "0.75",
       "glass_border": "0.1",
       "glass_border_hover": "0.25",
-      "ghost_icon": "0.4"
+      "ghost_icon": "0.8"
     },
     "typography": {
       "headings": {
@@ -45,7 +48,7 @@
         "manifest_text": "14px / 1.6 / 500 / var(--manifest-text)",
         "interface_medium": "12px / 1.5 / 600",
         "interface_regular": "12px / 1.5 / 400",
-        "caption": "10px / 1.4 / 700 / uppercase"
+        "caption": "11px / 1.5 / 700"
       }
     }
   },
@@ -53,53 +56,60 @@
     "buttons": {
       "description": "Premium glassmorphism actions with icon-centric interaction protocols.",
       "classes": [
-        "glass-btn",
-        "accent-btn"
+        "sync-btn",
+        "glass-btn"
       ],
       "interaction": {
-        "hover_container": "border-color shift only",
-        "hover_icon": "scale(1.2) transform",
+        "hover_background": "var(--glass-bg-light)",
+        "hover_border": "var(--glass-border-hover)",
+        "hover_icon": "scale(1.1) transform",
         "transition": "var(--transition-fast)"
       },
       "variants": {
+        "status_action": {
+          "specs": {
+            "padding": "4px 12px",
+            "background": "var(--bg-tertiary)",
+            "border": "1px solid var(--glass-border)",
+            "radius": "var(--radius-full)",
+            "font_size": "11px",
+            "font_weight": 600,
+            "icon_size": 14
+          }
+        },
         "primary_action": {
           "specs": {
             "padding": "10px 20px",
             "background": "var(--gradient-primary)",
             "radius": "var(--radius-full)",
             "active_text": "white",
-            "icon_size": 16,
-            "internal_icon_gap": "10px"
-          }
-        },
-        "secondary_ghost": {
-          "specs": {
-            "padding": "8px 16px",
-            "background": "transparent",
-            "border": "1px solid var(--glass-border)",
-            "radius": "12px",
-            "icon_size": 14
+            "icon_size": 16
           }
         }
       }
     },
     "segment_toggles": {
-      "description": "Quadrant-style persona switchers with ghost-icon states.",
+      "description": "Production-accurate persona switchers. Track-based geometry with floating active pills.",
       "specs": {
-        "container_padding": "4px",
-        "container_radius": "14px",
-        "item_padding": "6px 12px",
-        "item_radius": "10px",
-        "active_background": "var(--bg-primary)",
-        "active_text": "var(--accent-indigo)",
-        "font_size": "10px",
-        "font_weight": 800,
+        "container_padding": "3px",
+        "container_radius": "var(--radius-full)",
+        "container_background": "var(--bg-tertiary)",
+        "item_padding": "8px 16px",
+        "item_radius": "var(--radius-full)",
+        "active_background": "var(--gradient-primary)",
+        "active_text": "white",
+        "active_shadow": "var(--shadow-glow)",
+        "font_size": "11px",
+        "font_weight": 700,
         "between_item_gap": "2px",
-        "internal_icon_gap": "6px"
+        "internal_icon_gap": "8px",
+        "icon_size": 14,
+        "icon_opacity": 0.8
       },
       "interaction": {
-        "unselected_state": "opacity(0.4) icon",
-        "transition": "background 0.2s ease"
+        "hover_unselected": "var(--glass-bg-light)",
+        "hover_icon": "scale(1.1)",
+        "transition": "all var(--transition-fast)"
       }
     },
     "messages": {
@@ -122,17 +132,7 @@
         }
       },
       "interaction": {
-        "hover": "none (static)",
-        "transition": "none"
-      }
-    },
-    "file_explorer": {
-      "description": "Hierarchical document trees with interactive node highlights.",
-      "specs": {
-        "indent_step": "16px",
-        "item_height": "32px",
-        "active_bg": "var(--accent-indigo)1a",
-        "active_text": "var(--accent-indigo)"
+        "hover": "none (static)"
       }
     },
     "hover_components": {
@@ -146,9 +146,11 @@
       "variants": {
         "context_tooltip": {
           "specs": {
-            "padding": "8px 12px",
-            "blur": "20px",
-            "font_size": "11px"
+            "padding": "10px 14px",
+            "background": "var(--bg-secondary)",
+            "blur": "30px",
+            "font_size": "11px",
+            "shadow": "var(--shadow-lg)"
           }
         },
         "cursor_popover": {
@@ -160,16 +162,6 @@
           }
         }
       }
-    }
-  },
-  "layout_z_index": {
-    "description": "Architectural depth hierarchy for modal and portal layering.",
-    "specs": {
-      "cursor_hover": 2147483647,
-      "modals": 1000,
-      "app_topbar": 500,
-      "side_panels": 100,
-      "base": 0
     }
   }
 }
