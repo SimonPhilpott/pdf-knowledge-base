@@ -497,9 +497,7 @@ function VisualPreview({ type, variant, specs }) {
             background: 'var(--bg-elevated)',
             border: '1px solid var(--glass-border)',
             display: 'flex',
-            gap: specs.between_item_gap,
-            boxShadow: 'var(--shadow-inner)',
-            overflow: 'hidden'
+            gap: specs.between_item_gap
           }}
         >
           {items.map((item, i) => (
@@ -517,16 +515,14 @@ function VisualPreview({ type, variant, specs }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: specs.internal_icon_gap,
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: i === activeIndex ? 'var(--shadow-sm)' : 'none'
+                transition: 'background 0.2s ease'
               }}
             >
-              {i === activeIndex && <Star size={10} className="animate-pulse" />}
+              <Star size={10} className={i === activeIndex ? 'opacity-100' : 'opacity-40'} />
               <span className="tracking-tight">{item}</span>
             </div>
           ))}
         </div>
-        <span className="text-[9px] font-bold text-[var(--accent-indigo)] uppercase tracking-[2px] opacity-60">Stateful Switch Demo</span>
       </div>
     );
   }
@@ -536,29 +532,32 @@ function VisualPreview({ type, variant, specs }) {
       padding: specs.padding,
       borderRadius: specs.radius || 'var(--radius-full)',
       background: specs.background || 'var(--bg-tertiary)',
-      border: isHovered ? '1px solid var(--accent-indigo)' : (specs.border || '1px solid var(--glass-border)'),
-      color: specs.active_text || (specs.background?.includes('gradient') ? 'white' : 'var(--text-primary)'),
+      border: specs.border || '1px solid var(--glass-border)',
+      color: specs.active_text || 'var(--text-primary)',
       fontSize: specs.font_size || '12px',
-      fontWeight: specs.font_weight || 700,
+      fontWeight: specs.font_weight || 600,
       display: 'flex',
       alignItems: 'center',
       gap: specs.internal_icon_gap || '8px',
-      boxShadow: isHovered ? (specs.shadow || 'var(--shadow-glow-hover)') : 'none',
-      transform: isHovered ? 'scale(1.08) translateY(-3px)' : 'scale(1)',
-      transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
       cursor: 'pointer',
-      whiteSpace: 'nowrap'
+      transition: 'border-color 0.2s ease'
     };
 
     return (
-      <div className="p-6 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)]">
+      <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)]">
         <div 
           style={style}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <Sparkles size={specs.icon_size || 14} className={isHovered ? 'animate-spin-slow' : ''} />
-          <span>{variant.charAt(0).toUpperCase() + variant.slice(1).replace(/_/g, ' ')} ACTION</span>
+          <Sparkles 
+            size={specs.icon_size || 14} 
+            style={{ 
+              transform: isHovered ? 'scale(1.2)' : 'scale(1)',
+              transition: 'transform 0.2s ease' 
+            }} 
+          />
+          <span>{variant.charAt(0).toUpperCase() + variant.slice(1).replace(/_/g, ' ')}</span>
         </div>
       </div>
     );
@@ -567,14 +566,10 @@ function VisualPreview({ type, variant, specs }) {
   if (type === 'messages') {
     const isUser = variant === 'user_prompt';
     return (
-      <div 
-        className={`p-4 bg-black/5 rounded-xl flex flex-col gap-2 border border-dashed border-[var(--glass-border)] ${isUser ? 'items-end' : 'items-start'}`}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <div className={`p-4 bg-black/5 rounded-xl flex flex-col gap-2 border border-dashed border-[var(--glass-border)] ${isUser ? 'items-end' : 'items-start'}`}>
         <div 
           style={{
-            padding: '12px 20px',
+            padding: '12px 16px',
             borderRadius: specs.radius,
             borderBottomRightRadius: specs.border_bottom_right_radius || specs.radius,
             borderBottomLeftRadius: specs.border_bottom_left_radius || specs.radius,
@@ -582,14 +577,11 @@ function VisualPreview({ type, variant, specs }) {
             border: specs.border || 'none',
             color: specs.color || 'var(--text-primary)',
             fontSize: '13px',
-            lineHeight: 1.6,
-            maxWidth: '200px',
-            boxShadow: isHovered ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
-            transform: isHovered ? 'translateY(-4px) scale(1.02)' : 'none',
-            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            lineHeight: 1.5,
+            maxWidth: '180px'
           }}
         >
-          {isUser ? 'Execute research query on the primary PDF knowledge base.' : 'Intelligence synthesis complete. I have identified 3 core patterns.'}
+          {isUser ? 'Researcher Query Protocol' : 'Intelligence Synthesis Reply'}
         </div>
       </div>
     );
@@ -598,27 +590,27 @@ function VisualPreview({ type, variant, specs }) {
   if (variant === 'file_explorer') {
     return (
       <div className="p-4 bg-black/5 rounded-xl flex flex-col gap-1 border border-dashed border-[var(--glass-border)]">
-        <div className="flex items-center gap-2 p-2 opacity-60">
-          <Folder size={14} className="text-[var(--accent-indigo)]" />
-          <span className="text-[11px] font-black tracking-widest text-[var(--text-primary)] uppercase">DRIVE_ROOT</span>
+        <div className="flex items-center gap-2 p-1.5 opacity-60">
+          <Folder size={14} className="text-indigo-400" />
+          <span className="text-xs font-bold text-[var(--text-primary)]">Knowledge Base Root</span>
         </div>
         <div 
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           style={{ 
             marginLeft: specs.indent_step,
-            background: isHovered ? 'var(--accent-indigo)' : 'color-mix(in srgb, var(--accent-indigo), transparent 0.9)',
+            background: isHovered ? 'var(--accent-indigo)' : 'var(--accent-indigo)1a',
             color: isHovered ? 'white' : 'var(--accent-indigo)',
-            borderColor: isHovered ? 'transparent' : 'color-mix(in srgb, var(--accent-indigo), transparent 0.8)'
+            borderColor: isHovered ? 'transparent' : 'var(--accent-indigo)33'
           }} 
-          className="flex items-center gap-2 p-2 rounded-xl border transition-all duration-300 cursor-pointer shadow-sm"
+          className="flex items-center gap-2 p-1.5 rounded border transition-colors cursor-pointer"
         >
-          <Folder size={14} className={isHovered ? 'text-white' : 'text-[var(--accent-indigo)]'} />
-          <span className="text-xs font-bold uppercase tracking-tight">Active_Subject_Node</span>
+          <Folder size={14} className={isHovered ? 'text-white' : 'text-indigo-500'} />
+          <span className="text-xs font-bold">Active Research Subject</span>
         </div>
-        <div style={{ marginLeft: `calc(${specs.indent_step} * 2)` }} className="flex items-center gap-2 p-2 opacity-80 hover:bg-black/5 rounded-lg transition-colors cursor-default">
+        <div style={{ marginLeft: `calc(${specs.indent_step} * 2)` }} className="flex items-center gap-2 p-1.5 opacity-80 hover:bg-black/5 rounded cursor-default">
           <FileText size={14} className="text-slate-400" />
-          <span className="text-xs font-medium text-[var(--text-secondary)]">protocol_manifest.pdf</span>
+          <span className="text-xs font-medium text-[var(--text-primary)]">Executive_Summary.pdf</span>
         </div>
       </div>
     );
@@ -627,31 +619,31 @@ function VisualPreview({ type, variant, specs }) {
   if (type === 'hover_components') {
     const isPopover = variant === 'cursor_popover';
     return (
-      <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] overflow-visible relative h-36">
+      <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] overflow-visible relative h-32">
         <div 
-          className="flex flex-col items-center gap-3"
+          className="flex flex-col items-center gap-2"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div className={`flex items-center gap-3 px-4 py-2 border rounded-full text-[11px] font-black transition-all duration-500 ${isHovered ? 'bg-[var(--accent-indigo)] text-white border-[var(--accent-indigo)] scale-110 shadow-glow' : 'bg-[var(--bg-primary)] text-[var(--accent-indigo)] border-[var(--accent-indigo)]/40 shadow-sm'}`}>
-             <MousePointer2 size={12} className={isHovered ? 'animate-pulse' : ''} /> {isHovered ? 'PROTO_ACTIVE' : 'HOVER_TRIGGER'}
+          <div className={`flex items-center gap-2 px-3 py-1.5 border rounded-full text-[10px] font-bold transition-all duration-300 ${isHovered ? 'bg-[var(--accent-indigo)] text-white border-[var(--accent-indigo)]' : 'bg-[var(--bg-primary)] text-[var(--accent-indigo)] border-[var(--accent-indigo)]/30'}`}>
+             <MousePointer2 size={10} /> {isHovered ? 'PROTOCOL ACTIVE' : 'HOVER TO INSPECT'}
           </div>
           
-          <div className={`absolute top-full mt-3 z-10 transition-all duration-500 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+          <div className={`absolute top-full mt-2 z-10 transition-all duration-300 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'}`}>
             {isPopover ? (
-              <div style={{ width: '220px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', padding: '16px' }}>
-                <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/5">
+              <div style={{ width: '200px', background: 'var(--bg-secondary)', borderRadius: '16px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', padding: '12px' }}>
+                <div className="flex items-center justify-between mb-2">
                    <div className="flex items-center gap-2">
-                    <Shield size={14} className="text-[var(--accent-indigo)]" />
-                    <span className="text-[11px] font-black uppercase text-[var(--text-primary)]">Metadata</span>
+                    <Shield size={12} className="text-indigo-500" />
+                    <span className="text-[10px] font-black uppercase text-[var(--text-primary)]">Insight</span>
                   </div>
-                  <CheckCircle2 size={12} className="text-green-500" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                 </div>
-                <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed italic">"Dynamic synthesis layer active across 12 document nodes."</p>
+                <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">Multimodal synthesis active. Surfacing document provenance metadata.</p>
               </div>
             ) : (
-              <div style={{ padding: '10px 14px', background: 'var(--glass-bg)', backdropFilter: `blur(${specs.blur})`, borderRadius: '12px', border: '1px solid var(--glass-border)', fontSize: '11px', color: 'var(--text-primary)', fontWeight: 800, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-xl)' }}>
-                Page Range: 12-48
+              <div style={{ padding: specs.padding, background: 'var(--glass-bg)', backdropFilter: `blur(${specs.blur})`, borderRadius: '8px', border: '1px solid var(--glass-border)', fontSize: specs.font_size, color: 'var(--text-primary)', fontWeight: 700, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
+                Provenance: Page 24
               </div>
             )}
           </div>
