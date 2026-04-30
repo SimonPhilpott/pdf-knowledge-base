@@ -1,259 +1,175 @@
 {
-  "system": "Knowledge Base",
-  "version": "1.3.0",
+  "version": "1.4.0",
+  "project": "Knowledge Base",
   "tokens": {
-    "spacing": {
-      "xs": "var(--space-xs) (4px)",
-      "sm": "var(--space-sm) (8px)",
-      "md": "var(--space-md) (16px)",
-      "lg": "var(--space-lg) (24px)",
-      "xl": "var(--space-xl) (32px)",
-      "2xl": "var(--space-2xl) (48px)"
-    },
-    "radius": {
-      "sm": "var(--radius-sm) (6px)",
-      "md": "var(--radius-md) (10px)",
-      "lg": "var(--radius-lg) (16px)",
-      "xl": "var(--radius-xl) (24px)",
-      "full": "var(--radius-full) (9999px)"
-    },
-    "glass": {
-      "blur_heavy": "40px",
-      "blur_light": "20px",
-      "border": "var(--glass-border)",
-      "bg": "var(--glass-bg)"
-    },
     "themes": {
-      "light_oatmeal": {
-        "bg_primary": "#F5F1E9",
-        "bg_secondary": "#FBF9F6",
-        "text_primary": "#2D2924",
-        "accent_bronze": "#8C7355",
-        "accent_gold": "#D4C4A8"
-      },
-      "dark_classic": {
-        "bg_primary": "#0a0e1a",
-        "accent_indigo": "#6366f1"
+      "oatmeal": {
+        "primary": "#F1EFE9",
+        "secondary": "#FBF9F7",
+        "accent": "#899981",
+        "text": "#2E2B27"
       }
+    },
+    "layout": {
+      "topbar_height": "56px",
+      "sidebar_width": "260px",
+      "topic_panel_width": "320px",
+      "status_bar_height": "36px"
+    },
+    "motion": {
+      "transition_fast": "150ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "transition_base": "250ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "transition_slow": "400ms cubic-bezier(0.4, 0, 0.2, 1)",
+      "hover_timing": "cubic-bezier(0.34, 1.56, 0.64, 1)"
+    },
+    "effects": {
+      "shadow_glow": "0 0 20px rgba(137, 153, 129, 0.15)",
+      "shadow_glow_hover": "0 0 30px rgba(137, 153, 129, 0.25)",
+      "glass_blur": "blur(30px)",
+      "glass_blur_deep": "blur(40px)"
+    },
+    "opacity": {
+      "glass_overlay": "0.75",
+      "glass_border": "0.1",
+      "glass_border_hover": "0.25",
+      "ghost_icon": "0.4"
     },
     "typography": {
       "headings": {
-        "h1": "28px / 900 weight / -0.04em letter-spacing",
-        "h2": "22px / 800 weight / -0.02em letter-spacing",
-        "h3": "14px / 700 weight / 0.1em tracking-widest",
-        "manifest_primary": "var(--manifest-heading) / 800 weight",
-        "manifest_secondary": "var(--manifest-subheading) / 700 weight"
+        "manifest_heading": "24px / 800 / var(--manifest-heading)",
+        "manifest_subheading": "18px / 700 / var(--manifest-subheading)",
+        "section_title": "11px / 900 / 4px letter-spacing",
+        "card_title": "14px / 700"
       },
       "body": {
-        "standard": "14px / 1.6 line-height / 500 weight",
-        "compact": "12px / 1.5 line-height / 600 weight",
-        "micro": "10px / 1.2 line-height / 700 weight",
-        "manifest_text": "var(--manifest-text) / 1.6 line-height"
+        "manifest_text": "14px / 1.6 / 500 / var(--manifest-text)",
+        "interface_medium": "12px / 1.5 / 600",
+        "interface_regular": "12px / 1.5 / 400",
+        "caption": "10px / 1.4 / 700 / uppercase"
       }
     }
   },
   "components": {
     "buttons": {
-      "description": "Functional triggers categorized by impact level.",
-      "global_behavior": {
-        "transition": "all var(--transition-base)",
-        "hover_border_color": "var(--glass-border-hover)",
-        "icon_hover_transform": "scale(1.15)"
+      "description": "Premium glassmorphism actions with icon-centric interaction protocols.",
+      "classes": [
+        "glass-btn",
+        "accent-btn"
+      ],
+      "interaction": {
+        "hover_container": "border-color shift only",
+        "hover_icon": "scale(1.2) transform",
+        "transition": "var(--transition-fast)"
       },
       "variants": {
-        "prominent": {
-          "description": "High-impact triggers for primary user goals.",
-          "classes": [
-            "new-chat-btn",
-            "toolbar-btn.primary",
-            "auth-btn.login"
-          ],
+        "primary_action": {
           "specs": {
+            "padding": "10px 20px",
             "background": "var(--gradient-primary)",
-            "shadow": "var(--shadow-glow)",
-            "icon_size": 14,
-            "padding": "10px 18px",
-            "font_weight": 700
-          }
-        },
-        "structural": {
-          "description": "Navigation and high-level workflow actions.",
-          "classes": [
-            "sidebar-action-btn",
-            "toolbar-btn",
-            "surprise-btn"
-          ],
-          "specs": {
-            "background": "var(--bg-tertiary)",
-            "border": "1px solid var(--glass-border)",
-            "hover_bg": "var(--glass-bg-light)",
-            "icon_size": 14,
-            "padding": "10px 16px"
-          }
-        },
-        "status_actions": {
-          "description": "Contextual or state-dependent triggers.",
-          "classes": [
-            "auth-btn.logout",
-            "sync-btn",
-            "topic-chip"
-          ],
-          "specs": {
-            "padding": "6px 12px",
-            "radius": "var(--radius-md)",
-            "font_size": "11px",
-            "font_weight": 600
-          }
-        },
-        "toolbar_compact": {
-          "description": "Micro-actions within toolbars or editors.",
-          "classes": [
-            "catalog-action-btn",
-            "canvas-action-btn",
-            "tool-btn"
-          ],
-          "specs": {
-            "icon_size": 14,
-            "padding": "6px",
-            "radius": "var(--radius-sm)"
-          }
-        },
-        "segment_toggles": {
-          "description": "Multi-option selectors with a unified pill-style background. Used for Persona, Tone, and Model switching.",
-          "classes": [
-            "tone-switcher",
-            "mode-switcher",
-            "gem-toggle",
-            "theme-toggle-container"
-          ],
-          "specs": {
-            "container_radius": "var(--radius-full)",
-            "container_padding": "2px",
-            "item_radius": "var(--radius-full)",
-            "item_padding": "8px 16px",
-            "between_item_gap": "1px",
-            "internal_icon_gap": "8px",
-            "active_background": "var(--gradient-primary)",
+            "radius": "var(--radius-full)",
             "active_text": "white",
-            "font_size": "11px",
-            "font_weight": 600
+            "icon_size": 16,
+            "internal_icon_gap": "10px"
+          }
+        },
+        "secondary_ghost": {
+          "specs": {
+            "padding": "8px 16px",
+            "background": "transparent",
+            "border": "1px solid var(--glass-border)",
+            "radius": "12px",
+            "icon_size": 14
           }
         }
+      }
+    },
+    "segment_toggles": {
+      "description": "Quadrant-style persona switchers with ghost-icon states.",
+      "specs": {
+        "container_padding": "4px",
+        "container_radius": "14px",
+        "item_padding": "6px 12px",
+        "item_radius": "10px",
+        "active_background": "var(--bg-primary)",
+        "active_text": "var(--accent-indigo)",
+        "font_size": "10px",
+        "font_weight": 800,
+        "between_item_gap": "2px",
+        "internal_icon_gap": "6px"
+      },
+      "interaction": {
+        "unselected_state": "opacity(0.4) icon",
+        "transition": "background 0.2s ease"
       }
     },
     "messages": {
-      "description": "Chat and conversational UI elements with directional corner styling.",
+      "description": "Static document intelligence blocks with flat hover states.",
       "variants": {
         "user_prompt": {
-          "description": "Messages sent by the user. Distinctive bottom-right sharp corner.",
-          "classes": [
-            "message.user .message-content",
-            "user-message-style"
-          ],
           "specs": {
-            "background": "var(--accent-indigo)",
-            "color": "white",
-            "radius": "var(--radius-lg)",
-            "border_bottom_right_radius": "var(--space-xs)"
+            "background": "var(--bg-elevated)",
+            "radius": "20px",
+            "border_bottom_right_radius": "4px"
           }
         },
-        "ai_reply": {
-          "description": "Messages generated by the AI. Distinctive bottom-left sharp corner.",
-          "classes": [
-            "message.assistant .message-content",
-            "ai-message-style"
-          ],
+        "ai_response": {
           "specs": {
-            "background": "var(--glass-bg)",
+            "background": "var(--bg-secondary)",
             "border": "1px solid var(--glass-border)",
-            "radius": "var(--radius-lg)",
-            "border_bottom_left_radius": "var(--space-xs)"
+            "radius": "20px",
+            "border_bottom_left_radius": "4px"
           }
         }
+      },
+      "interaction": {
+        "hover": "none (static)",
+        "transition": "none"
       }
     },
-    "global_actions": {
-      "description": "Universal app actions and persistent utility elements.",
-      "classes": [
-        "global-close-btn",
-        "catalog-search",
-        "topic-search"
-      ],
+    "file_explorer": {
+      "description": "Hierarchical document trees with interactive node highlights.",
       "specs": {
-        "close_btn_size": "32px",
-        "search_radius": "var(--radius-full)",
-        "search_bg": "rgba(0, 0, 0, 0.2)",
-        "search_padding": "10px 16px",
-        "icon_size": 16
-      }
-    },
-    "data_structures": {
-      "description": "Hierarchical and complex data visualisations.",
-      "variants": {
-        "file_explorer": {
-          "description": "Tree views for library management with folder/file nesting.",
-          "classes": [
-            "folder-item",
-            "file-item",
-            "subject-tree"
-          ],
-          "specs": {
-            "indent_step": "16px",
-            "item_height": "36px",
-            "icon_spacing": "12px",
-            "badge_radius": "4px",
-            "font_size": "13px"
-          }
-        }
+        "indent_step": "16px",
+        "item_height": "32px",
+        "active_bg": "var(--accent-indigo)1a",
+        "active_text": "var(--accent-indigo)"
       }
     },
     "hover_components": {
-      "description": "Floating elements triggered by user focus for instant context.",
+      "description": "Viewport-intelligent floating nodes that follow the cursor context.",
+      "protocol": {
+        "positioning": "fixed cursor-relative",
+        "offset": "24px",
+        "viewport_intelligence": "quadrant-aware flipping",
+        "boundary_safety": "10px safety margin"
+      },
       "variants": {
-        "cursor_tooltip": {
-          "description": "Minimal context block following cursor.",
+        "context_tooltip": {
           "specs": {
-            "background": "var(--glass-bg)",
-            "blur": "12px",
             "padding": "8px 12px",
-            "font_size": "11px",
-            "z_index": 1000000
+            "blur": "20px",
+            "font_size": "11px"
           }
         },
         "cursor_popover": {
-          "description": "Advanced floating window for rich content and metadata.",
           "specs": {
             "width": "320px",
-            "background": "var(--bg-secondary)",
+            "blur": "40px",
             "radius": "var(--radius-xl)",
             "shadow": "var(--shadow-xl)"
           }
         }
       }
-    },
-    "modals": {
-      "description": "Full-screen overlays and centered executive control windows.",
-      "classes": [
-        "admin-portal",
-        "auth-modal",
-        "gem-selector-modal"
-      ],
-      "specs": {
-        "window_radius": "var(--radius-xl)",
-        "backdrop_blur": "40px",
-        "shadow": "var(--shadow-2xl)",
-        "border": "1px solid var(--glass-border)"
-      }
-    },
-    "layout_z_index": {
-      "description": "Depth registry for absolute layer management.",
-      "specs": {
-        "tooltips": 1000000,
-        "modals": 9000,
-        "app_topbar": 1000,
-        "side_panels": 500,
-        "main_content": 1
-      }
+    }
+  },
+  "layout_z_index": {
+    "description": "Architectural depth hierarchy for modal and portal layering.",
+    "specs": {
+      "cursor_hover": 2147483647,
+      "modals": 1000,
+      "app_topbar": 500,
+      "side_panels": 100,
+      "base": 0
     }
   }
 }
