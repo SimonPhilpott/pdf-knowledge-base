@@ -163,7 +163,8 @@
       "protocol": {
         "positioning": "fixed cursor-relative",
         "offset": "12px",
-        "viewport_intelligence": "quadrant-aware flipping"
+        "viewport_intelligence": "quadrant-aware flipping",
+        "truncation": "strictly forbidden for history summaries"
       },
       "variants": {
         "context_tooltip": {
@@ -172,12 +173,13 @@
             "background": "var(--bg-secondary)",
             "blur": "30px",
             "font_size": "11px",
-            "shadow": "var(--shadow-lg)"
+            "shadow": "var(--shadow-lg)",
+            "max_width": "480px"
           }
         },
         "cursor_popover": {
           "specs": {
-            "width": "320px",
+            "width": "480px",
             "header_bg": "rgba(255, 255, 255, 0.02)",
             "header_font": "10px / 900 / uppercase",
             "body_padding": "16px",
@@ -187,12 +189,43 @@
         }
       }
     },
-    "file_explorer": {
-      "description": "High-fidelity subject navigation with indentation logic.",
+    "navigation_tree": {
+      "description": "Hierarchical subject and document navigation with state-aware chevrons and AI categorisation indicators.",
+      "classes": [
+        "catalog-item",
+        "catalog-tree",
+        "subject-filter"
+      ],
       "specs": {
         "indent_step": "16px",
-        "item_radius": "4px",
-        "active_color": "var(--accent-indigo)"
+        "item_radius": "var(--radius-md)",
+        "active_background": "var(--bg-tertiary)",
+        "active_color": "var(--accent-indigo)",
+        "chevron_size": 14,
+        "counter_font": "10px / 700 / mono"
+      },
+      "interaction": {
+        "hover_selection": "bg-[var(--glass-bg-light)]",
+        "reveal_on_hover": "delete_action, move_action",
+        "transition": "all 200ms ease"
+      }
+    },
+    "history_item": {
+      "description": "Compact conversation snapshots with contextual hover summaries.",
+      "classes": [
+        "chat-history-item",
+        "chat-history-title"
+      ],
+      "protocol": {
+        "truncation": "ellipsis",
+        "hover_behavior": "trigger_cursor_tooltip (full title)",
+        "reveal_logic": "reveal_trash_icon_on_hover"
+      },
+      "specs": {
+        "padding": "8px 12px",
+        "icon_opacity": 0.6,
+        "active_glow": "var(--shadow-glow-sm)",
+        "font_size": "12px"
       }
     },
     "administrative_overlays": {
