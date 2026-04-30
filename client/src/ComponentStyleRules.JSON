@@ -195,8 +195,13 @@
         "active_color": "var(--accent-indigo)"
       }
     },
-    "modals": {
-      "description": "Full-screen overlays and centered executive control windows.",
+    "administrative_overlays": {
+      "description": "High-priority contextual windows for system configuration and authentication. Employs a 40px backdrop blur and absolute z-index priority (9000+) to isolate critical administrative tasks from the primary research workspace.",
+      "classes": [
+        "admin-portal-overlay",
+        "auth-gateway",
+        "intelligence-drawer"
+      ],
       "specs": {
         "window_radius": "var(--radius-xl)",
         "backdrop_blur": "40px",
