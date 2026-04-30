@@ -2406,7 +2406,8 @@ a:hover {
   .topic-discovery-wrapper {
     position: absolute;
     right: 0;
-    top: var(--topbar-height) !important;
+    top: 0 !important;
+    margin-top: var(--topbar-height) !important;
     bottom: 0;
     height: calc(100vh - var(--topbar-height)) !important;
     background: var(--bg-primary);
@@ -2445,7 +2446,8 @@ a:hover {
   .sidebar-wrapper {
     position: absolute;
     left: 0;
-    top: var(--topbar-height) !important; 
+    top: 0 !important;
+    margin-top: var(--topbar-height) !important;
     bottom: 0;
     height: calc(100vh - var(--topbar-height)) !important;
     transform: translateX(-100%);
@@ -2472,30 +2474,28 @@ a:hover {
   }
 
   .chat-input-wrapper {
-    flex-direction: column !important;
+    flex-wrap: wrap !important;
     padding: 12px !important;
-    gap: 8px;
   }
 
   .chat-input {
+    flex-basis: 100% !important;
     width: 100% !important;
-    flex: none !important;
-    padding-right: 8px !important; /* Reset padding since tools moved */
+    margin-bottom: 8px !important;
+    padding-right: 8px !important;
   }
 
   .input-tools {
-    width: 100%;
+    width: auto;
+    flex: 1;
     border-right: none !important;
     margin-right: 0 !important;
     padding-right: 0 !important;
-    padding-top: 8px;
-    border-top: 1px solid var(--glass-border);
     justify-content: flex-start;
   }
 
   .chat-send-btn {
-    align-self: flex-end;
-    margin-top: -36px; /* Pull button up into tools row */
+    margin-left: auto !important;
   }
 }
 

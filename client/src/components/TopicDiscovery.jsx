@@ -86,9 +86,30 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
                       <button
                         className="topic-chip user-message-style"
                         onClick={() => onTopicClick(s.suggested_question)}
-                        style={{ textAlign: 'left', width: '100%', marginBottom: '4px' }}
+                        style={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'flex-start', 
+                          gap: '4px',
+                          padding: '10px 14px',
+                          textAlign: 'left',
+                          width: '100%',
+                          marginBottom: '6px'
+                        }}
                       >
-                        {s.suggested_question}
+                        <span style={{ 
+                          fontSize: '9px', 
+                          fontWeight: 800, 
+                          textTransform: 'uppercase', 
+                          letterSpacing: '0.5px',
+                          color: 'var(--accent-indigo)',
+                          opacity: 0.8
+                        }}>
+                          {s.filename || 'Source Document'}
+                        </span>
+                        <span style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.4 }}>
+                          {s.suggested_question}
+                        </span>
                       </button>
                     </Tooltip>
                   ))}
