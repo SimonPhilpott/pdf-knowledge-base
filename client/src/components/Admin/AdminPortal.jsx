@@ -641,31 +641,28 @@ function VisualPreview({ type, variant, specs }) {
     );
   }
 
-  if (variant === 'file_explorer') {
+  if (type === 'history_item') {
     return (
-      <div className="p-4 bg-black/5 rounded-xl flex flex-col gap-1 border border-dashed border-[var(--glass-border)]">
-        <div className="flex items-center gap-2 p-1.5 opacity-60">
-          <Folder size={14} className="text-indigo-400" />
-          <span className="text-xs font-bold text-[var(--text-primary)]">Knowledge Base Root</span>
+      <div 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className="p-4 bg-black/5 rounded-xl flex flex-col items-center justify-center border border-dashed border-[var(--glass-border)] h-32 relative cursor-default"
+      >
+        <div className={`flex items-center gap-3 w-full p-3 rounded-xl border transition-all duration-300 ${isHovered ? 'bg-[var(--bg-secondary)] border-[var(--glass-border)] shadow-md' : 'bg-transparent border-transparent'}`}>
+          <MessageSquare size={14} className="text-[var(--text-muted)]" />
+          <div className="flex flex-col flex-1 min-w-0">
+             <span className="text-[11px] font-bold truncate">What are the essential physical components...</span>
+          </div>
+          {isHovered && <Trash2 size={13} className="text-[var(--status-red)] opacity-60 hover:opacity-100 transition-opacity" />}
         </div>
-        <div 
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          style={{ 
-            marginLeft: specs.indent_step,
-            background: isHovered ? 'var(--accent-indigo)' : 'var(--accent-indigo)1a',
-            color: isHovered ? 'white' : 'var(--accent-indigo)',
-            borderColor: isHovered ? 'transparent' : 'var(--accent-indigo)33'
-          }} 
-          className="flex items-center gap-2 p-1.5 rounded border transition-colors cursor-pointer"
-        >
-          <Folder size={14} className={isHovered ? 'text-white' : 'text-indigo-500'} />
-          <span className="text-xs font-bold">Active Research Subject</span>
-        </div>
-        <div style={{ marginLeft: `calc(${specs.indent_step} * 2)` }} className="flex items-center gap-2 p-1.5 opacity-80 hover:bg-black/5 rounded cursor-default">
-          <FileText size={14} className="text-slate-400" />
-          <span className="text-xs font-medium text-[var(--text-primary)]">Executive_Summary.pdf</span>
-        </div>
+        {isHovered && (
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[var(--bg-primary)] border border-[var(--glass-border)] px-4 py-3 rounded-xl shadow-2xl z-10 w-[300px] text-left leading-relaxed">
+             <span className="block text-[8px] font-black uppercase tracking-[2px] text-[var(--accent-indigo)] mb-1">Full Summary (Zero Truncation)</span>
+             <p className="text-[10px] font-medium text-[var(--text-primary)]">
+               What are the essential physical components needed to play Blood on the Blade, and how do they interact to define the game's initial setup?
+             </p>
+          </div>
+        )}
       </div>
     );
   }

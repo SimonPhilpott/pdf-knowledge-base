@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { MessageSquare, Trash2, Check, X } from 'lucide-react';
 
+import { Tooltip } from './CursorHover';
+
 export default function ChatHistory({ sessions, activeId, onLoad, onDelete, onClearAll, isClearing }) {
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
 
@@ -78,9 +80,11 @@ export default function ChatHistory({ sessions, activeId, onLoad, onDelete, onCl
               onClick={() => onLoad(session.id)}
             >
               <MessageSquare size={14} style={{ opacity: 0.6 }} />
-              <span className="chat-history-title">
-                {session.title || 'Untitled Chat'}
-              </span>
+              <Tooltip text={session.title || 'Untitled Chat'}>
+                <span className="chat-history-title">
+                  {session.title || 'Untitled Chat'}
+                </span>
+              </Tooltip>
               <button
                 className="chat-history-delete"
                 onClick={(e) => { e.stopPropagation(); onDelete(session.id); }}

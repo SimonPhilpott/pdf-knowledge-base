@@ -96,9 +96,10 @@ export function CursorTooltip({ text, content, isVisible }) {
             fontSize: '11px',
             fontWeight: 600,
             boxShadow: 'var(--shadow-lg)',
-            maxWidth: '320px',
+            maxWidth: '480px',
             lineHeight: 1.5,
-            whiteSpace: 'pre-wrap'
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word'
           }}>
             {content || text}
           </div>
@@ -141,7 +142,7 @@ export function CursorPopover({ isVisible, children, title }) {
           style={getStyle()}
         >
           <div style={{
-            width: '320px',
+            width: '480px',
             background: 'var(--bg-secondary)',
             backdropFilter: 'blur(40px)',
             border: '1px solid var(--glass-border)',
