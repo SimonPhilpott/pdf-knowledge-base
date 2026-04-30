@@ -494,7 +494,7 @@ function VisualPreview({ type, variant, specs }) {
           style={{ 
             padding: specs.container_padding, 
             borderRadius: specs.container_radius,
-            background: 'var(--bg-elevated)',
+            background: specs.container_background || 'var(--bg-tertiary)',
             border: '1px solid var(--glass-border)',
             display: 'flex',
             gap: specs.between_item_gap
@@ -504,6 +504,8 @@ function VisualPreview({ type, variant, specs }) {
             <div 
               key={item}
               onClick={() => setActiveIndex(i)}
+              onMouseEnter={() => !activeIndex === i && setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
               style={{
                 padding: specs.item_padding,
                 borderRadius: specs.item_radius,
@@ -515,14 +517,23 @@ function VisualPreview({ type, variant, specs }) {
                 display: 'flex',
                 alignItems: 'center',
                 gap: specs.internal_icon_gap,
-                transition: 'background 0.2s ease'
+                transition: 'all 0.2s ease',
+                boxShadow: i === activeIndex ? specs.active_shadow : 'none'
               }}
             >
-              <Star size={10} className={i === activeIndex ? 'opacity-100' : 'opacity-40'} />
+              <Star 
+                size={specs.icon_size || 10} 
+                className={i === activeIndex ? 'opacity-100' : 'opacity-80'} 
+                style={{ 
+                  transform: (i === activeIndex || (isHovered && i !== activeIndex)) ? 'scale(1.1)' : 'scale(1)',
+                  transition: 'transform 0.2s ease'
+                }}
+              />
               <span className="tracking-tight">{item}</span>
             </div>
           ))}
         </div>
+        <span className="text-[9px] font-bold text-[var(--accent-indigo)] uppercase tracking-[2px] opacity-60">Production-Locked Sync</span>
       </div>
     );
   }
