@@ -263,37 +263,67 @@ function StructureView({ structure, loading }) {
 
 function RulesView({ rules, newRule, setNewRule, onAdd, onDelete, loading }) {
   const safeRules = Array.isArray(rules) ? rules : [];
+  if (loading && safeRules.length === 0) return <LoadingPulse />;
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '32px' }}>
-      <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '24px', height: 'fit-content' }}>
-        <h4 style={{ margin: '0 0 16px 0', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>Inject Strategy</h4>
-        <textarea 
-          value={newRule}
-          onChange={(e) => setNewRule(e.target.value)}
-          placeholder="Define protocol..."
-          style={{ width: '100%', height: '150px', background: 'rgba(0,0,0,0.2)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', padding: '12px', color: 'var(--text-primary)', fontSize: '12px', outline: 'none', resize: 'none' }}
-        />
-        <button 
-          onClick={onAdd} 
-          disabled={!newRule.trim()} 
-          style={{ width: '100%', marginTop: '16px', padding: '12px', background: 'var(--gradient-primary)', border: 'none', borderRadius: 'var(--radius-md)', color: 'white', fontWeight: 600, letterSpacing: '0.5px', fontSize: '11px', cursor: 'pointer' }}
-        >
-          Deploy Strategy
-        </button>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div>
+          <h3 className="text-[9px] font-bold text-[var(--accent-indigo)] tracking-[2px] bg-[var(--accent-indigo)]/10 px-2.5 py-1 rounded-md border border-[var(--accent-indigo)]/30">
+            Logic Matrix
+          </h3>
+          <div className="flex items-center gap-1.5 mt-1.5 px-1">
+             <Shield size={10} className="text-[var(--accent-indigo)]" />
+             <span className="text-[8px] font-black uppercase tracking-[2px] text-[var(--accent-indigo)] opacity-60">SOURCE: LOGIC_MATRIX (DB)</span>
+          </div>
+        </div>
+        <div className="h-px flex-1 bg-[var(--glass-border)]" />
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {safeRules.map((rule) => (
-          <div key={rule.id} className="admin-glass-card" style={{ padding: '12px 16px', borderRadius: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <div style={{ color: 'var(--accent-indigo)', flexShrink: 0 }}>
-              <Shield size={13} />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-4 bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[24px] p-6 shadow-xl h-fit">
+          <h4 className="text-sm font-black text-[var(--text-primary)] mb-4 flex items-center gap-2 uppercase tracking-wider">
+            <Zap size={14} className="text-[var(--accent-indigo)]" /> Inject Strategy
+          </h4>
+          <textarea 
+            value={newRule}
+            onChange={(e) => setNewRule(e.target.value)}
+            placeholder="Define behavioral protocol..."
+            className="w-full h-40 bg-black/20 border border-[var(--glass-border)] rounded-[var(--radius-md)] p-4 text-[var(--text-primary)] text-xs outline-none resize-none focus:border-[var(--accent-indigo)]/50 transition-colors"
+          />
+          <button 
+            onClick={onAdd} 
+            disabled={!newRule.trim()} 
+            className="w-full mt-4 py-3 bg-[var(--gradient-primary)] rounded-[var(--radius-md)] text-white font-bold text-[11px] tracking-widest uppercase shadow-lg shadow-[var(--accent-indigo)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+          >
+            Deploy Strategy
+          </button>
+        </div>
+
+        <div className="lg:col-span-8 flex flex-col gap-3">
+          {safeRules.length === 0 ? (
+            <div className="p-12 border-2 border-dashed border-[var(--glass-border)] rounded-3xl text-center">
+               <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">No strategies deployed.</p>
             </div>
-            <p style={{ flex: 1, margin: 0, fontSize: '12px', color: 'var(--text-primary)', lineHeight: 1.4 }}>{rule.content}</p>
-            <button onClick={() => onDelete(rule.id)} className="admin-delete-btn">
-              <Trash2 size={14} />
-            </button>
-          </div>
-        ))}
+          ) : (
+            safeRules.map((rule) => (
+              <div key={rule.id} className="bg-[var(--bg-secondary)] border border-[var(--glass-border)] p-4 rounded-2xl flex gap-4 items-center group hover:border-[var(--accent-indigo)]/30 transition-all">
+                <div className="w-8 h-8 rounded-lg bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] group-hover:scale-110 transition-transform shadow-sm">
+                  <Shield size={14} />
+                </div>
+                <p className="flex-1 text-[12px] text-[var(--text-primary)] leading-relaxed font-medium">
+                  {rule.content}
+                </p>
+                <button 
+                  onClick={() => onDelete(rule.id)} 
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
