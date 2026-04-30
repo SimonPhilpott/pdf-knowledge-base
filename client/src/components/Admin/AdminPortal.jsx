@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  X, Shield, FileText, Code, Star, Trash2, Settings, Sparkles, Grid, Activity, Terminal, Globe, Copy, Zap, CheckCircle2
+  X, Shield, FileText, Code, Star, Trash2, Settings, Sparkles, Grid, Activity, Terminal, Globe, Copy, Zap, CheckCircle2,
+  MousePointer2, Layers, Type, Folder, Search
 } from 'lucide-react';
 import { useDraggableScroll } from '../../hooks/useDraggableScroll';
 import { Tooltip } from '../CursorHover';
