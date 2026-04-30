@@ -453,74 +453,150 @@ function FeaturesView({ features, loading }) {
   );
 }
 
+function BoxModel({ specs }) {
+  const padding = specs?.padding || '0';
+  const margin = specs?.margin || '0';
+  const border = specs?.border ? '1' : '0';
+  
+  return (
+    <div className="flex flex-col items-center justify-center p-4 bg-black/10 rounded-xl mt-4 scale-90 origin-top">
+      <div className="relative border-2 border-dashed border-orange-500/30 p-4 bg-orange-500/10 rounded-lg flex items-center justify-center min-w-[180px]">
+        <span className="absolute top-1 left-2 text-[7px] font-bold text-orange-500/60 uppercase">Margin {margin}</span>
+        
+        <div className="relative border border-yellow-500/50 p-3 bg-yellow-500/20 rounded-md flex items-center justify-center w-full">
+          <span className="absolute top-1 left-2 text-[7px] font-bold text-yellow-600/80 uppercase border-b border-yellow-600/30">Border {border}</span>
+          
+          <div className="relative border-2 border-dashed border-green-500/50 p-4 bg-green-500/20 rounded-sm flex items-center justify-center w-full">
+            <span className="absolute top-1 left-2 text-[7px] font-bold text-green-600/80 uppercase">Padding {padding}</span>
+            
+            <div className="bg-blue-400/30 border border-blue-400/50 rounded-sm px-4 py-2 flex items-center justify-center min-w-[60px]">
+              <span className="text-[9px] font-mono font-bold text-blue-500">
+                {specs?.icon_size ? `${specs.icon_size}px` : 'auto'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ComponentRulesView({ rules, loading }) {
   if (loading && !rules) return <LoadingPulse />;
   if (!rules || !rules.components) return <div className="text-slate-500 p-20 text-center font-bold uppercase tracking-widest text-xs">No Component Data</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3 mb-4">
-        <h3 className="text-[9px] font-bold text-[var(--accent-indigo)] tracking-[2px] bg-[var(--accent-indigo)]/10 px-2.5 py-1 rounded-md border border-[var(--accent-indigo)]/30">
-          Native Design System
+    <div className="space-y-8 pb-12">
+      <div className="flex items-center gap-3 mb-6">
+        <h3 className="text-[10px] font-bold text-[var(--accent-indigo)] tracking-[3px] bg-[var(--accent-indigo)]/10 px-3 py-1.5 rounded-md border border-[var(--accent-indigo)]/40 uppercase">
+          Native Design System Spec
         </h3>
         <div className="h-px flex-1 bg-[var(--glass-border)]" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {Object.entries(rules.components).map(([compName, compData]) => (
-          <Tooltip 
+          <div 
             key={compName} 
-            content={
-              <div className="flex flex-col gap-2">
-                <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Component Specs</div>
-                <div className="text-[12px] font-bold">{compName}</div>
-                <div className="text-[11px] opacity-90">{compData.description}</div>
-                <div className="h-px bg-white/10 my-1" />
-                {compData.specs && Object.entries(compData.specs).map(([key, val]) => (
-                  <div key={key} className="flex justify-between text-[10px] gap-4">
-                    <span className="opacity-60">{key.replace(/_/g, ' ')}:</span>
-                    <span className="font-mono text-indigo-300">{val}</span>
-                  </div>
-                ))}
-              </div>
-            }
+            className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[24px] overflow-hidden flex flex-col shadow-xl"
           >
-            <div 
-              className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 hover:border-[var(--accent-indigo)] transition-all group cursor-help flex flex-col gap-3"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] group-hover:scale-110 transition-transform shadow-sm">
-                  <Sparkles size={18} />
+            <div className="p-6 border-b border-[var(--glass-border)] bg-black/5 flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] shadow-sm">
+                  <Sparkles size={20} />
                 </div>
                 <div>
-                  <h4 className="text-[12px] font-bold text-[var(--text-primary)] tracking-tight">
+                  <h4 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">
                     {compName.charAt(0).toUpperCase() + compName.slice(1).replace(/_/g, ' ')}
                   </h4>
-                  <p className="text-[9px] font-medium text-[var(--text-muted)] tracking-wider uppercase opacity-60">
-                    UI Component
+                  <p className="text-[10px] font-bold text-[var(--text-muted)] tracking-widest uppercase opacity-60">
+                    Component Logic & Aesthetics
                   </p>
                 </div>
               </div>
-              
-              <div className="space-y-2">
-                <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 leading-relaxed">
-                  {compData.description}
-                </p>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {(compData.classes || []).slice(0, 3).map(cls => (
-                    <span key={cls} className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--glass-border)] text-[var(--text-muted)]">
-                      .{cls.split(' ')[0]}
-                    </span>
-                  ))}
-                  {(compData.classes || []).length > 3 && (
-                    <span className="text-[8px] font-mono px-1.5 py-0.5 rounded bg-[var(--bg-elevated)] border border-[var(--glass-border)] text-[var(--text-muted)]">
-                      +{compData.classes.length - 3}
-                    </span>
-                  )}
+              <div className="flex flex-wrap justify-end gap-1.5 max-w-[200px]">
+                {(compData.classes || []).map(cls => (
+                  <span key={cls} className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-[var(--accent-indigo)]/10 border border-[var(--accent-indigo)]/20 text-[var(--accent-indigo)]">
+                    .{cls.split(' ')[0]}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-6 flex flex-col lg:flex-row gap-8">
+              <div className="flex-1 space-y-6">
+                <div>
+                  <h5 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Activity size={10} /> Interaction Summary
+                  </h5>
+                  <p className="text-[13px] text-[var(--text-secondary)] leading-relaxed italic border-l-2 border-[var(--accent-indigo)]/30 pl-4">
+                    {compData.description}
+                  </p>
+                </div>
+
+                {compData.variants ? (
+                  <div className="space-y-4">
+                    <h5 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">Variants Matrix</h5>
+                    <div className="grid grid-cols-1 gap-3">
+                      {Object.entries(compData.variants).map(([vName, vData]) => (
+                        <Tooltip 
+                          key={vName}
+                          content={
+                            <div className="flex flex-col gap-2 min-w-[200px]">
+                              <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold">{vName} Protocol</div>
+                              {vData.specs && Object.entries(vData.specs).map(([key, val]) => (
+                                <div key={key} className="flex justify-between text-[10px] gap-4">
+                                  <span className="opacity-60">{key.replace(/_/g, ' ')}:</span>
+                                  <span className="font-mono text-indigo-300">{val}</span>
+                                </div>
+                              ))}
+                            </div>
+                          }
+                        >
+                          <div className="p-3 bg-[var(--bg-primary)] rounded-xl border border-[var(--glass-border)] flex items-center justify-between hover:border-[var(--accent-indigo)]/40 transition-colors cursor-help group">
+                            <div className="flex items-center gap-3">
+                              <div className="w-2 h-2 rounded-full bg-[var(--accent-indigo)] group-hover:scale-150 transition-transform" />
+                              <span className="text-xs font-bold text-[var(--text-primary)]">{vName.replace(/_/g, ' ')}</span>
+                            </div>
+                            <div className="flex gap-2">
+                              {vData.specs?.icon_size && <span className="text-[9px] font-mono bg-black/10 px-1.5 py-0.5 rounded text-[var(--text-muted)]">{vData.specs.icon_size}px</span>}
+                              {vData.specs?.padding && <span className="text-[9px] font-mono bg-black/10 px-1.5 py-0.5 rounded text-[var(--text-muted)]">{vData.specs.padding}</span>}
+                            </div>
+                          </div>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    {compData.specs && Object.entries(compData.specs).map(([key, val]) => (
+                      <div key={key} className="p-3 bg-black/5 rounded-xl border border-white/5">
+                        <span className="block text-[8px] font-bold text-[var(--text-muted)] uppercase mb-1">{key.replace(/_/g, ' ')}</span>
+                        <span className="text-xs font-mono font-bold text-[var(--accent-indigo)]">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="w-full lg:w-[240px] shrink-0">
+                <h5 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Grid size={10} /> Geometry Spec
+                </h5>
+                <BoxModel specs={compData.specs || (compData.variants ? Object.values(compData.variants)[0].specs : {})} />
+                
+                <div className="mt-6 p-4 bg-[var(--accent-indigo)]/5 border border-[var(--accent-indigo)]/10 rounded-2xl">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Shield size={12} className="text-[var(--accent-indigo)]" />
+                    <span className="text-[10px] font-bold text-[var(--text-primary)] uppercase">Standard Rule</span>
+                  </div>
+                  <p className="text-[10px] text-[var(--text-muted)] leading-normal">
+                    This component strictly adheres to the <span className="font-bold text-[var(--accent-indigo)]">Oatmeal v1.3</span> design system tokens for {compName.toLowerCase()} implementation.
+                  </p>
                 </div>
               </div>
             </div>
-          </Tooltip>
+          </div>
         ))}
       </div>
     </div>
