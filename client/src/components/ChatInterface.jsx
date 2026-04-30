@@ -163,7 +163,11 @@ export default function ChatInterface({
           </div>
         )}
         
-        <form onSubmit={handleSubmit} className="chat-input-wrapper">
+        <form 
+          onSubmit={handleSubmit} 
+          className="chat-input-wrapper"
+          style={window.innerWidth <= 768 ? { flexWrap: 'wrap', padding: '12px' } : {}}
+        >
           <input 
             type="file" 
             ref={fileInputRef} 
@@ -182,8 +186,12 @@ export default function ChatInterface({
             rows={1}
             disabled={isTyping}
             id="chat-input"
+            style={window.innerWidth <= 768 ? { flexBasis: '100%', width: '100%', marginBottom: '8px' } : {}}
           />
-          <div className="input-tools">
+          <div 
+            className="input-tools"
+            style={window.innerWidth <= 768 ? { borderRight: 'none', flex: 1, paddingRight: 0, marginRight: 0 } : {}}
+          >
             <Tooltip text="Take Photo / Upload Image">
               <button 
                 type="button" 

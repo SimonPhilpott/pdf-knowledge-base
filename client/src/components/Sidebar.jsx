@@ -24,7 +24,14 @@ export default function Sidebar({
   onOpenAdmin
 }) {
   return (
-    <aside className="sidebar" style={{ width: `${width}px`, overflowY: 'auto' }}>
+    <aside 
+      className="sidebar" 
+      style={{ 
+        width: `${width}px`, 
+        overflowY: 'auto',
+        marginTop: teleportedIds.length > 0 ? 'var(--topbar-height)' : 0
+      }}
+    >
       {teleportedIds.length > 0 && (
         <div className="sidebar-section teleported-utilities">
           <div className="sidebar-label" style={{ marginBottom: '12px', fontSize: '10px', opacity: 0.6, letterSpacing: '1px', textTransform: 'uppercase' }}>Quick Tools</div>
