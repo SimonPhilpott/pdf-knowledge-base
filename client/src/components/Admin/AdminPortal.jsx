@@ -734,6 +734,43 @@ function VisualPreview({ type, variant, specs }) {
     );
   }
 
+  if (type === 'modals') {
+    return (
+      <div className="p-4 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] h-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-[10px]" />
+        <div 
+          style={{
+            width: '120px',
+            height: '60px',
+            background: 'var(--bg-secondary)',
+            borderRadius: specs.window_radius,
+            border: specs.border,
+            boxShadow: specs.shadow,
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <Shield size={20} className="text-[var(--accent-indigo)]" />
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'layout_z_index') {
+    return (
+      <div className="p-4 bg-black/5 rounded-xl flex flex-col gap-2 border border-dashed border-[var(--glass-border)] h-32 justify-center">
+        {Object.entries(specs).slice(0, 3).map(([key, val], i) => (
+          <div key={key} className="flex items-center justify-between bg-[var(--bg-primary)] p-2 rounded-lg border border-[var(--glass-border)]" style={{ marginLeft: i * 8 }}>
+            <span className="text-[8px] font-black uppercase tracking-wider">{key}</span>
+            <span className="text-[10px] font-mono font-bold text-[var(--accent-indigo)]">Z:{val}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 bg-black/5 rounded-xl flex items-center justify-center border border-dashed border-[var(--glass-border)] italic text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-black">
        Proxy Node_{variant.toUpperCase()}

@@ -1,7 +1,7 @@
 {
-  "version": "1.6.0",
+  "version": "1.6.1",
   "project": "Knowledge Base",
-  "audit_status": "Production-Locked (Exhaustive)",
+  "audit_status": "Production-Locked (Full Restore)",
   "tokens": {
     "themes": {
       "oatmeal": {
@@ -54,11 +54,35 @@
       "shadow_glow_hover": "0 0 30px rgba(137, 153, 129, 0.25)",
       "glass_blur": "blur(30px)",
       "glass_blur_deep": "blur(40px)"
+    },
+    "opacity": {
+      "glass_overlay": "0.75",
+      "glass_border": "0.1",
+      "glass_border_hover": "0.25",
+      "ghost_icon": "0.8"
+    },
+    "typography": {
+      "headings": {
+        "manifest_heading": "24px / 800 / var(--manifest-heading)",
+        "manifest_subheading": "18px / 700 / var(--manifest-subheading)",
+        "section_title": "11px / 900 / 4px letter-spacing",
+        "card_title": "14px / 700"
+      },
+      "body": {
+        "manifest_text": "14px / 1.6 / 500 / var(--manifest-text)",
+        "interface_medium": "12px / 1.5 / 600",
+        "interface_regular": "12px / 1.5 / 400",
+        "caption": "11px / 1.5 / 700"
+      }
     }
   },
   "components": {
     "buttons": {
       "description": "Premium glassmorphism actions with icon-centric interaction protocols.",
+      "classes": [
+        "sync-btn",
+        "glass-btn"
+      ],
       "interaction": {
         "hover_background": "var(--glass-bg-light)",
         "hover_border": "var(--glass-border-hover)",
@@ -66,6 +90,26 @@
         "transition": "var(--transition-fast)"
       },
       "variants": {
+        "status_action": {
+          "specs": {
+            "padding": "4px 12px",
+            "background": "var(--bg-tertiary)",
+            "border": "1px solid var(--glass-border)",
+            "radius": "var(--radius-full)",
+            "font_size": "11px",
+            "font_weight": 600,
+            "icon_size": 14
+          }
+        },
+        "primary_action": {
+          "specs": {
+            "padding": "10px 20px",
+            "background": "var(--gradient-primary)",
+            "radius": "var(--radius-full)",
+            "active_text": "white",
+            "icon_size": 16
+          }
+        },
         "voice_mic": {
           "specs": {
             "active_color": "#ef4444",
@@ -79,12 +123,39 @@
       "description": "Production-accurate persona switchers. Track-based geometry with floating active pills.",
       "specs": {
         "container_padding": "3px",
+        "container_radius": "var(--radius-full)",
         "container_background": "var(--bg-tertiary)",
+        "item_padding": "8px 16px",
+        "item_radius": "var(--radius-full)",
         "active_background": "var(--gradient-primary)",
         "active_text": "white",
         "active_shadow": "var(--shadow-glow)",
         "font_size": "11px",
-        "font_weight": 700
+        "font_weight": 700,
+        "between_item_gap": "2px",
+        "internal_icon_gap": "8px",
+        "icon_size": 14,
+        "icon_opacity": 0.8
+      }
+    },
+    "messages": {
+      "description": "Static document intelligence blocks with flat hover states.",
+      "variants": {
+        "user_prompt": {
+          "specs": {
+            "background": "var(--bg-elevated)",
+            "radius": "20px",
+            "border_bottom_right_radius": "4px"
+          }
+        },
+        "ai_response": {
+          "specs": {
+            "background": "var(--bg-secondary)",
+            "border": "1px solid var(--glass-border)",
+            "radius": "20px",
+            "border_bottom_left_radius": "4px"
+          }
+        }
       }
     },
     "hover_components": {
@@ -95,14 +166,51 @@
         "viewport_intelligence": "quadrant-aware flipping"
       },
       "variants": {
+        "context_tooltip": {
+          "specs": {
+            "padding": "10px 14px",
+            "background": "var(--bg-secondary)",
+            "blur": "30px",
+            "font_size": "11px",
+            "shadow": "var(--shadow-lg)"
+          }
+        },
         "cursor_popover": {
           "specs": {
             "width": "320px",
             "header_bg": "rgba(255, 255, 255, 0.02)",
             "header_font": "10px / 900 / uppercase",
-            "body_padding": "16px"
+            "body_padding": "16px",
+            "radius": "var(--radius-xl)",
+            "shadow": "var(--shadow-xl)"
           }
         }
+      }
+    },
+    "file_explorer": {
+      "description": "High-fidelity subject navigation with indentation logic.",
+      "specs": {
+        "indent_step": "16px",
+        "item_radius": "4px",
+        "active_color": "var(--accent-indigo)"
+      }
+    },
+    "modals": {
+      "description": "Full-screen overlays and centered executive control windows.",
+      "specs": {
+        "window_radius": "var(--radius-xl)",
+        "backdrop_blur": "40px",
+        "shadow": "var(--shadow-2xl)",
+        "border": "1px solid var(--glass-border)"
+      }
+    },
+    "layout_z_index": {
+      "description": "Depth registry for absolute layer management.",
+      "specs": {
+        "tooltips": 1000000,
+        "modals": 9000,
+        "app_topbar": 1000,
+        "side_panels": 500
       }
     }
   },
