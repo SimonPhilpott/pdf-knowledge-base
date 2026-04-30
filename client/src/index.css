@@ -2406,9 +2406,9 @@ a:hover {
   .topic-discovery-wrapper {
     position: absolute;
     right: 0;
-    top: 0 !important;
+    top: var(--topbar-height) !important;
     bottom: 0;
-    height: 100% !important;
+    height: calc(100vh - var(--topbar-height)) !important;
     background: var(--bg-primary);
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2445,9 +2445,9 @@ a:hover {
   .sidebar-wrapper {
     position: absolute;
     left: 0;
-    top: 0 !important; 
+    top: var(--topbar-height) !important; 
     bottom: 0;
-    height: 100% !important;
+    height: calc(100vh - var(--topbar-height)) !important;
     transform: translateX(-100%);
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
@@ -2472,7 +2472,7 @@ a:hover {
   }
 
   .chat-input-wrapper {
-    flex-direction: column;
+    flex-direction: column !important;
     padding: 12px !important;
     gap: 8px;
   }
