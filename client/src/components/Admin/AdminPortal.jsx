@@ -498,7 +498,8 @@ function VisualPreview({ type, variant, specs }) {
             border: '1px solid var(--glass-border)',
             display: 'flex',
             gap: specs.between_item_gap,
-            boxShadow: 'var(--shadow-inner)'
+            boxShadow: 'var(--shadow-inner)',
+            overflow: 'hidden'
           }}
         >
           {items.map((item, i) => (
@@ -525,7 +526,7 @@ function VisualPreview({ type, variant, specs }) {
             </div>
           ))}
         </div>
-        <span className="text-[9px] font-bold text-[var(--accent-indigo)] uppercase tracking-widest opacity-60">Interactive Matrix Demo</span>
+        <span className="text-[9px] font-bold text-[var(--accent-indigo)] uppercase tracking-[2px] opacity-60">Stateful Switch Demo</span>
       </div>
     );
   }
@@ -542,8 +543,8 @@ function VisualPreview({ type, variant, specs }) {
       display: 'flex',
       alignItems: 'center',
       gap: specs.internal_icon_gap || '8px',
-      boxShadow: isHovered ? (specs.shadow || '0 8px 24px -8px var(--accent-indigo)') : 'none',
-      transform: isHovered ? 'scale(1.08) translateY(-2px)' : 'scale(1)',
+      boxShadow: isHovered ? (specs.shadow || 'var(--shadow-glow-hover)') : 'none',
+      transform: isHovered ? 'scale(1.08) translateY(-3px)' : 'scale(1)',
       transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
       cursor: 'pointer',
       whiteSpace: 'nowrap'
@@ -582,7 +583,7 @@ function VisualPreview({ type, variant, specs }) {
             color: specs.color || 'var(--text-primary)',
             fontSize: '13px',
             lineHeight: 1.6,
-            maxWidth: '190px',
+            maxWidth: '200px',
             boxShadow: isHovered ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
             transform: isHovered ? 'translateY(-4px) scale(1.02)' : 'none',
             transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
@@ -598,7 +599,7 @@ function VisualPreview({ type, variant, specs }) {
     return (
       <div className="p-4 bg-black/5 rounded-xl flex flex-col gap-1 border border-dashed border-[var(--glass-border)]">
         <div className="flex items-center gap-2 p-2 opacity-60">
-          <Folder size={14} className="text-indigo-400" />
+          <Folder size={14} className="text-[var(--accent-indigo)]" />
           <span className="text-[11px] font-black tracking-widest text-[var(--text-primary)] uppercase">DRIVE_ROOT</span>
         </div>
         <div 
@@ -606,13 +607,13 @@ function VisualPreview({ type, variant, specs }) {
           onMouseLeave={() => setIsHovered(false)}
           style={{ 
             marginLeft: specs.indent_step,
-            background: isHovered ? 'var(--accent-indigo)' : 'var(--accent-indigo)1a',
+            background: isHovered ? 'var(--accent-indigo)' : 'color-mix(in srgb, var(--accent-indigo), transparent 0.9)',
             color: isHovered ? 'white' : 'var(--accent-indigo)',
-            borderColor: isHovered ? 'transparent' : 'var(--accent-indigo)33'
+            borderColor: isHovered ? 'transparent' : 'color-mix(in srgb, var(--accent-indigo), transparent 0.8)'
           }} 
           className="flex items-center gap-2 p-2 rounded-xl border transition-all duration-300 cursor-pointer shadow-sm"
         >
-          <Folder size={14} className={isHovered ? 'text-white' : 'text-indigo-500'} />
+          <Folder size={14} className={isHovered ? 'text-white' : 'text-[var(--accent-indigo)]'} />
           <span className="text-xs font-bold uppercase tracking-tight">Active_Subject_Node</span>
         </div>
         <div style={{ marginLeft: `calc(${specs.indent_step} * 2)` }} className="flex items-center gap-2 p-2 opacity-80 hover:bg-black/5 rounded-lg transition-colors cursor-default">
@@ -638,10 +639,10 @@ function VisualPreview({ type, variant, specs }) {
           
           <div className={`absolute top-full mt-3 z-10 transition-all duration-500 ${isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
             {isPopover ? (
-              <div style={{ width: '220px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: '0 20px 40px -10px rgba(0,0,0,0.3)', padding: '16px' }}>
+              <div style={{ width: '220px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', padding: '16px' }}>
                 <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/5">
                    <div className="flex items-center gap-2">
-                    <Shield size={14} className="text-indigo-500" />
+                    <Shield size={14} className="text-[var(--accent-indigo)]" />
                     <span className="text-[11px] font-black uppercase text-[var(--text-primary)]">Metadata</span>
                   </div>
                   <CheckCircle2 size={12} className="text-green-500" />
@@ -680,17 +681,17 @@ function TypographyView({ typography }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[32px] p-10 shadow-2xl">
            <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 rounded-2xl bg-[var(--accent-bronze)]/10 text-[var(--accent-bronze)]">
+              <div className="p-3 rounded-2xl bg-[var(--accent-indigo)]/10 text-[var(--accent-indigo)]">
                 <Type size={24} />
               </div>
               <h4 className="text-2xl font-black text-[var(--text-primary)] tracking-tight">Heading Hierarchy</h4>
            </div>
            <div className="space-y-8">
               {Object.entries(typography.headings).map(([key, val]) => {
-                const color = key.includes('manifest') ? 'var(--accent-bronze)' : 'var(--text-primary)';
+                const color = key.includes('manifest') ? 'var(--manifest-heading)' : 'var(--text-primary)';
                 return (
                   <div key={key} className="flex flex-col gap-3 group">
-                    <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[3px] group-hover:text-[var(--accent-bronze)] transition-colors">{key.replace(/_/g, ' ')}</span>
+                    <span className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[3px] group-hover:text-[var(--accent-indigo)] transition-colors">{key.replace(/_/g, ' ')}</span>
                     <div className="flex items-baseline gap-4">
                         <span 
                           style={{ 
