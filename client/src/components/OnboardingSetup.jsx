@@ -29,9 +29,16 @@ export default function OnboardingSetup({ authStatus, onComplete, API }) {
   }, [step, authStatus.authenticated]);
 
   const handleConnect = async () => {
-    const res = await fetch(`${API}/api/auth/url`);
-    const { url } = await res.json();
-    window.location.href = url;
+    console.log('[Auth] Fetching auth URL from:', `${API}/api/auth/url`);
+    try {
+      const res = await fetch(`${API}/api/auth/url`);
+      const { url } = await res.json();
+      console.log('[Auth] Redirecting to:', url);
+      window.location.href = url;
+    } catch (err) {
+      console.error('[Auth] Failed to get auth URL:', err);
+      setError('Connection failed: ' + err.message);
+    }
   };
 
   const loadFolders = async (parentId) => {

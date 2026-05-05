@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Shield, FileText, Code, Star, Trash2, Settings, Sparkles, Grid, Activity, Terminal, Globe, Copy, Zap, CheckCircle2,
-  MousePointer2, Layers, Type, Folder, Search, MessageSquare, ChevronDown, ChevronRight, Camera, Mic, Send
+  MousePointer2, Layers, Type, Folder, Search, MessageSquare, ChevronDown, ChevronRight, Camera, Mic, Send, Volume2
 } from 'lucide-react';
 import { useDraggableScroll } from '../../hooks/useDraggableScroll';
 import { Tooltip } from '../CursorHover';
@@ -11,7 +11,7 @@ import { Tooltip } from '../CursorHover';
  * AdminPortal: Executive Control Interface.
  * Restored from GitHub Master Branch (main).
  */
-export default function AdminPortal({ isOpen, onClose }) {
+export default function AdminPortal({ isOpen, onClose, voiceEngine }) {
   const { scrollRef, isDragging, handlers } = useDraggableScroll();
   const [activeTab, setActiveTab] = useState('structure');
   const [data, setData] = useState({ structure: null, rules: [], devRules: '', features: null, styleRules: null });
@@ -122,8 +122,8 @@ export default function AdminPortal({ isOpen, onClose }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="relative w-full max-w-6xl h-[85vh] bg-[var(--bg-secondary)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] shadow-2xl flex flex-col overflow-hidden"
       >
-        <header className="px-[var(--space-md)] py-[var(--space-sm)] border-b border-[var(--glass-border)] flex flex-col md:flex-row md:items-center justify-between shrink-0 bg-[var(--bg-tertiary)] gap-4">
-          <div className="flex items-center justify-between w-full md:w-auto">
+        <header className="px-[var(--space-md)] py-[var(--space-sm)] border-b border-[var(--glass-border)] flex flex-col shrink-0 bg-[var(--bg-tertiary)] gap-4">
+          <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-4 md:gap-6">
               <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-[var(--accent-indigo)] flex items-center justify-center text-white shadow-xl shadow-[var(--shadow-glow)]">
                 <Settings size={24} className="md:w-[28px] md:h-[28px]" />
@@ -134,12 +134,14 @@ export default function AdminPortal({ isOpen, onClose }) {
               </div>
             </div>
             
-            <button className="md:hidden global-close-btn" onClick={onClose}>
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-4">
+              <button className="global-close-btn" onClick={onClose}>
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-8 min-w-0 md:flex-1 md:justify-end w-full md:w-auto">
+          <div className="flex items-center w-full">
             <nav 
               ref={scrollRef}
               {...handlers}
@@ -157,6 +159,7 @@ export default function AdminPortal({ isOpen, onClose }) {
                 { id: 'dev-rules', label: 'Manifest', icon: Terminal },
                 { id: 'features', label: 'Features', icon: Activity },
                 { id: 'network', label: 'Network', icon: Globe },
+                { id: 'diagnostics', label: 'Diagnostics', icon: Terminal },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -212,12 +215,121 @@ export default function AdminPortal({ isOpen, onClose }) {
                   isTransitioning={isNgrokTransitioning} 
                 />
               )}
+              {activeTab === 'diagnostics' && (
+                <DiagnosticsView voiceEngine={voiceEngine} />
+              )}
             </motion.div>
           </AnimatePresence>
         </main>
         
 
       </motion.div>
+    </div>
+  );
+}
+
+function DiagnosticsView({ voiceEngine }) {
+  const [testStatus, setTestStatus] = useState('idle');
+  
+  const handleVoiceTest = () => {
+    if (!voiceEngine) return;
+    setTestStatus('testing');
+    voiceEngine.speak("This is a diagnostic test of the Knowledge Base voice engine. If you can hear this, your audio output is correctly configured.", true);
+    setTimeout(() => setTestStatus('idle'), 3000);
+  };
+
+  const support = {
+    stt: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+    tts: !!window.speechSynthesis
+  };
+
+  return (
+    <div className="space-y-8 max-w-4xl mx-auto py-8">
+      <div className="text-center mb-12">
+        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-2">System Diagnostics</h3>
+        <p className="text-[var(--text-muted)]">Verify core infrastructure and peripheral integration.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Voice Engine Diagnostics */}
+        <div className="p-8 bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-3xl shadow-xl">
+           <div className="flex items-center gap-4 mb-8">
+             <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
+               <Mic size={24} />
+             </div>
+             <div>
+               <h4 className="text-lg font-bold">Voice Interface</h4>
+               <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-black">STT / TTS PIPELINE</p>
+             </div>
+           </div>
+
+           <div className="space-y-4 mb-8">
+             <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)] rounded-xl border border-[var(--glass-border)]">
+               <span className="text-sm font-medium">Speech Recognition (STT)</span>
+               <span className={`text-[10px] font-black px-2 py-1 rounded ${support.stt ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                 {support.stt ? 'SUPPORTED' : 'UNSUPPORTED'}
+               </span>
+             </div>
+             <div className="flex items-center justify-between p-4 bg-[var(--bg-primary)] rounded-xl border border-[var(--glass-border)]">
+               <span className="text-sm font-medium">Speech Synthesis (TTS)</span>
+               <span className={`text-[10px] font-black px-2 py-1 rounded ${support.tts ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                 {support.tts ? 'SUPPORTED' : 'UNSUPPORTED'}
+               </span>
+             </div>
+           </div>
+
+           <button
+             onClick={handleVoiceTest}
+             disabled={testStatus === 'testing' || !support.tts}
+             className="w-full py-4 bg-[var(--accent-indigo)] hover:bg-[var(--accent-indigo-light)] disabled:opacity-50 text-white rounded-2xl font-bold shadow-lg shadow-[var(--accent-indigo)]/20 transition-all flex items-center justify-center gap-3"
+           >
+             {testStatus === 'testing' ? (
+               <Activity size={18} className="animate-pulse" />
+             ) : (
+               <Volume2 size={18} />
+             )}
+             {testStatus === 'testing' ? 'OUTPUTTING AUDIO...' : 'RUN VOICE TEST'}
+           </button>
+           
+           {!support.tts && (
+             <p className="mt-4 text-center text-xs text-red-500 font-bold">
+               Browser block detected. Try Google Chrome.
+             </p>
+           )}
+        </div>
+
+        {/* Global Controls */}
+        <div className="p-8 bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-3xl shadow-xl flex flex-col justify-between">
+           <div>
+             <div className="flex items-center gap-4 mb-8">
+               <div className="w-12 h-12 rounded-2xl bg-[var(--accent-indigo)]/10 flex items-center justify-center text-[var(--accent-indigo)]">
+                 <Shield size={24} />
+               </div>
+               <div>
+                 <h4 className="text-lg font-bold">Preference Overrides</h4>
+                 <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest font-black">FORCE PROTOCOLS</p>
+               </div>
+             </div>
+
+             <div className="space-y-4">
+               <div className="p-4 bg-[var(--bg-primary)] rounded-xl border border-[var(--glass-border)]">
+                 <p className="text-xs text-[var(--text-muted)] mb-2 font-bold">CITATION CLEANING</p>
+                 <p className="text-sm">The Voice Engine now automatically strips citation markers like <code className="text-[var(--accent-indigo)]">[1]</code> or <code className="text-[var(--accent-indigo)]">(p. 42)</code> for cleaner audio output.</p>
+               </div>
+               
+               <div className="p-4 bg-[var(--bg-primary)] rounded-xl border border-[var(--glass-border)]">
+                 <p className="text-xs text-[var(--text-muted)] mb-2 font-bold">REGIONALISATION</p>
+                 <p className="text-sm">Defaulting to <code className="text-[var(--accent-indigo)]">en-GB</code> (British English) for all speech interactions.</p>
+               </div>
+             </div>
+           </div>
+
+           <div className="mt-8 pt-8 border-t border-[var(--glass-border)] flex items-center justify-center gap-2 opacity-50">
+             <Terminal size={12} />
+             <span className="text-[10px] font-mono font-bold tracking-widest">SYSTEM_VERSION_1.0.4_STABLE</span>
+           </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -241,17 +353,20 @@ function StructureView({ structure, loading }) {
             <div className="h-px flex-1 bg-[var(--glass-border)]" />
           </div>
 
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+          <div className="flex flex-wrap gap-4">
             {Object.entries(files || {}).map(([path, desc]) => (
               <Tooltip key={path} text={`${path}: ${desc}`}>
                 <div 
-                  className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-2 hover:border-[var(--accent-indigo)] transition-all group cursor-help"
+                  className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-3 hover:border-[var(--accent-indigo)] transition-all group cursor-help flex flex-row items-center text-left gap-3 w-40 h-20 shrink-0 overflow-hidden shadow-sm"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] mb-2 group-hover:scale-110 transition-transform mx-auto">
-                    {path.endsWith('.js') || path.endsWith('.jsx') ? <Code size={14} /> : <FileText size={14} />}
+                  <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] group-hover:scale-110 transition-transform shadow-sm">
+                    {path.endsWith('.js') || path.endsWith('.jsx') ? <Code size={18} /> : <FileText size={18} />}
                   </div>
-                  <h4 className="text-[9px] font-mono font-bold text-[var(--text-primary)] text-center truncate">{path}</h4>
+                  <h4 className="text-[10px] font-mono font-bold text-[var(--text-primary)] leading-tight flex-1 break-all line-clamp-3">
+                    {path}
+                  </h4>
                 </div>
+
               </Tooltip>
             ))}
           </div>
@@ -464,7 +579,7 @@ function FeaturesView({ features, loading }) {
         <div className="h-px flex-1 bg-[var(--glass-border)]" />
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+      <div className="flex flex-wrap gap-4">
         {items.map((f) => {
           const status = (f.status || 'stable').toLowerCase().replace(' ', '-');
           const isImplemented = status === 'implemented';
@@ -472,23 +587,24 @@ function FeaturesView({ features, loading }) {
           return (
             <Tooltip key={f.id} text={f.description}>
               <div 
-                className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-3 hover:border-[var(--accent-indigo)] transition-all group cursor-help flex flex-col gap-3"
+                className="bg-[var(--bg-tertiary)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-3 hover:border-[var(--accent-indigo)] transition-all group cursor-help flex flex-col items-center justify-center text-center gap-2 w-40 h-40 shrink-0 overflow-hidden shadow-sm"
               >
-                <div className="flex items-start justify-between">
-                  <div className="w-8 h-8 rounded-lg bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] group-hover:scale-110 transition-transform">
-                    <Star size={14} fill={isImplemented ? "currentColor" : "none"} />
+                <div className="flex flex-col items-center gap-2 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-[var(--bg-primary)] flex items-center justify-center text-[var(--accent-indigo)] group-hover:scale-110 transition-transform shadow-sm">
+                    <Star size={18} fill={isImplemented ? "currentColor" : "none"} />
                   </div>
-                  <span className={`status-badge ${status}`}>
+                  <span className={`status-badge ${status}`} style={{ fontSize: '8px', padding: '1px 6px' }}>
                     {f.status}
                   </span>
                 </div>
-                <div>
-                  <h4 className="text-[10px] font-bold text-[var(--text-primary)] tracking-wider mb-1 line-clamp-1">
+                <div className="flex-1 flex flex-col justify-center w-full min-h-0 px-1">
+                  <h4 className="text-[10px] font-bold text-[var(--text-primary)] tracking-wider leading-tight line-clamp-3">
                     {f.name}
                   </h4>
-                  <div className="h-0.5 w-8 bg-[var(--accent-indigo)]/30 rounded-full" />
+                  <div className="h-0.5 w-8 bg-[var(--accent-indigo)]/30 rounded-full mx-auto mt-2 shrink-0" />
                 </div>
               </div>
+
             </Tooltip>
           );
         })}
@@ -721,13 +837,14 @@ function VisualPreview({ type, variant, specs }) {
           <div 
             style={{ 
               position: 'absolute',
-              left: isFlipped ? mousePos.x - (isPopover ? 292 : 160) : mousePos.x + 12,
+              left: isFlipped ? Math.max(10, mousePos.x - (isPopover ? 292 : 160)) : Math.min(containerRef.current?.offsetWidth - 10, mousePos.x + 12),
               top: mousePos.y + 12,
               zIndex: 10,
               pointerEvents: 'none',
               transition: 'opacity 0.2s ease, left 0.1s ease'
             }}
           >
+
             {isPopover ? (
               <div style={{ width: '280px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', overflow: 'hidden' }}>
                 <header style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>

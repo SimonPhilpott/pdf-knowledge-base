@@ -23,7 +23,7 @@ export default function CitationCard({ citation, onOpenPdf, onPin, isPinned }) {
           title={`Click to open ${citation.filename} at page ${citation.pageNum}`}
         >
           <FileText size={14} style={{ marginRight: '4px' }} />
-          {citation.filename?.replace('.pdf', '')}, p.{citation.pageNum}
+          {citation.filename?.replace('.pdf', '')}, p.{citation.pageNum || citation.page_num || '?'}
           <span style={{ marginLeft: '4px', fontSize: '10px', opacity: 0.7 }}>↗</span>
         </button>
         

@@ -3,7 +3,7 @@ import { User, Bot, Zap, Brain, Sparkles, Copy, Check, ShieldCheck, Info, Loader
 import CitationCard from './CitationCard';
 import { Tooltip } from './CursorHover';
 
-export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems = [], onOpenCanvas }) {
+export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems = [], onOpenCanvas, showCitations }) {
   const { role, content, citations, model, canvasUpdate, id } = message;
   const [verification, setVerification] = React.useState(null);
   const [isVerifying, setIsVerifying] = React.useState(false);
@@ -282,6 +282,8 @@ export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems =
       
       if (cite) {
         const { text: citationText, data: citationData } = cite;
+        if (!showCitations) return ''; // Hide if disabled
+        
         if (citationData && citationData.driveFileId) {
           parts.push(
             <Tooltip key={`cite-${lineKey}-${match.index}`} text={`Open ${citationData.filename} at page ${citationData.pageNum}`}>
@@ -290,14 +292,14 @@ export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems =
                 onClick={() => {
                   onOpenPdf(
                     citationData.driveFileId || citationData.drive_file_id, 
-                    citationData.pageNum || citationData.page_num, 
+                    citationData.pageNum || citationData.page_num || 1, 
                     citationData.filename,
                     citationData.text || citationText
                   );
                 }}
               >
                 <span className="citation-icon">📄</span>
-                {citationData.filename?.replace('.pdf', '')}, p.{citationData.pageNum}
+                {citationData.filename?.replace('.pdf', '')}, p.{citationData.pageNum || citationData.page_num || '?'}
                 <span style={{ marginLeft: '4px', fontSize: '10px', opacity: 0.7 }}>↗</span>
               </button>
             </Tooltip>
@@ -400,7 +402,7 @@ export default function MessageBubble({ message, onOpenPdf, onPin, pinnedItems =
           </div>
         )}
 
-        {role === 'assistant' && citations && citations.length > 0 && (
+        {role === 'assistant' && citations && citations.length > 0 && showCitations && (
           <div className="citations-list">
             {citations.filter(c => c.driveFileId).map((c, i) => (
               <CitationCard 

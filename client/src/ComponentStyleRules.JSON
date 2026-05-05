@@ -1,224 +1,37 @@
 {
-  "version": "1.6.6",
-  "project": "Knowledge Base",
-  "last_updated": "2026-04-30",
-  "design_system": {
-    "palette": {
-      "oatmeal_ivory": "#F1EFE9",
-      "oatmeal_warm_white": "#FBF9F7",
-      "sage_green_gradient": "linear-gradient(135deg, #899981 0%, #708269 100%)",
-      "accent_indigo": "#6366f1",
-      "glass_bg_light": "rgba(255, 255, 255, 0.03)",
-      "glass_border": "rgba(255, 255, 255, 0.08)",
-      "glass_border_hover": "rgba(255, 255, 255, 0.15)"
-    },
-    "typography": {
-      "headings": {
-        "primary_heading": "32px / 900 / -0.02em / Publico",
-        "secondary_heading": "24px / 800 / -0.01em / Publico",
-        "manifest_heading": "18px / 700 / 0.05em / Inter"
-      },
-      "body": {
-        "primary_copy": "14px / 1.6 / 400 / Inter",
-        "secondary_copy": "12px / 1.5 / 500 / Inter",
-        "interface_labels": "10px / 1.2 / 900 / Inter"
-      },
-      "mono": {
-        "code_snippet": "11px / 1.4 / 500 / JetBrains Mono"
-      }
-    },
-    "tokens": {
-      "radius_xl": "24px",
-      "radius_lg": "16px",
-      "radius_md": "12px",
-      "radius_full": "9999px",
-      "shadow_glow": "0 0 20px rgba(99, 102, 241, 0.2)",
-      "transition_smooth": "cubic-bezier(0.4, 0, 0.2, 1) 250ms"
+  "designSystem": {
+    "name": "Google Antigravity Premium",
+    "theme": "Oatmeal / Dark",
+    "coreColors": {
+      "ivory": "#F1EFE9",
+      "sageGreen": "#899981",
+      "charcoal": "#2E2B27",
+      "indigo": "#6366F1"
     }
   },
   "components": {
-    "buttons": {
-      "description": "Premium glassmorphism actions with icon-centric interaction protocols.",
-      "maintaining_file": "index.css",
-      "classes": [
-        "sync-btn",
-        "glass-btn"
-      ],
-      "interaction": {
-        "hover_background": "var(--glass-bg-light)",
-        "hover_border": "var(--glass-border_hover)",
-        "press_state": "scale(0.98)",
-        "transition": "var(--transition-fast)"
-      },
-      "variants": {
-        "status_action": {
-          "specs": {
-            "padding": "4px 12px",
-            "background": "var(--bg-tertiary)",
-            "border": "1px solid var(--glass-border)",
-            "radius": "var(--radius-full)",
-            "font_size": "11px",
-            "font_weight": 600,
-            "icon_size": 14
-          }
-        },
-        "primary_action": {
-          "specs": {
-            "padding": "10px 20px",
-            "background": "var(--gradient-primary)",
-            "radius": "var(--radius-full)",
-            "active_text": "white",
-            "icon_size": 16
-          }
-        }
+    "BinaryToggle": {
+      "wrapperClass": "mode-switcher",
+      "itemClass": "mode-item",
+      "description": "Used for balanced 50/50 toggles in the sidebar (Library/Gemini, Theme, Citations).",
+      "styles": {
+        "display": "flex",
+        "flex": "1",
+        "gap": "1px",
+        "padding": "4px",
+        "borderRadius": "var(--radius-full)",
+        "itemWidth": "100%",
+        "itemFlex": "1"
       }
     },
-    "prompt_action_icons": {
-      "description": "Critical interaction nodes within the primary chat workspace. Supports multi-state logic for image capture, canvas orchestration, and voice-assisted research.",
-      "maintaining_file": "ChatInterface.jsx",
-      "specs": {
-        "icon_size": 16,
-        "padding": "8px",
-        "radius": "10px",
-        "transition": "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-        "hover_bg": "var(--bg-tertiary)",
-        "active_tint": "var(--accent-indigo)"
-      },
-      "interaction": {
-        "camera": "Triggers file_input_ref for local media acquisition.",
-        "sparkles": "Toggles rich-text Canvas workspace overlay.",
-        "voice_mic": "Toggles en-GB speech recognition with pulse animation (active: red).",
-        "send_btn": "Elevated gradient action (Send icon: 18px)."
-      }
-    },
-    "segment_toggles": {
-      "description": "Production-accurate persona switchers. Track-based geometry with floating active pills.",
-      "maintaining_file": "ToneSwitcher.jsx",
-      "specs": {
-        "container_padding": "3px",
-        "container_radius": "var(--radius-full)",
-        "container_background": "var(--bg-tertiary)",
-        "item_padding": "8px 16px",
-        "item_radius": "var(--radius-full)",
-        "active_background": "var(--gradient-primary)",
-        "active_text": "white",
-        "active_shadow": "var(--shadow-glow)",
-        "font_size": "11px",
-        "font_weight": 700,
-        "between_item_gap": "2px",
-        "internal_icon_gap": "8px",
-        "icon_size": 14,
-        "icon_opacity": 0.8
-      }
-    },
-    "messages": {
-      "description": "Static document intelligence blocks with flat hover states.",
-      "maintaining_file": "MessageBubble.jsx",
-      "variants": {
-        "user_prompt": {
-          "specs": {
-            "background": "var(--bg-elevated)",
-            "radius": "20px",
-            "border_bottom_right_radius": "4px"
-          }
-        },
-        "ai_response": {
-          "specs": {
-            "background": "var(--bg-secondary)",
-            "border": "1px solid var(--glass-border)",
-            "radius": "20px",
-            "border_bottom_left_radius": "4px"
-          }
-        }
-      }
-    },
-    "hover_components": {
-      "description": "Viewport-intelligent floating nodes that follow the cursor context.",
-      "maintaining_file": "CursorHover.jsx",
-      "protocol": {
-        "positioning": "fixed cursor-relative",
-        "offset": "12px",
-        "viewport_intelligence": "quadrant-aware flipping (NE, NW, SE, SW)",
-        "clipping_prevention": "Mandatory flip to opposite axis if content exceeds 24px from viewport edge.",
-        "truncation": "strictly forbidden for history summaries"
-      },
-      "variants": {
-        "context_tooltip": {
-          "specs": {
-            "padding": "10px 14px",
-            "background": "var(--bg-secondary)",
-            "blur": "30px",
-            "font_size": "11px",
-            "shadow": "var(--shadow-lg)",
-            "max_width": "480px"
-          }
-        },
-        "cursor_popover": {
-          "specs": {
-            "width": "480px",
-            "header_bg": "rgba(255, 255, 255, 0.02)",
-            "header_font": "10px / 900 / uppercase",
-            "body_padding": "16px",
-            "radius": "var(--radius-xl)",
-            "shadow": "var(--shadow-xl)"
-          }
-        }
-      }
-    },
-    "navigation_tree": {
-      "description": "Hierarchical subject and document navigation with state-aware chevrons and AI categorisation indicators.",
-      "maintaining_file": "SubjectFilter.jsx",
-      "classes": [
-        "catalog-item",
-        "catalog-tree",
-        "subject-filter"
-      ],
-      "specs": {
-        "indent_step": "16px",
-        "item_radius": "var(--radius-md)",
-        "active_background": "var(--bg-tertiary)",
-        "active_color": "var(--accent-indigo)",
-        "chevron_size": 14,
-        "counter_font": "10px / 700 / mono"
-      },
-      "interaction": {
-        "hover_selection": "bg-[var(--glass-bg-light)]",
-        "reveal_on_hover": "delete_action, move_action",
-        "transition": "all 200ms ease"
-      }
-    },
-    "history_item": {
-      "description": "Compact conversation snapshots with contextual hover summaries.",
-      "maintaining_file": "ChatHistory.jsx",
-      "classes": [
-        "chat-history-item",
-        "chat-history-title"
-      ],
-      "protocol": {
-        "truncation": "ellipsis",
-        "hover_behavior": "trigger_cursor_tooltip (full title)",
-        "reveal_logic": "reveal_trash_icon_on_hover"
-      },
-      "specs": {
-        "padding": "8px 12px",
-        "icon_opacity": 0.6,
-        "active_glow": "var(--shadow-glow-sm)",
-        "font_size": "12px"
-      }
-    },
-    "administrative_overlays": {
-      "description": "High-priority contextual windows for system configuration and authentication. Employs a 40px backdrop blur and absolute z-index priority (9000+) to isolate critical administrative tasks from the primary research workspace.",
-      "maintaining_file": "AdminPortal.jsx",
-      "classes": [
-        "admin-portal-overlay",
-        "auth-gateway",
-        "intelligence-drawer"
-      ],
-      "specs": {
-        "window_radius": "var(--radius-xl)",
-        "backdrop_blur": "40px",
-        "shadow": "var(--shadow-2xl)",
-        "border": "1px solid var(--glass-border)"
+    "ResizableSidebar": {
+      "resizerClass": "sidebar-resizer",
+      "description": "Standard draggable handle for resizing lateral panels.",
+      "styles": {
+        "width": "8px",
+        "hitArea": "8px",
+        "zIndex": "5000",
+        "activeColor": "var(--accent-indigo)"
       }
     }
   }

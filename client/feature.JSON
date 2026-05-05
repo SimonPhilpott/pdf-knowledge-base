@@ -110,13 +110,37 @@
     {
       "id": "FEAT-018",
       "name": "Subject-Aware Discovery Mechanism",
-      "description": "Dynamic synchronization of 'Suggested Questions' based on the user's active sidebar subject selection, enabling context-specific exploration.",
+      "description": "Dynamic subject-specific question generation through a dedicated discovery dropdown, allowing for targeted library exploration.",
       "status": "implemented"
     },
     {
       "id": "FEAT-019",
       "name": "Architectural Traceability",
       "description": "Admin Portal feature that maps every UI component to its source file, facilitating rapid maintenance and design parity verification.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-020",
+      "name": "Research Citation Visibility Toggle",
+      "description": "User-controlled toggle to show or hide inline AI citations, allowing for a cleaner reading experience or deep-dive verification.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-021",
+      "name": "Administrative Diagnostics Dashboard",
+      "description": "Integrated system health check within the Admin Portal, enabling one-click voice engine verification and citation-stripping diagnostics.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-022",
+      "name": "Progress-Tracked Session Purging",
+      "description": "High-fidelity chat history deletion with a multi-stage visual feedback loop, including confirmation gating and a real-time progress bar.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-023",
+      "name": "Resizable Knowledge Discovery Sidebar",
+      "description": "Integrated a resizable right-hand panel for Knowledge Discovery, featuring strict flex-box constraints and transition-suppressed resizing for optimal performance.",
       "status": "implemented"
     }
   ]

@@ -17,6 +17,8 @@ export function useAppLogic() {
   const [messages, setMessages] = useState([]);
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
+  const [topicsWidth, setTopicsWidth] = useState(320);
+  const [isResizingTopics, setIsResizingTopics] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [sessions, setSessions] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -56,6 +58,13 @@ export function useAppLogic() {
 
   // Theme state
   const [theme, setTheme] = useState(() => localStorage.getItem('app-theme') || 'dark');
+  const [showCitations, setShowCitations] = useState(() => {
+    const saved = localStorage.getItem('app-show-citations');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
+  const [deletingSessionIds, setDeletingSessionIds] = useState(new Set());
+
+
 
   // Apply theme class to document
   useEffect(() => {
@@ -70,6 +79,15 @@ export function useAppLogic() {
   const toggleTheme = useCallback(() => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   }, []);
+
+  const toggleCitations = useCallback(() => {
+    setShowCitations(prev => {
+      const next = !prev;
+      localStorage.setItem('app-show-citations', JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
 
   const loadAppData = useCallback(async () => {
     try {
@@ -154,8 +172,10 @@ export function useAppLogic() {
           model: modelToUse,
           appMode: appMode,
           tone: chatTone,
-          image: image
+          image: image,
+          showCitations: showCitations
         })
+
       });
       if (!res.ok) {
         const errorData = await res.json();
@@ -292,28 +312,40 @@ export function useAppLogic() {
 
   const deleteSession = useCallback(async (id) => {
     try {
+      setDeletingSessionIds(prev => new Set(prev).add(id));
       await fetch(`${API}/api/chat/history/${id}`, { method: 'DELETE' });
+      // Artificial delay for visual feedback of the progress bar
+      await new Promise(r => setTimeout(r, 600));
       setSessions(prev => prev.filter(s => s.id !== id));
       if (sessionId === id) { setSessionId(null); setMessages([]); }
-    } catch (err) { console.error('Failed to delete session:', err); }
+    } catch (err) { 
+      console.error('Failed to delete session:', err); 
+    } finally {
+      setDeletingSessionIds(prev => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   }, [sessionId]);
 
+
   const clearAllHistory = useCallback(async () => {
-    if (!window.confirm('Are you sure you want to delete ALL chat history? This cannot be undone.')) return;
+    if (isClearingHistory) return;
+    setIsClearingHistory(true);
     try {
-      setIsClearingHistory(true);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await fetch(`${API}/api/chat/history`, { method: 'DELETE' });
-      // Simulate progress for UI feedback if it's too fast
-      await new Promise(r => setTimeout(r, 800));
       setSessions([]);
-      setSessionId(null);
       setMessages([]);
-    } catch (err) { 
-      console.error('Failed to clear history:', err); 
+      setSessionId(null);
+      if (appMode === 'general') setAppMode('kb');
+    } catch (err) {
+      console.error('Failed to clear history:', err);
     } finally {
       setIsClearingHistory(false);
     }
-  }, []);
+  }, [isClearingHistory, appMode]);
 
   const updateModel = useCallback(async (model) => {
     setCurrentModel(model);
@@ -324,7 +356,19 @@ export function useAppLogic() {
     });
   }, []);
 
-  const handlePin = useCallback(async (citation) => {
+  const handlePin = useCallback(async (citation, pinIdToDelete = null) => {
+    if (pinIdToDelete) {
+      setPinnedItems(prev => prev.filter(p => p.id !== pinIdToDelete));
+      try {
+        await fetch(`${API}/api/notebook/pin/${pinIdToDelete}`, { method: 'DELETE' });
+      } catch (err) {
+        console.error('Failed to unpin by ID:', err);
+      }
+      return;
+    }
+    
+    if (!citation) return;
+    
     const isPinned = pinnedItems.some(p => p.drive_file_id === citation.driveFileId && p.page_num === citation.pageNum);
     const id = `${citation.driveFileId}_${citation.pageNum}`;
     if (isPinned) {
@@ -356,6 +400,27 @@ export function useAppLogic() {
     } catch (err) { console.error('Failed to activate gem:', err); }
   }, []);
 
+  const refreshSuggestions = useCallback(async (subject) => {
+    try {
+      const url = subject && subject !== 'Everything' 
+        ? `/api/subjects/suggestions?subjects=${encodeURIComponent(subject)}` 
+        : '/api/subjects/suggestions';
+      const res = await fetch(`${API}${url}`).then(r => r.json());
+      setSuggestions(res || []);
+    } catch (err) {
+      console.error('Failed to refresh suggestions:', err);
+    }
+  }, []);
+
+  const clearAllPins = useCallback(async () => {
+    try {
+      await fetch(`${API}/api/notebook/pins`, { method: 'DELETE' });
+      setPinnedItems([]);
+    } catch (err) {
+      console.error('Failed to clear pins:', err);
+    }
+  }, []);
+
   return {
     state: {
       authStatus, settings, loading, messages, sidebarWidth, isResizing,
@@ -363,8 +428,9 @@ export function useAppLogic() {
       usage, appMode, chatTone, canvasContent, isCanvasVisible, topics,
       suggestions, syncStatus, pdfViewer, pinnedItems, showCapWarning,
       pendingMessage, showCatalog, showAdmin, isRefining, refineProgress, theme,
-      gems, isClearingHistory
+      gems, isClearingHistory, showCitations, topicsWidth, isResizingTopics
     },
+
     actions: {
       setAuthStatus, setSettings, setLoading, setMessages, setSidebarWidth,
       setIsResizing, setSessionId, setSessions, setIsTyping, setSubjects,
@@ -373,8 +439,9 @@ export function useAppLogic() {
       setSyncStatus, setPdfViewer, setPinnedItems, setShowCapWarning,
       setPendingMessage, setShowCatalog, setShowAdmin, setIsRefining,
       setRefineProgress, loadAppData, sendMessage, triggerSync,
-      refineAllLibrary, loadSession, deleteSession, clearAllHistory, updateModel, handlePin,
-      handleLogin, handleLogout, toggleTheme, activateGem,
+      refineAllLibrary, loadSession, deleteSession, clearAllHistory, updateModel, handlePin, clearAllPins,
+      handleLogin, handleLogout, toggleTheme, toggleCitations, activateGem, refreshSuggestions,
+      setTopicsWidth, setIsResizingTopics,
       voiceEngine
     }
   };

@@ -26,6 +26,7 @@ export default function Layout({
   onOpenCatalog, onRefineAll,
   onOpenAdmin,
   sidebarWidth, isResizing, onResizeStart,
+  topicsWidth, isResizingTopics, onTopicsResizeStart,
   onLogin, onLogout,
   appMode, onModeChange,
   canvasContent, onCanvasChange, isCanvasVisible, onToggleCanvas, onOpenCanvas,
@@ -34,8 +35,13 @@ export default function Layout({
   theme, onThemeToggle,
   gems, onActivateGem,
   isClearingHistory,
-  voiceEngine
+  voiceEngine,
+  showCitations,
+  onToggleCitations,
+  deletingSessionIds,
+  onClearPins
 }) {
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isTopicsOpen, setIsTopicsOpen] = useState(false);
   const [isStatusExpanded, setIsStatusExpanded] = useState(false);
@@ -207,7 +213,7 @@ export default function Layout({
           </Tooltip>
           {!teleportedIds.includes('settings') && (
             <div data-tool-id="settings">
-              <Tooltip text="System Administration & Configuration">
+              <Tooltip text="Admin">
                 <button
                   className="settings-cog-btn"
                   onClick={onOpenAdmin}
@@ -241,6 +247,7 @@ export default function Layout({
             onModeChange={onModeChange}
             pinnedItems={pinnedItems}
             onPin={onPin}
+            onClearPins={onClearPins}
             onOpenPdf={onOpenPdf}
             chatTone={chatTone}
             onToneChange={onToneChange}
@@ -253,7 +260,11 @@ export default function Layout({
             onActivateGem={onActivateGem}
             teleportedIds={teleportedIds}
             onOpenAdmin={onOpenAdmin}
+            showCitations={showCitations}
+            onToggleCitations={onToggleCitations}
+            deletingSessionIds={deletingSessionIds}
           />
+
         </div>
 
         <div
@@ -268,7 +279,12 @@ export default function Layout({
           height: '100%',
           position: 'relative'
         }}>
-          <div style={{ flex: 1, minWidth: 0, height: '100%', transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+          <div style={{ 
+            flex: 1, 
+            minWidth: 0, 
+            height: '100%', 
+            transition: isResizing || isResizingTopics ? 'none' : 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)' 
+          }}>
             <ChatInterface
               messages={messages}
               isTyping={isTyping}
@@ -282,6 +298,7 @@ export default function Layout({
               onPin={onPin}
               pinnedItems={pinnedItems}
               voiceEngine={voiceEngine}
+              showCitations={showCitations}
             />
           </div>
 
@@ -332,12 +349,27 @@ export default function Layout({
         </div>
 
         {!pdfViewer && (
-          <div className={`topic-discovery-wrapper ${isTopicsOpen ? 'mobile-open' : ''}`}>
+          <div 
+            className={`topic-discovery-wrapper ${isTopicsOpen ? 'mobile-open' : ''} ${isResizingTopics ? 'resizing' : ''}`}
+            style={{ 
+              flex: windowWidth > 1024 ? `0 0 ${topicsWidth}px` : undefined,
+              width: windowWidth > 1024 ? `${topicsWidth}px` : undefined,
+              maxWidth: windowWidth > 1024 ? `${topicsWidth}px` : '100%'
+            }}
+          >
+            <div 
+              className={`sidebar-resizer right ${isResizingTopics ? 'active' : ''}`}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                onTopicsResizeStart();
+              }}
+            />
             <TopicDiscovery
               topics={topics}
               suggestions={suggestions}
               onTopicClick={onTopicClick}
               onRefresh={onRefreshSuggestions}
+              subjects={subjects}
             />
           </div>
         )}

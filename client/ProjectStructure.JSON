@@ -11,6 +11,9 @@
     },
     "client": {
       "src/components": "Reusable UI components (TokenUsageMeter, CitationCard, etc.)",
+      "src/hooks": "Business logic and state orchestration (useAppLogic, useVoiceEngine)",
+      "src/ComponentStyleRules.JSON": "Central styling registry (Global Rule)",
+      "src/components/Admin": "Administrative portal views (DiagnosticsView, StructureView, etc.)",
       "src/pages": "Main application views",
       "src/context": "State management (Auth, Theme, Usage)",
       "src/styles": "CSS styling using Vanilla CSS tokens"

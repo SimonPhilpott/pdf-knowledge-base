@@ -77,9 +77,10 @@ export function useVoiceEngine() {
   /**
    * Convert text to audible speech using premium Google voices if available.
    * @param {string} text The content to speak.
+   * @param {boolean} force If true, bypasses the isTtsEnabled check (used for diagnostics).
    */
-  const speak = useCallback((text) => {
-    if (!isTtsEnabled || !text) return;
+  const speak = useCallback((text, force = false) => {
+    if ((!isTtsEnabled && !force) || !text) return;
     
     // Ensure we are in a browser context
     if (!window.speechSynthesis) return;
@@ -87,8 +88,13 @@ export function useVoiceEngine() {
     // Stop any current speech
     window.speechSynthesis.cancel();
 
-    // Clean text for better speech (remove markdown symbols)
-    const cleanText = text.replace(/[*_#`\[\]()]/g, '').replace(/https?:\/\/\S+/g, 'link');
+    // Clean text for better speech (remove markdown and citations [1], [p. 42] etc)
+    const cleanText = text
+      .replace(/\[[\d, \-&]+\]/g, '') // Strip [1], [1, 2], [1-3], [1 & 2]
+      .replace(/\([^)]*(?:page|p\.)\s*\d+\)/gi, '') // Strip (page 42), (p. 42)
+      .replace(/[*_#`\[\]()]/g, '') // Strip remaining symbols
+      .replace(/https?:\/\/\S+/g, 'link') // Replace URLs
+      .trim();
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'en-GB';

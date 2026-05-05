@@ -20,7 +20,8 @@ export default function App() {
     usage, appMode, chatTone, canvasContent, isCanvasVisible, topics,
     suggestions, syncStatus, pdfViewer, pinnedItems, showCapWarning,
     showCatalog, showAdmin, isRefining, refineProgress, theme,
-    gems
+    gems, deletingSessionIds, isClearingHistory, showCitations,
+    topicsWidth, isResizingTopics
   } = state;
 
   const {
@@ -28,22 +29,29 @@ export default function App() {
     setAppMode, setChatTone, setCanvasContent, setIsCanvasVisible, 
     setPdfViewer, setShowCapWarning, setShowCatalog, setShowAdmin,
     sendMessage, triggerSync, refineAllLibrary, loadSession, deleteSession, clearAllHistory,
-    updateModel, handlePin, handleLogin, handleLogout, activateGem
+    updateModel, handlePin, clearAllPins, handleLogin, handleLogout, activateGem,
+    toggleTheme, toggleCitations, voiceEngine,
+    setTopicsWidth, setIsResizingTopics
   } = actions;
 
   // Global sidebar resize listener
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (!isResizing) return;
-      const newWidth = Math.max(200, Math.min(600, e.clientX));
-      setSidebarWidth(newWidth);
+      if (isResizing) {
+        const newWidth = Math.max(200, Math.min(600, e.clientX));
+        setSidebarWidth(newWidth);
+      } else if (isResizingTopics) {
+        const newWidth = Math.max(250, Math.min(600, window.innerWidth - e.clientX));
+        setTopicsWidth(newWidth);
+      }
     };
     const handleMouseUp = () => {
       setIsResizing(false);
+      setIsResizingTopics(false);
       document.body.style.cursor = 'default';
       document.body.style.userSelect = 'auto';
     };
-    if (isResizing) {
+    if (isResizing || isResizingTopics) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       document.body.style.cursor = 'col-resize';
@@ -53,7 +61,7 @@ export default function App() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing, setSidebarWidth, setIsResizing]);
+  }, [isResizing, isResizingTopics, setSidebarWidth, setIsResizing, setTopicsWidth, setIsResizingTopics]);
 
   // Auth callback check
   useEffect(() => {
@@ -92,6 +100,9 @@ export default function App() {
         sidebarWidth={sidebarWidth}
         isResizing={isResizing}
         onResizeStart={() => setIsResizing(true)}
+        topicsWidth={topicsWidth}
+        isResizingTopics={isResizingTopics}
+        onTopicsResizeStart={() => setIsResizingTopics(true)}
         messages={messages}
         isTyping={isTyping}
         onSendMessage={sendMessage}
@@ -100,7 +111,7 @@ export default function App() {
         onLoadSession={loadSession}
         onDeleteSession={deleteSession}
         onClearHistory={clearAllHistory}
-        isClearingHistory={state.isClearingHistory}
+        isClearingHistory={isClearingHistory}
         onNewChat={() => { setMessages([]); }}
         subjects={subjects}
         selectedSubjects={selectedSubjects}
@@ -114,7 +125,7 @@ export default function App() {
         topics={topics}
         suggestions={suggestions}
         onTopicClick={sendMessage}
-        onRefreshSuggestions={() => actions.loadAppData()}
+        onRefreshSuggestions={actions.refreshSuggestions}
         syncStatus={syncStatus}
         onSync={triggerSync}
         pdfViewer={pdfViewer}
@@ -141,11 +152,18 @@ export default function App() {
         }}
         pinnedItems={pinnedItems}
         onPin={handlePin}
+        onClearPins={clearAllPins}
         theme={theme}
         onThemeToggle={actions.toggleTheme}
         gems={gems}
         onActivateGem={activateGem}
-        voiceEngine={actions.voiceEngine}
+        voiceEngine={voiceEngine}
+        showCitations={showCitations}
+        onToggleCitations={toggleCitations}
+        deletingSessionIds={deletingSessionIds}
+        topicsWidth={topicsWidth}
+        isResizingTopics={isResizingTopics}
+        onTopicsResizeStart={() => setIsResizingTopics(true)}
       />
 
       <ErrorBoundary>
@@ -154,6 +172,7 @@ export default function App() {
             key="admin-portal"
             isOpen={showAdmin} 
             onClose={() => setShowAdmin(false)} 
+            voiceEngine={voiceEngine}
           />
         )}
       </ErrorBoundary>
@@ -187,7 +206,7 @@ export default function App() {
             <div className="text-4xl mb-4">⚠️</div>
             <h3 className="text-xl font-bold mb-2">Spend Limit Reached</h3>
             <p className="text-sm text-text-secondary mb-8">
-              You've used <strong>{usage?.percentage?.toFixed(1)}%</strong> of your monthly cap.
+              You've used <strong>{(usage?.percentage || 0).toFixed(1)}%</strong> of your monthly cap.
               Proceeding may incur extra costs.
             </p>
             <div className="flex gap-3">

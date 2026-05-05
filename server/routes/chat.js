@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { processMessage, getChatSessions, getSessionMessages, deleteSession, verifyMessage } from '../services/chatService.js';
+import { processMessage, getChatSessions, getSessionMessages, deleteSession, verifyMessage, clearAllSessions } from '../services/chatService.js';
 
 const router = Router();
 
@@ -61,6 +61,18 @@ router.get('/history/:id', (req, res) => {
 router.delete('/history/:id', (req, res) => {
   try {
     deleteSession(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * DELETE /api/chat/history - Delete all sessions
+ */
+router.delete('/history', (req, res) => {
+  try {
+    clearAllSessions();
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

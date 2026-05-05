@@ -49,4 +49,16 @@ router.delete('/pin/:id', (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/notebook/pins - Clear all pinned items
+ */
+router.delete('/pins', (req, res) => {
+  try {
+    db.prepare('DELETE FROM pinned_items').run();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export default router;

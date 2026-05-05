@@ -3,11 +3,18 @@ import { MessageSquare, Trash2, Check, X } from 'lucide-react';
 
 import { Tooltip } from './CursorHover';
 
-export default function ChatHistory({ sessions, activeId, onLoad, onDelete, onClearAll, isClearing }) {
+export default function ChatHistory({ sessions, activeId, onLoad, onDelete, onClearAll, isClearing, deletingIds = new Set() }) {
   const [isConfirmingClear, setIsConfirmingClear] = useState(false);
 
+
   const handleClearAll = () => {
-    if (onClearAll) onClearAll();
+    console.log('[ChatHistory] handleClearAll triggered');
+    if (onClearAll) {
+      console.log('[ChatHistory] Calling onClearAll prop');
+      onClearAll();
+    } else {
+      console.warn('[ChatHistory] onClearAll prop is MISSING');
+    }
     setIsConfirmingClear(false);
   };
 
@@ -22,16 +29,23 @@ export default function ChatHistory({ sessions, activeId, onLoad, onDelete, onCl
         {sessions && sessions.length > 0 && (
           <div className="clear-history-container">
             {isClearing ? (
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 border-2 border-accent-indigo border-t-transparent rounded-full animate-spin" />
-                <span className="text-[10px] text-accent-indigo font-bold animate-pulse">Clearing...</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div className="history-spinner" style={{ 
+                  width: '12px', 
+                  height: '12px', 
+                  border: '2px solid var(--accent-indigo)', 
+                  borderTopColor: 'transparent', 
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                <span style={{ fontSize: '10px', color: 'var(--accent-indigo)', fontWeight: 'bold' }}>Clearing...</span>
               </div>
             ) : isConfirmingClear ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <span style={{ fontSize: '10px', color: 'var(--status-red)', fontWeight: 'bold' }}>Sure?</span>
                 <button 
                   className="sidebar-action-icon confirm" 
-                  onClick={handleClearAll}
+                  onClick={(e) => { e.stopPropagation(); handleClearAll(); }}
                   title="Confirm Delete All"
                   style={{ color: 'var(--status-green)', padding: '2px' }}
                 >
@@ -61,9 +75,9 @@ export default function ChatHistory({ sessions, activeId, onLoad, onDelete, onCl
       </div>
       
       {isClearing && (
-        <div className="mt-2 mb-4 px-2">
-          <div className="h-1 w-full bg-bg-tertiary rounded-full overflow-hidden border border-glass-border">
-            <div className="h-full bg-primary-gradient animate-shimmer" style={{ width: '100%', backgroundSize: '200% 100%' }} />
+        <div className="deletion-status" style={{ margin: '8px 8px 16px 8px' }}>
+          <div className="progress-container" style={{ height: '4px' }}>
+            <div className="progress-bar" style={{ animation: 'progress-fast 1s ease-out forwards' }} />
           </div>
         </div>
       )}
@@ -73,27 +87,65 @@ export default function ChatHistory({ sessions, activeId, onLoad, onDelete, onCl
         </p>
       ) : (
         <ul className="chat-history-list">
-          {sessions.map((session) => (
-            <li
-              key={session.id}
-              className={`chat-history-item ${activeId === session.id ? 'active' : ''}`}
-              onClick={() => onLoad(session.id)}
-            >
-              <MessageSquare size={14} style={{ opacity: 0.6 }} />
-              <Tooltip text={session.title || 'Untitled Chat'}>
-                <span className="chat-history-title">
-                  {session.title || 'Untitled Chat'}
-                </span>
-              </Tooltip>
-              <button
-                className="chat-history-delete"
-                onClick={(e) => { e.stopPropagation(); onDelete(session.id); }}
-                title="Delete conversation"
+          {sessions.map((session) => {
+            const isDeleting = deletingIds.has(session.id);
+            return (
+              <li
+                key={session.id}
+                className={`chat-history-item ${activeId === session.id ? 'active' : ''} ${isDeleting ? 'deleting' : ''}`}
+                onClick={() => !isDeleting && onLoad(session.id)}
+                style={{ position: 'relative', overflow: 'hidden' }}
               >
-                <Trash2 size={13} />
-              </button>
-            </li>
-          ))}
+                <MessageSquare size={14} style={{ opacity: isDeleting ? 0.2 : 0.6 }} />
+                <div className="chat-history-title-container" style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+                  <Tooltip text={session.title || 'Untitled Chat'}>
+                    <span className="chat-history-title" style={{ display: 'inline-block', width: '100%', opacity: isDeleting ? 0.3 : 1 }}>
+                      {session.title || 'Untitled Chat'}
+                    </span>
+                  </Tooltip>
+                </div>
+                
+                {isDeleting ? (
+                  <div className="chat-history-delete-progress" style={{ 
+                    width: '32px', 
+                    height: '14px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
+                  }}>
+                    <div className="history-spinner" style={{ 
+                      width: '8px', 
+                      height: '8px', 
+                      border: '2px solid var(--accent-indigo)', 
+                      borderTopColor: 'transparent', 
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite'
+                    }} />
+                  </div>
+                ) : (
+                  <button
+                    className="chat-history-delete"
+                    onClick={(e) => { e.stopPropagation(); onDelete(session.id); }}
+                    title="Delete conversation"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+
+                {isDeleting && (
+                  <div className="chat-history-progress-bar" style={{ 
+                    position: 'absolute', 
+                    bottom: 0, 
+                    left: 0, 
+                    height: '2px', 
+                    background: 'var(--accent-indigo)', 
+                    width: '100%',
+                    animation: 'progress-fast 1s ease-out forwards'
+                  }} />
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

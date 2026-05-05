@@ -7,7 +7,8 @@ export default function ChatInterface({
   messages, isTyping, onSendMessage, onOpenPdf, 
   suggestions, onTopicClick, appMode, onToggleCanvas, onOpenCanvas,
   onPin, pinnedItems = [],
-  voiceEngine
+  voiceEngine,
+  showCitations
 }) {
   const [input, setInput] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
@@ -78,10 +79,10 @@ export default function ChatInterface({
                       <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
                       <div className="text-[12px] font-bold mb-1">{s.topic || 'Suggested Exploration'}</div>
                       <div className="flex items-center gap-2 text-[10px] opacity-70">
-                        <span className="font-bold">Book:</span> {s.filename || 'Knowledge Base'}
+                        <span className="font-bold" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>Book:</span> {s.filename || 'Knowledge Base'}
                       </div>
                       <div className="flex items-center gap-2 text-[10px] opacity-70">
-                        <span className="font-bold">Subject:</span> {s.subject || 'General Research'}
+                        <span className="font-bold" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>Subject:</span> {s.subject || 'General Research'}
                       </div>
                     </div>
                   }
@@ -127,6 +128,7 @@ export default function ChatInterface({
               onPin={onPin}
               pinnedItems={pinnedItems}
               onOpenCanvas={onOpenCanvas}
+              showCitations={showCitations}
             />
           ))}
           {isTyping && (

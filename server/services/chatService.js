@@ -303,7 +303,7 @@ function saveMessage(sessionId, role, content, citations, model) {
   // Ensure session exists
   const existingSession = db.prepare('SELECT id FROM chat_sessions WHERE id = ?').get(sessionId);
   if (!existingSession) {
-    const title = role === 'user' ? content.substring(0, 80) : 'New Chat';
+    const title = role === 'user' ? content : 'New Chat';
     db.prepare('INSERT INTO chat_sessions (id, title) VALUES (?, ?)').run(sessionId, title);
   } else {
     db.prepare('UPDATE chat_sessions SET updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(sessionId);

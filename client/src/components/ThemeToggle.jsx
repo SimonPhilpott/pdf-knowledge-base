@@ -6,24 +6,24 @@ export default function ThemeToggle({ theme, onToggle }) {
   const isDark = theme === 'dark';
 
   return (
-    <div className="tone-switcher">
+    <div className="mode-switcher">
       <Tooltip text="Switch to Light Mode">
-        <button
-          className={`tone-option ${!isDark ? 'active' : ''}`}
+        <div
+          className={`mode-item ${!isDark ? 'active' : ''}`}
           onClick={() => isDark && onToggle()}
         >
           <Sun size={14} />
           <span>Light</span>
-        </button>
+        </div>
       </Tooltip>
       <Tooltip text="Switch to Dark Mode">
-        <button
-          className={`tone-option ${isDark ? 'active' : ''}`}
+        <div
+          className={`mode-item ${isDark ? 'active' : ''}`}
           onClick={() => !isDark && onToggle()}
         >
           <Moon size={14} />
           <span>Dark</span>
-        </button>
+        </div>
       </Tooltip>
     </div>
   );

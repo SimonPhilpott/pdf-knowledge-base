@@ -32,9 +32,10 @@ export function useCursorFollow() {
 /**
  * CursorTooltip: High-fidelity floating text block that follows the cursor.
  */
-export function CursorTooltip({ text, content, isVisible }) {
+export const CursorTooltip = React.forwardRef(({ text, content, isVisible }, ref) => {
   const { position } = useCursorFollow();
-  const boxRef = useRef(null);
+  const internalRef = useRef(null);
+  const boxRef = ref || internalRef;
   const [coords, setCoords] = useState({ x: 0, y: 0, opacity: 0 });
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export function CursorTooltip({ text, content, isVisible }) {
   }, [position, isVisible]);
 
   const portalContent = (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isVisible && (
         <motion.div
           ref={boxRef}
@@ -109,7 +110,9 @@ export function CursorTooltip({ text, content, isVisible }) {
   );
 
   return createPortal(portalContent, document.body);
-}
+});
+
+CursorTooltip.displayName = 'CursorTooltip';
 
 /**
  * CursorPopover: Advanced hover window supporting rich content and dynamic dashboards.
@@ -132,7 +135,7 @@ export function CursorPopover({ isVisible, children, title }) {
   };
 
   const portalContent = (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {isVisible && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -192,7 +195,7 @@ export function CursorPopover({ isVisible, children, title }) {
 /**
  * Tooltip: Simple wrapper to add premium cursor-following hover text to any element.
  */
-export function Tooltip({ children, text, content, delay = 0 }) {
+export const Tooltip = React.forwardRef(({ children, text, content, delay = 0 }, ref) => {
   const [isVisible, setIsVisible] = useState(false);
   const timeoutRef = useRef(null);
 
@@ -213,13 +216,17 @@ export function Tooltip({ children, text, content, delay = 0 }) {
 
   return (
     <div 
+      ref={ref}
       className="tooltip-trigger-wrapper"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
-      style={{ display: 'contents' }}
+      style={{ display: 'block', width: '100%' }}
     >
       {children}
       <CursorTooltip text={text} content={content} isVisible={isVisible} />
     </div>
   );
-}
+});
+
+Tooltip.displayName = 'Tooltip';
+

@@ -1,9 +1,30 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, Lightbulb, Dice5, X } from 'lucide-react';
 import { Tooltip } from './CursorHover';
 
-export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRefresh }) {
+const formatSubject = (subject) => {
+  if (!subject) return 'General';
+  const parts = subject.split('/');
+  return parts[parts.length - 1];
+};
+
+export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRefresh, subjects }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState('Everything');
+  
+  // Extract top-level subjects for the dropdown
+  const highLevelSubjects = [];
+  if (subjects && subjects.children) {
+    const uniqueSubjects = new Set();
+    subjects.children.forEach(branch => {
+      if (branch.children) {
+        branch.children.forEach(sub => {
+          uniqueSubjects.add(sub.name);
+        });
+      }
+    });
+    highLevelSubjects.push(...Array.from(uniqueSubjects).sort());
+  }
   
   const subjectKeys = Object.keys(topics || {});
   
@@ -52,13 +73,54 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
 
       <div className="topic-panel-content">
         {!searchQuery && (
-          <div style={{ marginBottom: '16px' }}>
+          <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Tooltip text="Generate a random thought-provoking question from your library">
-              <button className="surprise-btn" onClick={onRefresh} id="surprise-btn" style={{ width: '100%', marginBottom: '8px' }}>
+              <button className="surprise-btn" onClick={() => onRefresh(selectedSubject)} id="surprise-btn" style={{ width: '100%' }}>
                 <Dice5 size={14} />
                 Ask Your Knowledge Base
               </button>
             </Tooltip>
+            
+            <div className="subject-selector-wrapper" style={{ position: 'relative' }}>
+              <select 
+                className="subject-dropdown"
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--glass-border)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--text-secondary)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  padding: '10px 12px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  appearance: 'none',
+                  transition: 'all 0.2s',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--accent-indigo)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--glass-border)'}
+              >
+                <option value="Everything">Everything</option>
+                {highLevelSubjects.map(s => (
+                  <option key={s} value={s}>{formatSubject(s)}</option>
+                ))}
+              </select>
+              <div style={{ 
+                position: 'absolute', 
+                right: '12px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                pointerEvents: 'none',
+                opacity: 0.5,
+                fontSize: '10px'
+              }}>
+                ▼
+              </div>
+            </div>
 
             {showSuggestions && (
               <div>
@@ -134,30 +196,52 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
           <>
             {Object.keys(filteredTopics).map(subject => (
               <div key={subject} className="topic-subject-group">
-                <div className="topic-subject-name">{subject}</div>
+                <div className="topic-subject-name">{formatSubject(subject)}</div>
                 <div className="topic-chips">
-                  {filteredTopics[subject].map((topic, i) => (
-                    <Tooltip 
-                      key={i} 
-                      content={
-                        <div className="flex flex-col gap-1">
-                          <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
-                          <div className="text-[12px] font-bold mb-1">{topic.topic}</div>
-                          {topic.description && <div className="text-[11px] mb-1 opacity-90">{topic.description}</div>}
-                          <div className="flex items-center gap-2 text-[10px] opacity-70">
-                            <span className="font-bold">Book:</span> {topic.filename}
+                  {filteredTopics[subject].map((topic, i) => {
+                    const questionText = topic.suggestedQuestion || topic.suggested_question || `Tell me about ${topic.topic}`;
+                    return (
+                      <Tooltip 
+                        key={i} 
+                        content={
+                          <div className="flex flex-col gap-1">
+                            <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
+                            <div className="text-[12px] font-bold mb-1">{topic.topic}</div>
+                            {topic.description && <div className="text-[11px] mb-1 opacity-90">{topic.description}</div>}
                           </div>
-                        </div>
-                      }
-                    >
-                      <button
-                        className="topic-chip"
-                        onClick={() => onTopicClick(topic.suggestedQuestion || `Tell me about ${topic.topic}`)}
+                        }
                       >
-                        {topic.topic}
-                      </button>
-                    </Tooltip>
-                  ))}
+                        <button
+                          className="topic-chip user-message-style"
+                          onClick={() => onTopicClick(questionText)}
+                          style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            alignItems: 'flex-start', 
+                            gap: '4px',
+                            padding: '10px 14px',
+                            textAlign: 'left',
+                            width: '100%',
+                            marginBottom: '6px'
+                          }}
+                        >
+                          <span style={{ 
+                            fontSize: '9px', 
+                            fontWeight: 800, 
+                            textTransform: 'uppercase', 
+                            letterSpacing: '0.5px',
+                            color: 'var(--accent-indigo)',
+                            opacity: 0.8
+                          }}>
+                            {topic.filename || 'Source Document'}
+                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.4 }}>
+                            {questionText}
+                          </span>
+                        </button>
+                      </Tooltip>
+                    );
+                  })}
                 </div>
               </div>
             ))}

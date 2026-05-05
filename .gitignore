@@ -16,6 +16,8 @@ server/dist/
 
 # Database & Assets
 server/data/*.db
+server/data/*.db-wal
+server/data/*.db-shm
 server/data/*.sqlite
 server/data/pdfs/
 server/db/*.sqlite

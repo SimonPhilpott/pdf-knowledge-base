@@ -1,4 +1,5 @@
-import { Sparkles, Library, Bookmark, Trash2, FileText, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, Library, Bookmark, Trash2, FileText, Settings, Eye, EyeOff, Check, X } from 'lucide-react';
 import { Tooltip } from './CursorHover';
 import SubjectFilter from './SubjectFilter';
 import ChatHistory from './ChatHistory';
@@ -21,17 +22,39 @@ export default function Sidebar({
   gems, onActivateGem,
   isClearingHistory,
   teleportedIds = [],
-  onOpenAdmin
+  onOpenAdmin,
+  showCitations,
+  onToggleCitations,
+  deletingSessionIds = new Set(),
+  onClearPins
 }) {
+  const [isConfirmingClearPins, setIsConfirmingClearPins] = useState(false);
+
+
   return (
     <aside 
       className="sidebar" 
       style={{ 
         width: `${width}px`, 
-        overflowY: 'auto',
-        marginTop: teleportedIds.length > 0 ? 'var(--topbar-height)' : 0
+        overflowY: 'auto'
       }}
     >
+      <div className="sidebar-section">
+        <Tooltip text="Start a fresh conversation thread">
+          <button className="new-chat-btn" onClick={onNewChat} id="new-chat-btn" style={{ width: '100%', marginBottom: '8px' }}>
+            <Sparkles size={14} fill="none" stroke="currentColor" />
+            <span>New Chat</span>
+          </button>
+        </Tooltip>
+
+        <Tooltip text="View and manage all files in your Knowledge Base">
+          <button className="sidebar-action-btn" onClick={onOpenCatalog} style={{ width: '100%' }}>
+            <Library size={14} fill="none" stroke="currentColor" />
+            <span>Browse Library</span>
+          </button>
+        </Tooltip>
+      </div>
+
       {teleportedIds.length > 0 && (
         <div className="sidebar-section teleported-utilities">
           <div className="sidebar-label" style={{ marginBottom: '12px', fontSize: '10px', opacity: 0.6, letterSpacing: '1px', textTransform: 'uppercase' }}>Quick Tools</div>
@@ -40,7 +63,7 @@ export default function Sidebar({
               <Tooltip text="Manage system rules, files, and network configuration">
                 <button className="sidebar-action-btn" onClick={onOpenAdmin} style={{ justifyContent: 'center', padding: '10px' }}>
                   <Settings size={16} />
-                  <span>Admin Portal</span>
+                  <span>Admin</span>
                 </button>
               </Tooltip>
             )}
@@ -77,23 +100,32 @@ export default function Sidebar({
             </div>
           </Tooltip>
         </div>
+        
+        {appMode === 'kb' && (
+          <div className="citation-toggle-section" style={{ marginTop: '8px' }}>
+            <div className="mode-switcher">
+              <div
+                className={`mode-item ${showCitations ? 'active' : ''}`}
+                onClick={onToggleCitations}
+              >
+                <Eye size={12} />
+                <span>Citations</span>
+              </div>
+              <div
+                className={`mode-item ${!showCitations ? 'active' : ''}`}
+                onClick={onToggleCitations}
+              >
+                <EyeOff size={12} />
+                <span>Hide</span>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
 
-      <div className="sidebar-section">
-        <Tooltip text="Start a fresh conversation thread">
-          <button className="new-chat-btn" onClick={onNewChat} id="new-chat-btn" style={{ width: '100%', marginBottom: '8px' }}>
-            <Sparkles size={14} fill="none" stroke="currentColor" />
-            <span>New Chat</span>
-          </button>
-        </Tooltip>
 
-        <Tooltip text="View and manage all files in your Knowledge Base">
-          <button className="sidebar-action-btn" onClick={onOpenCatalog} style={{ width: '100%' }}>
-            <Library size={14} fill="none" stroke="currentColor" />
-            <span>Browse Library</span>
-          </button>
-        </Tooltip>
-      </div>
+
 
       {appMode === 'kb' && (
         <div className="sidebar-section">
@@ -114,14 +146,42 @@ export default function Sidebar({
           onDelete={onDeleteSession}
           onClearAll={onClearHistory}
           isClearing={isClearingHistory}
+          deletingIds={deletingSessionIds}
         />
       </div>
 
       {pinnedItems.length > 0 && (
         <div className="sidebar-section" style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '16px' }}>
-          <div className="sidebar-label" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <Bookmark size={12} className="text-accent" />
-            <span>Pinned Rules</span>
+          <div className="sidebar-label" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Bookmark size={12} className="text-accent" />
+              <span>Pinned Rules</span>
+            </div>
+            {isConfirmingClearPins ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '10px', color: 'var(--status-red)', fontWeight: 'bold' }}>Sure?</span>
+                <button 
+                  onClick={() => { onClearPins(); setIsConfirmingClearPins(false); }}
+                  style={{ color: 'var(--status-green)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px' }}
+                >
+                  <Check size={12} />
+                </button>
+                <button 
+                  onClick={() => setIsConfirmingClearPins(false)}
+                  style={{ color: 'var(--status-red)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '2px' }}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsConfirmingClearPins(true)}
+                title="Clear all pinned rules"
+                style={{ opacity: 0.6, cursor: 'pointer', background: 'transparent', border: 'none', color: 'var(--text-muted)', display: 'flex', padding: '2px' }}
+              >
+                <Trash2 size={12} />
+              </button>
+            )}
           </div>
           <div className="pinned-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {pinnedItems.map(pin => (
@@ -151,7 +211,7 @@ export default function Sidebar({
                 </Tooltip>
                 <Tooltip text="Remove this pin">
                   <button
-                    onClick={() => onPin({ driveFileId: pin.drive_file_id, pageNum: pin.page_num })}
+                    onClick={(e) => { e.stopPropagation(); onPin(null, pin.id); }}
                     style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
                   >
                     <Trash2 size={12} />
