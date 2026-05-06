@@ -9,6 +9,7 @@
       "feature.JSON": "Feature tracking (Global Rule)",
       "ProjectStructure.JSON": "Architecture mapping (Global Rule)",
       "README.md": "Main entry point and overview",
+      "CHANGELOG.md": "Version history and notable changes",
       "llms.txt": "AI-friendly context map",
       "docs/": "Comprehensive technical documentation and ADRs"
     },
