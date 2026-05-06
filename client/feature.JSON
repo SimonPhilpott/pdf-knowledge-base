@@ -1,6 +1,6 @@
 {
   "project": "Knowledge Base",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "currency": "GBP",
   "features": [
     {
@@ -141,6 +141,18 @@
       "id": "FEAT-023",
       "name": "Resizable Knowledge Discovery Sidebar",
       "description": "Integrated a resizable right-hand panel for Knowledge Discovery, featuring strict flex-box constraints and transition-suppressed resizing for optimal performance.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-024",
+      "name": "Dynamic Port Configuration",
+      "description": "Admin Portal control to change the localhost and ngrok tunnel port. Port is persisted in the database and used by both the Vite dev server (via VITE_PORT env) and ngrok tunnel forwarding.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-025",
+      "name": "Design System Synchronization & Parity",
+      "description": "Established absolute visual parity between Admin Portal previews and production UI through a token-driven synchronization protocol using ComponentStyleRules.JSON.",
       "status": "implemented"
     }
   ]

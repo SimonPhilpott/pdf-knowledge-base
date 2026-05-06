@@ -178,7 +178,7 @@ export default function App() {
       </ErrorBoundary>
 
       {isRefining && (
-        <div className="fixed inset-0 z-[6000] flex items-center justify-center bg-black/80 backdrop-blur-2xl">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-2xl">
           <div className="bg-bg-secondary/40 backdrop-blur-md border border-glass-border p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-accent-indigo/10 to-transparent pointer-events-none" />
             <Sparkles size={48} className="mx-auto text-accent-indigo animate-pulse mb-6 relative z-10" />
@@ -201,7 +201,7 @@ export default function App() {
       )}
 
       {showCapWarning && (
-        <div className="fixed inset-0 z-[6000] flex items-center justify-center bg-black/60 backdrop-blur-xl">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl">
           <div className="bg-bg-secondary/90 border border-accent-amber/30 p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center">
             <div className="text-4xl mb-4">⚠️</div>
             <h3 className="text-xl font-bold mb-2">Spend Limit Reached</h3>

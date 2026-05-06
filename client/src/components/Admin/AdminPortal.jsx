@@ -178,10 +178,6 @@ export default function AdminPortal({ isOpen, onClose, voiceEngine }) {
                 </button>
               ))}
             </nav>
-
-            <button className="hidden md:flex global-close-btn shrink-0" onClick={onClose}>
-              <X size={18} />
-            </button>
           </div>
         </header>
 
@@ -353,7 +349,7 @@ function StructureView({ structure, loading }) {
             <div className="h-px flex-1 bg-[var(--glass-border)]" />
           </div>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {Object.entries(files || {}).map(([path, desc]) => (
               <Tooltip key={path} text={`${path}: ${desc}`}>
                 <div 
@@ -579,7 +575,7 @@ function FeaturesView({ features, loading }) {
         <div className="h-px flex-1 bg-[var(--glass-border)]" />
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {items.map((f) => {
           const status = (f.status || 'stable').toLowerCase().replace(' ', '-');
           const isImplemented = status === 'implemented';
@@ -644,7 +640,18 @@ function BoxModel({ specs }) {
 function VisualPreview({ type, variant, specs }) {
   const [isHovered, setIsHovered] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState(0);
-  
+  const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
+  const containerRef = React.useRef(null);
+
+  const handleMouseMove = (e) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
   if (variant === 'segment_toggles') {
     const items = ['RESEARCH', 'CRITIC', 'GURU'];
     return (
@@ -663,7 +670,7 @@ function VisualPreview({ type, variant, specs }) {
             <div 
               key={item}
               onClick={() => setActiveIndex(i)}
-              onMouseEnter={() => !activeIndex === i && setIsHovered(true)}
+              onMouseEnter={() => activeIndex !== i && setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               style={{
                 padding: specs.item_padding,
@@ -675,7 +682,7 @@ function VisualPreview({ type, variant, specs }) {
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: specs.internal_icon_gap,
+                gap: specs.internal_icon_gap || '8px',
                 transition: 'all 0.2s ease',
                 boxShadow: i === activeIndex ? specs.active_shadow : 'none'
               }}
@@ -685,7 +692,8 @@ function VisualPreview({ type, variant, specs }) {
                 className={i === activeIndex ? 'opacity-100' : 'opacity-80'} 
                 style={{ 
                   transform: (i === activeIndex || (isHovered && i !== activeIndex)) ? 'scale(1.1)' : 'scale(1)',
-                  transition: 'transform 0.2s ease'
+                  transition: 'transform 0.2s ease',
+                  color: i === activeIndex ? 'white' : 'inherit'
                 }}
               />
               <span className="tracking-tight">{item}</span>
@@ -693,6 +701,50 @@ function VisualPreview({ type, variant, specs }) {
           ))}
         </div>
         <span className="text-[9px] font-bold text-[var(--accent-indigo)] uppercase tracking-[2px] opacity-60">Production-Locked Sync</span>
+      </div>
+    );
+  }
+
+  if (type === 'BinaryToggle') {
+    const items = ['OPTION A', 'OPTION B'];
+    return (
+      <div className="p-4 bg-black/5 rounded-xl flex flex-col gap-3 items-center justify-center border border-dashed border-[var(--glass-border)]">
+        <div 
+          style={{ 
+            padding: specs.padding, 
+            borderRadius: specs.radius,
+            background: 'var(--bg-tertiary)',
+            border: '1px solid var(--glass-border)',
+            display: 'flex',
+            gap: specs.gap,
+            width: '100%',
+            maxWidth: '226px'
+          }}
+        >
+          {items.map((item, i) => (
+            <div 
+              key={item}
+              onClick={() => setActiveIndex(i)}
+              style={{
+                flex: 1,
+                padding: specs.item_padding,
+                borderRadius: specs.radius,
+                background: i === activeIndex ? 'var(--gradient-primary)' : 'transparent',
+                color: i === activeIndex ? 'white' : 'var(--text-muted)',
+                fontSize: specs.item_font_size,
+                fontWeight: specs.item_font_weight,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease',
+                boxShadow: i === activeIndex ? specs.active_shadow : 'none'
+              }}
+            >
+              {item}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -708,9 +760,10 @@ function VisualPreview({ type, variant, specs }) {
       fontWeight: specs.font_weight || 600,
       display: 'flex',
       alignItems: 'center',
-      gap: specs.internal_icon_gap || '8px',
+      gap: '8px',
       cursor: 'pointer',
-      transition: 'border-color 0.2s ease'
+      transition: 'all 0.2s ease',
+      boxShadow: isHovered ? specs.active_shadow : 'none'
     };
 
     return (
@@ -721,7 +774,7 @@ function VisualPreview({ type, variant, specs }) {
           onMouseLeave={() => setIsHovered(false)}
         >
           <Sparkles 
-            size={specs.icon_size || 14} 
+            size={14} 
             style={{ 
               transform: isHovered ? 'scale(1.2)' : 'scale(1)',
               transition: 'transform 0.2s ease' 
@@ -746,12 +799,13 @@ function VisualPreview({ type, variant, specs }) {
             background: specs.background,
             border: specs.border || 'none',
             color: specs.color || 'var(--text-primary)',
-            fontSize: '13px',
-            lineHeight: 1.5,
-            maxWidth: '180px'
+            backdropFilter: !isUser ? 'blur(10px)' : 'none',
+            fontSize: '14px',
+            lineHeight: 1.7,
+            maxWidth: '220px'
           }}
         >
-          {isUser ? 'Researcher Query Protocol' : 'Intelligence Synthesis Reply'}
+          {isUser ? 'Researcher Query Protocol' : 'Intelligence Synthesis Reply: According to the architectural schematics...'}
         </div>
       </div>
     );
@@ -764,21 +818,26 @@ function VisualPreview({ type, variant, specs }) {
         onMouseLeave={() => setIsHovered(false)}
         className="p-4 bg-black/5 rounded-xl flex flex-col items-center justify-center border border-dashed border-[var(--glass-border)] h-32 relative cursor-default"
       >
-        <div className={`flex items-center gap-3 w-full p-3 rounded-xl border transition-all duration-300 ${isHovered ? 'bg-[var(--bg-secondary)] border-[var(--glass-border)] shadow-md' : 'bg-transparent border-transparent'}`}>
+        <div 
+          style={{
+            padding: specs.padding,
+            borderRadius: specs.radius,
+            background: isHovered ? specs.hover_background : 'transparent',
+            border: isHovered ? specs.active_border || '1px solid var(--glass-border)' : '1px solid transparent',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            width: '100%',
+            transition: 'all 0.2s ease',
+            fontSize: specs.font_size
+          }}
+        >
           <MessageSquare size={14} className="text-[var(--text-muted)]" />
           <div className="flex flex-col flex-1 min-w-0">
-             <span className="text-[11px] font-bold truncate">What are the essential physical components...</span>
+             <span className="truncate font-medium">Physical components interaction...</span>
           </div>
           {isHovered && <Trash2 size={13} className="text-[var(--status-red)] opacity-60 hover:opacity-100 transition-opacity" />}
         </div>
-        {isHovered && (
-          <div className="absolute top-0 right-full mr-4 bg-[var(--bg-primary)] border border-[var(--glass-border)] px-4 py-3 rounded-xl shadow-2xl z-10 w-[300px] text-left leading-relaxed animate-in fade-in slide-in-from-right-2">
-             <span className="block text-[8px] font-black uppercase tracking-[2px] text-[var(--accent-indigo)] mb-1">Quadrant: NW (Flip to Prevent Clipping)</span>
-             <p className="text-[10px] font-medium text-[var(--text-primary)]">
-               What are the essential physical components needed to play Blood on the Blade, and how do they interact to define the game's initial setup?
-             </p>
-          </div>
-        )}
       </div>
     );
   }
@@ -786,37 +845,35 @@ function VisualPreview({ type, variant, specs }) {
   if (type === 'prompt_action_icons') {
     return (
       <div className="p-4 bg-black/5 rounded-xl flex flex-col items-center justify-center border border-dashed border-[var(--glass-border)] h-32 relative">
-        <div className="flex items-center gap-2 p-2 bg-[var(--bg-secondary)] rounded-xl border border-[var(--glass-border)] shadow-sm">
-           <Camera size={16} className="text-[var(--text-muted)] hover:text-[var(--accent-indigo)] cursor-pointer" />
-           <Sparkles size={16} className="text-[var(--text-muted)] hover:text-[var(--accent-indigo)] cursor-pointer" />
+        <div 
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: specs.gap,
+            padding: specs.padding,
+            background: 'var(--bg-secondary)',
+            borderRadius: specs.radius,
+            border: '1px solid var(--glass-border)',
+            boxShadow: 'var(--shadow-sm)'
+          }}
+        >
+           <Camera size={specs.icon_size} className="text-[var(--text-muted)] hover:text-[var(--accent-indigo)] cursor-pointer" />
+           <Sparkles size={specs.icon_size} className="text-[var(--text-muted)] hover:text-[var(--accent-indigo)] cursor-pointer" />
            <div className="w-px h-4 bg-[var(--glass-border)] mx-1" />
            <div className="p-1.5 rounded-lg bg-red-500/10 text-red-500 animate-pulse">
-             <Mic size={16} />
+             <Mic size={specs.icon_size} />
            </div>
            <div className="p-1.5 rounded-lg bg-[var(--gradient-primary)] text-white shadow-lg">
              <Send size={18} />
            </div>
         </div>
-        <span className="mt-3 text-[9px] font-black uppercase tracking-widest text-[var(--text-muted)] opacity-50">Chat Workspace Interaction</span>
       </div>
     );
   }
 
   if (type === 'hover_components') {
     const isPopover = variant === 'cursor_popover';
-    const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
-    const containerRef = React.useRef(null);
-
-    const handleMouseMove = (e) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      setMousePos({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      });
-    };
-
-    const isFlipped = mousePos.x > 250; // Flip if mouse is on the right side of the 500px area
+    const isFlipped = mousePos.x > 250; 
 
     return (
       <div 
@@ -844,25 +901,34 @@ function VisualPreview({ type, variant, specs }) {
               transition: 'opacity 0.2s ease, left 0.1s ease'
             }}
           >
-
-            {isPopover ? (
-              <div style={{ width: '280px', background: 'var(--bg-secondary)', borderRadius: '20px', border: '1px solid var(--glass-border)', boxShadow: 'var(--shadow-xl)', overflow: 'hidden' }}>
-                <header style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                   <div className="w-1 h-3 bg-[var(--accent-indigo)] rounded-full" />
-                   <span className="text-[9px] font-black uppercase text-[var(--accent-indigo)] tracking-widest">
-                     {isFlipped ? 'QUADRANT: NW (FLIPPED)' : 'QUADRANT: NE'}
-                   </span>
-                </header>
-                <div style={{ padding: '12px' }}>
-                  <h4 className="text-xs font-bold text-[var(--text-primary)] mb-1">Fact Checker</h4>
-                  <p className="text-[10px] text-[var(--text-secondary)] leading-relaxed italic">"Rigorously verifies document provenance."</p>
+            <div 
+              style={{
+                width: specs.width || 'auto',
+                padding: specs.padding || '0',
+                background: 'var(--bg-secondary)',
+                backdropFilter: 'blur(30px)',
+                border: specs.border || '1px solid var(--glass-border)',
+                borderRadius: specs.radius,
+                boxShadow: specs.shadow,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden'
+              }}
+            >
+              {isPopover && (
+                <div className="p-3 border-b border-[var(--glass-border)] bg-white/5 flex items-center gap-2">
+                  <div className="w-1 h-3 bg-[var(--accent-indigo)] rounded-full" />
+                  <span className="text-[9px] font-black uppercase tracking-wider text-[var(--text-muted)]">
+                    {isFlipped ? 'QUADRANT: NW (FLIPPED)' : 'QUADRANT: NE'}
+                  </span>
                 </div>
+              )}
+              <div className="p-4">
+                 <p className="text-[11px] font-semibold text-[var(--text-primary)] leading-relaxed">
+                   {isPopover ? 'This protocol ensures that hover containers flip boundaries when approaching viewport edges...' : 'System Prompt Verification'}
+                 </p>
               </div>
-            ) : (
-              <div style={{ padding: '8px 12px', background: 'var(--bg-secondary)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-md)', fontSize: '10px', color: 'var(--text-primary)', fontWeight: 800, whiteSpace: 'nowrap', boxShadow: 'var(--shadow-lg)' }}>
-                {isFlipped ? 'Flipped Trace (-Offset)' : 'Standard Trace (+Offset)'}
-              </div>
-            )}
+            </div>
           </div>
         )}
 
@@ -896,10 +962,6 @@ function VisualPreview({ type, variant, specs }) {
         >
           <Shield size={18} className="text-[var(--accent-indigo)]" />
           <span className="text-[8px] font-black uppercase tracking-tighter opacity-60">System Modal</span>
-        </div>
-        <div className="mt-4 z-10 flex flex-col items-center gap-1">
-           <span className="text-[9px] font-black text-white/40 uppercase tracking-[2px]">Usage Context</span>
-           <p className="text-[8px] text-white/30 italic">Admin Portal • Auth Gateway • Intelligence Drawer</p>
         </div>
       </div>
     );
@@ -1165,6 +1227,25 @@ function LoadingPulse() {
 
 function NetworkView({ status, onToggle, isTransitioning }) {
   const [copied, setCopied] = useState(false);
+  const [portValue, setPortValue] = useState('');
+  const [isSavingPort, setIsSavingPort] = useState(false);
+  const [portSaved, setPortSaved] = useState(false);
+  const [portError, setPortError] = useState('');
+
+  // Fetch current port on mount
+  useEffect(() => {
+    const fetchPort = async () => {
+      try {
+        const res = await fetch('/api/admin/port');
+        const data = await res.json();
+        setPortValue(String(data.port));
+      } catch (err) {
+        console.error('[Admin] Failed to fetch port:', err);
+        setPortValue('5173');
+      }
+    };
+    fetchPort();
+  }, []);
 
   const copyUrl = () => {
     if (status.url) {
@@ -1174,102 +1255,226 @@ function NetworkView({ status, onToggle, isTransitioning }) {
     }
   };
 
+  /**
+   * Validates and persists the new port to the server.
+   * The Vite dev server must be restarted manually for localhost to reflect the change.
+   * Ngrok will automatically reconnect to the new port on next toggle.
+   */
+  const handleSavePort = async () => {
+    const numPort = parseInt(portValue, 10);
+    if (isNaN(numPort) || numPort < 1024 || numPort > 65535) {
+      setPortError('Port must be between 1024 and 65535.');
+      return;
+    }
+    setPortError('');
+    setIsSavingPort(true);
+    try {
+      const res = await fetch('/api/admin/port', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ port: numPort })
+      });
+      const result = await res.json();
+      if (result.success) {
+        setPortSaved(true);
+        setTimeout(() => setPortSaved(false), 4000);
+      } else {
+        setPortError(result.error || 'Failed to save port.');
+      }
+    } catch (err) {
+      setPortError('Network error saving port.');
+    } finally {
+      setIsSavingPort(false);
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto py-6 flex flex-col md:flex-row gap-8">
-      <div className="flex-1 bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-[24px] p-8 shadow-xl">
+    <div className="max-w-4xl mx-auto py-6 flex flex-col gap-8">
+      {/* Port Configuration Card */}
+      <div className="bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-[24px] p-8 shadow-xl">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${status.active ? "bg-green-500/20 text-green-500" : "bg-slate-500/20 text-slate-500"}`}>
-              <Globe size={24} />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[var(--accent-indigo)]/20 text-[var(--accent-indigo)]">
+              <Settings size={24} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[var(--text-primary)]">External Access Control</h3>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">Port Configuration</h3>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-[var(--text-muted)] font-medium">Secure public tunnel</span>
+                <span className="text-xs text-[var(--text-muted)] font-medium">Localhost &amp; Tunnel Port</span>
                 <div className="w-1 h-1 rounded-full bg-[var(--glass-border)]" />
-                <span className="text-[8px] font-black text-[var(--accent-indigo)] uppercase tracking-widest">SOURCE: ADMIN SERVICE</span>
+                <span className="text-[8px] font-black text-[var(--accent-indigo)] uppercase tracking-widest">SOURCE: APP_SETTINGS</span>
               </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <span className={`text-[10px] font-bold tracking-widest ${status.active ? 'text-green-500' : 'text-slate-500'}`}>
-              {status.active ? 'ONLINE' : 'OFFLINE'}
-            </span>
-            <button
-              onClick={onToggle}
-              disabled={isTransitioning}
-              className={`relative w-14 h-7 rounded-full transition-all duration-300 ${status.active ? "bg-green-500" : "bg-slate-600"} p-1 cursor-pointer outline-none border-none`}
-            >
-              <motion.div
-                animate={{ x: status.active ? 28 : 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                className="w-5 h-5 bg-white rounded-full shadow-lg flex items-center justify-center"
-              >
-                {isTransitioning && <Zap size={10} className="text-slate-400 animate-pulse" />}
-              </motion.div>
-            </button>
           </div>
         </div>
 
         <div className="space-y-6">
-          <div className={`p-6 rounded-2xl border transition-all duration-300 ${status.active ? "bg-green-500/5 border-green-500/20" : "bg-slate-500/5 border-slate-500/10"}`}>
+          <div className="p-6 rounded-2xl border bg-[var(--bg-primary)] border-[var(--glass-border)]">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Live URL</span>
-              {status.active && (
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Client Port</span>
+              {portSaved && (
                 <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-500">
-                  <CheckCircle2 size={10} /> TLS 1.3 SECURE
+                  <CheckCircle2 size={10} /> SAVED — RESTART REQUIRED
                 </span>
               )}
             </div>
-            
-            {status.active ? (
-              <div className="flex items-center gap-3">
-                <div className="flex-1 bg-black/20 border border-white/5 rounded-lg px-4 py-3 font-mono text-xs text-[var(--text-primary)] truncate">
-                  {status.url}
-                </div>
-                <button
-                  onClick={copyUrl}
-                  className="p-3 bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-lg hover:bg-[var(--glass-bg-light)] transition-colors text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                >
-                  {copied ? <CheckCircle2 size={16} className="text-green-500" /> : <Copy size={16} />}
-                </button>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 flex items-center gap-2 bg-black/20 border border-white/5 rounded-lg px-4 py-3">
+                <span className="text-xs font-mono text-[var(--text-muted)] whitespace-nowrap select-none">http://localhost:</span>
+                <input
+                  type="number"
+                  min="1024"
+                  max="65535"
+                  value={portValue}
+                  onChange={(e) => { setPortValue(e.target.value); setPortError(''); setPortSaved(false); }}
+                  className="bg-transparent border-none outline-none text-[var(--text-primary)] font-mono text-sm font-bold w-20"
+                  placeholder="5173"
+                />
               </div>
-            ) : (
-              <p className="text-sm text-[var(--text-muted)] italic">Tunnel is offline. Toggle the switch to activate.</p>
+              <button
+                onClick={handleSavePort}
+                disabled={isSavingPort}
+                className="px-5 py-3 bg-[var(--accent-indigo)] hover:bg-[var(--accent-indigo-light)] text-white rounded-lg font-bold text-[11px] tracking-wider uppercase transition-all disabled:opacity-50 flex items-center gap-2 shrink-0"
+              >
+                {isSavingPort ? (
+                  <Zap size={14} className="animate-pulse" />
+                ) : portSaved ? (
+                  <CheckCircle2 size={14} />
+                ) : (
+                  <Settings size={14} />
+                )}
+                {isSavingPort ? 'SAVING...' : portSaved ? 'APPLIED' : 'APPLY'}
+              </button>
+            </div>
+            {portError && (
+              <p className="mt-3 text-xs text-red-500 font-bold">{portError}</p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Region</span>
-              <span className="text-xs font-bold text-[var(--text-primary)]">Europe (uk)</span>
-            </div>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-              <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Domain Type</span>
-              <span className="text-xs font-bold text-[var(--text-primary)]">Static Endpoint</span>
+          <div className="p-4 rounded-xl bg-[var(--accent-indigo)]/5 border border-[var(--accent-indigo)]/15">
+            <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+              <strong className="text-[var(--text-primary)]">How it works:</strong> Changing the port will update the ngrok tunnel target immediately on next toggle.
+              For <code className="text-[var(--accent-indigo)] text-[10px] font-bold">localhost</code>, restart the dev server with:
+            </p>
+            <div className="mt-2 bg-black/20 border border-white/5 rounded-lg px-4 py-2 font-mono text-[11px] text-[var(--text-primary)] flex items-center justify-between">
+              <span>VITE_PORT={portValue} npm run dev</span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`set VITE_PORT=${portValue} && npm run dev`);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="p-1.5 rounded hover:bg-white/10 transition-colors text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              >
+                {copied ? <CheckCircle2 size={12} className="text-green-500" /> : <Copy size={12} />}
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {status.active && (
-        <motion.div 
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="w-full md:w-64 bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-[24px] p-6 flex flex-col items-center justify-center text-center"
-        >
-          <div className="bg-white p-3 rounded-xl mb-4 shadow-inner">
-            <img 
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(status.url)}`}
-              alt="Tunnel QR Code"
-              className="w-32 h-32"
-            />
+      {/* Ngrok Tunnel Card */}
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex-1 bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-[24px] p-8 shadow-xl">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${status.active ? "bg-green-500/20 text-green-500" : "bg-slate-500/20 text-slate-500"}`}>
+                <Globe size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">External Access Control</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[var(--text-muted)] font-medium">Secure public tunnel</span>
+                  <div className="w-1 h-1 rounded-full bg-[var(--glass-border)]" />
+                  <span className="text-[8px] font-black text-[var(--accent-indigo)] uppercase tracking-widest">SOURCE: ADMIN SERVICE</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <span className={`text-[10px] font-bold tracking-widest ${status.active ? 'text-green-500' : 'text-slate-500'}`}>
+                {status.active ? 'ONLINE' : 'OFFLINE'}
+              </span>
+              <button
+                onClick={onToggle}
+                disabled={isTransitioning}
+                className={`relative w-14 h-7 rounded-full transition-all duration-300 ${status.active ? "bg-green-500" : "bg-slate-600"} p-1 cursor-pointer outline-none border-none`}
+              >
+                <motion.div
+                  animate={{ x: status.active ? 28 : 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="w-5 h-5 bg-white rounded-full shadow-lg flex items-center justify-center"
+                >
+                  {isTransitioning && <Zap size={10} className="text-slate-400 animate-pulse" />}
+                </motion.div>
+              </button>
+            </div>
           </div>
-          <h4 className="text-xs font-bold text-[var(--text-primary)] mb-1">Quick Mobile Access</h4>
-          <p className="text-[10px] text-[var(--text-muted)] px-2">Scan to open the mobile-optimised interface on your device.</p>
-        </motion.div>
-      )}
+
+          <div className="space-y-6">
+            <div className={`p-6 rounded-2xl border transition-all duration-300 ${status.active ? "bg-green-500/5 border-green-500/20" : "bg-slate-500/5 border-slate-500/10"}`}>
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)]">Live URL</span>
+                {status.active && (
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-500">
+                    <CheckCircle2 size={10} /> TLS 1.3 SECURE
+                  </span>
+                )}
+              </div>
+              
+              {status.active ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-black/20 border border-white/5 rounded-lg px-4 py-3 font-mono text-xs text-[var(--text-primary)] truncate">
+                    {status.url}
+                  </div>
+                  <button
+                    onClick={copyUrl}
+                    className="p-3 bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-lg hover:bg-[var(--glass-bg-light)] transition-colors text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  >
+                    {copied ? <CheckCircle2 size={16} className="text-green-500" /> : <Copy size={16} />}
+                  </button>
+                </div>
+              ) : (
+                <p className="text-sm text-[var(--text-muted)] italic">Tunnel is offline. Toggle the switch to activate.</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Region</span>
+                <span className="text-xs font-bold text-[var(--text-primary)]">Europe (uk)</span>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Domain Type</span>
+                <span className="text-xs font-bold text-[var(--text-primary)]">Static Endpoint</span>
+              </div>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                <span className="block text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Tunnel Port</span>
+                <span className="text-xs font-bold text-[var(--accent-indigo)]">{portValue}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {status.active && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="w-full md:w-64 bg-[var(--bg-elevated)] border border-[var(--glass-border)] rounded-[24px] p-6 flex flex-col items-center justify-center text-center"
+          >
+            <div className="bg-white p-3 rounded-xl mb-4 shadow-inner">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(status.url)}`}
+                alt="Tunnel QR Code"
+                className="w-32 h-32"
+              />
+            </div>
+            <h4 className="text-xs font-bold text-[var(--text-primary)] mb-1">Quick Mobile Access</h4>
+            <p className="text-[10px] text-[var(--text-muted)] px-2">Scan to open the mobile-optimised interface on your device.</p>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 }

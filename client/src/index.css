@@ -1242,6 +1242,7 @@ a:hover {
   height: 100%;
   overflow: hidden;
   min-width: 0;
+  border-top: 1px solid var(--glass-border);
 }
 
 .chat-messages {
@@ -3659,6 +3660,7 @@ body,
   display: flex;
   flex-direction: column;
   min-height: 0;
+  border-top: 1px solid var(--glass-border);
 }
 
 .chat-messages {

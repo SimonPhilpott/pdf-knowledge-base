@@ -10,7 +10,7 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: true,
-    port: 5173,
+    port: parseInt(process.env.VITE_PORT || '5173', 10),
     proxy: {
       '/api': {
         target: 'http://localhost:3001',

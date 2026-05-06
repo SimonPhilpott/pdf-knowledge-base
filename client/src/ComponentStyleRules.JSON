@@ -1,7 +1,19 @@
 {
-  "designSystem": {
+  "version": "1.0.5",
+  "design_system": {
     "name": "Google Antigravity Premium",
     "theme": "Oatmeal / Dark",
+    "typography": {
+      "headings": {
+        "h1_executive": "48px / 900 / -0.04em",
+        "h2_portal_title": "24px / 800 / tracking-tight",
+        "h3_manifest_header": "11px / 900 / tracking-[5px]"
+      },
+      "body": {
+        "standard_interface": "14px / 1.5 / 500",
+        "manifest_text": "12px / 1.7 / 400"
+      }
+    },
     "coreColors": {
       "ivory": "#F1EFE9",
       "sageGreen": "#899981",
@@ -14,24 +26,136 @@
       "wrapperClass": "mode-switcher",
       "itemClass": "mode-item",
       "description": "Used for balanced 50/50 toggles in the sidebar (Library/Gemini, Theme, Citations).",
-      "styles": {
-        "display": "flex",
-        "flex": "1",
-        "gap": "1px",
+      "specs": {
         "padding": "4px",
-        "borderRadius": "var(--radius-full)",
-        "itemWidth": "100%",
-        "itemFlex": "1"
+        "radius": "var(--radius-full)",
+        "gap": "1px",
+        "item_padding": "8px 16px",
+        "item_font_size": "11px",
+        "item_font_weight": "600",
+        "active_shadow": "var(--shadow-glow)"
       }
     },
     "ResizableSidebar": {
       "resizerClass": "sidebar-resizer",
       "description": "Standard draggable handle for resizing lateral panels.",
-      "styles": {
-        "width": "8px",
-        "hitArea": "8px",
-        "zIndex": "5000",
-        "activeColor": "var(--accent-indigo)"
+      "specs": {
+        "width": "4px",
+        "zIndex": "20",
+        "active_color": "var(--accent-indigo)"
+      }
+    },
+    "buttons": {
+      "description": "Global action triggers with scale-hover protocols.",
+      "maintaining_file": "index.css",
+      "classes": ["global-btn", "action-trigger"],
+      "variants": {
+        "primary_ghost": {
+          "specs": {
+            "background": "var(--bg-tertiary)",
+            "padding": "10px 20px",
+            "radius": "12px",
+            "font_size": "12px",
+            "font_weight": "700"
+          }
+        },
+        "accent_filled": {
+          "specs": {
+            "background": "var(--gradient-primary)",
+            "padding": "12px 24px",
+            "radius": "16px",
+            "active_text": "white",
+            "active_shadow": "0 10px 20px -5px var(--accent-indigo)"
+          }
+        }
+      }
+    },
+    "messages": {
+      "description": "Multimodal intelligence synthesis containers.",
+      "maintaining_file": "ChatInterface.jsx",
+      "variants": {
+        "ai_response": {
+          "specs": {
+            "background": "var(--glass-bg)",
+            "radius": "var(--radius-lg)",
+            "border": "1px solid var(--glass-border)",
+            "color": "var(--text-primary)"
+          }
+        },
+        "user_prompt": {
+          "specs": {
+            "background": "var(--accent-indigo)",
+            "radius": "var(--radius-lg)",
+            "border_bottom_right_radius": "var(--space-xs)",
+            "color": "white"
+          }
+        }
+      }
+    },
+    "segment_toggles": {
+      "description": "Triple-state persona selectors with animated active indices.",
+      "maintaining_file": "ToneSwitcher.jsx",
+      "specs": {
+        "container_padding": "3px",
+        "container_radius": "var(--radius-full)",
+        "container_background": "var(--bg-tertiary)",
+        "between_item_gap": "2px",
+        "item_padding": "8px 16px",
+        "item_radius": "var(--radius-full)",
+        "internal_icon_gap": "8px",
+        "active_background": "var(--gradient-primary)",
+        "active_text": "white",
+        "active_shadow": "var(--shadow-glow)",
+        "font_size": "11px",
+        "font_weight": "700"
+      }
+    },
+    "history_item": {
+      "description": "Compact session history nodes with tooltip overflow protection.",
+      "maintaining_file": "ChatHistory.jsx",
+      "specs": {
+        "radius": "var(--radius-sm)",
+        "padding": "var(--space-sm) var(--space-sm)",
+        "hover_background": "var(--glass-bg-light)",
+        "active_background": "color-mix(in srgb, var(--accent-indigo), transparent 85%)",
+        "active_border": "1px solid color-mix(in srgb, var(--accent-indigo), transparent 70%)",
+        "font_size": "13px"
+      }
+    },
+    "prompt_action_icons": {
+      "description": "Interactive triggers for multimodal input (Camera, Mic, Send).",
+      "maintaining_file": "ChatInterface.jsx",
+      "specs": {
+        "icon_size": "16",
+        "gap": "8px",
+        "padding": "6px",
+        "radius": "var(--radius-sm)",
+        "active_color": "var(--accent-indigo)",
+        "hover_color": "var(--accent-indigo-light)"
+      }
+    },
+    "hover_components": {
+      "description": "Coordinate-aware tooltips with viewport-boundary flipping.",
+      "maintaining_file": "CursorHover.jsx",
+      "variants": {
+        "standard_tooltip": {
+          "specs": {
+            "offset": "12px",
+            "padding": "10px 14px",
+            "radius": "var(--radius-md)",
+            "font_size": "11px",
+            "font_weight": "600",
+            "shadow": "var(--shadow-lg)"
+          }
+        },
+        "cursor_popover": {
+          "specs": {
+            "width": "480px",
+            "radius": "var(--radius-xl)",
+            "border": "1px solid var(--glass-border)",
+            "shadow": "var(--shadow-xl)"
+          }
+        }
       }
     }
   }
