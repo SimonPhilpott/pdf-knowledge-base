@@ -7,7 +7,10 @@
       "server": "Express.js backend application",
       "scratch": "Utility and testing scripts",
       "feature.JSON": "Feature tracking (Global Rule)",
-      "ProjectStructure.JSON": "Architecture mapping (Global Rule)"
+      "ProjectStructure.JSON": "Architecture mapping (Global Rule)",
+      "README.md": "Main entry point and overview",
+      "llms.txt": "AI-friendly context map",
+      "docs/": "Comprehensive technical documentation and ADRs"
     },
     "client": {
       "src/components": "Reusable UI components (TokenUsageMeter, CitationCard, etc.)",
