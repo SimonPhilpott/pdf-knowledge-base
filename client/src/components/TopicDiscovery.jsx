@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, Lightbulb, Dice5, X } from 'lucide-react';
+import { Search, Lightbulb, Dice5, X, Compass } from 'lucide-react';
 import { Tooltip } from './CursorHover';
 
 const formatSubject = (subject) => {
@@ -8,7 +8,7 @@ const formatSubject = (subject) => {
   return parts[parts.length - 1];
 };
 
-export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRefresh, subjects }) {
+export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRefresh, subjects, onOpenMesh }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('Everything');
   
@@ -48,40 +48,65 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
 
   return (
     <aside className="topic-panel">
-      <div className="topic-panel-header">
-        <div className="topic-panel-title">
+      <div className="topic-panel-section" style={{ padding: '0 var(--space-md) 0' }}>
+        <Tooltip text="View library as 3D Spatial Knowledge Graph">
+          <button 
+            className="global-btn primary_ghost"
+            style={{ width: '100%', maxWidth: 'var(--sidebar-content-max-width-right)' }}
+            onClick={onOpenMesh}
+          >
+            <Compass size={14} />
+            <span>Spatial Knowledge Graph</span>
+          </button>
+        </Tooltip>
+      </div>
+
+      <div className="topic-panel-section" style={{ marginBottom: 'var(--space-sm)' }}>
+        <div className="topic-panel-title" style={{ width: '100%', maxWidth: 'var(--sidebar-content-max-width-right)' }}>
           <Search size={16} />
           Discover Topics
         </div>
       </div>
 
-      <div className="topic-search-wrapper">
-        <Search size={14} className="search-icon" />
-        <input 
-          type="text" 
-          placeholder="Filter topics..." 
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="topic-search-input"
-        />
-        {searchQuery && (
-          <button className="search-clear" onClick={() => setSearchQuery('')}>
-            <X size={14} />
-          </button>
-        )}
+      <div className="topic-panel-section">
+        <div className="topic-search-wrapper">
+          <Search size={14} className="search-icon" />
+          <input 
+            type="text" 
+            placeholder="Filter topics..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="topic-search-input"
+            style={{ maxWidth: 'var(--sidebar-content-max-width-right)' }}
+          />
+          {searchQuery && (
+            <button className="search-clear" onClick={() => setSearchQuery('')}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="topic-panel-content">
+      <div className="topic-panel-section topic-panel-controls" style={{ gap: 'var(--space-sm)' }}>
         {!searchQuery && (
-          <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <>
             <Tooltip text="Generate a random thought-provoking question from your library">
-              <button className="surprise-btn" onClick={() => onRefresh(selectedSubject)} id="surprise-btn" style={{ width: '100%' }}>
+              <button 
+                className="global-btn accent_filled" 
+                onClick={() => onRefresh(selectedSubject)} 
+                id="surprise-btn" 
+                style={{ 
+                  width: '100%', 
+                  maxWidth: 'var(--sidebar-content-max-width-right)',
+                  border: '1px solid transparent'
+                }}
+              >
                 <Dice5 size={14} />
-                Ask Your Knowledge Base
+                <span>Ask Your Knowledge Base</span>
               </button>
             </Tooltip>
             
-            <div className="subject-selector-wrapper" style={{ position: 'relative' }}>
+            <div className="subject-selector-wrapper" style={{ position: 'relative', width: '100%', maxWidth: 'var(--sidebar-content-max-width-right)' }}>
               <select 
                 className="subject-dropdown"
                 value={selectedSubject}
@@ -123,61 +148,64 @@ export default function TopicDiscovery({ topics, suggestions, onTopicClick, onRe
             </div>
 
             {showSuggestions && (
-              <div>
-                <div className="topic-subject-name" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Lightbulb size={12} />
-                  Suggested Questions
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {suggestions.map((s, i) => (
-                    <Tooltip 
-                      key={i} 
-                      content={
-                        <div className="flex flex-col gap-1">
-                          <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
-                          <div className="text-[12px] font-bold mb-1">{s.topic || 'Suggested Exploration'}</div>
-                          <div className="flex items-center gap-2 text-[10px] opacity-70">
-                            <span className="font-bold">Book:</span> {s.filename || 'Knowledge Base'}
-                          </div>
-                          <div className="flex items-center gap-2 text-[10px] opacity-70">
-                            <span className="font-bold">Subject:</span> {s.subject || 'General Research'}
-                          </div>
-                        </div>
-                      }
-                    >
-                      <button
-                        className="topic-chip user-message-style"
-                        onClick={() => onTopicClick(s.suggested_question)}
-                        style={{ 
-                          display: 'flex', 
-                          flexDirection: 'column', 
-                          alignItems: 'flex-start', 
-                          gap: '4px',
-                          padding: '10px 14px',
-                          textAlign: 'left',
-                          width: '100%',
-                          marginBottom: '6px'
-                        }}
-                      >
-                        <span style={{ 
-                          fontSize: '9px', 
-                          fontWeight: 800, 
-                          textTransform: 'uppercase', 
-                          letterSpacing: '0.5px',
-                          color: 'var(--accent-indigo)',
-                          opacity: 0.8
-                        }}>
-                          {s.filename || 'Source Document'}
-                        </span>
-                        <span style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.4 }}>
-                          {s.suggested_question}
-                        </span>
-                      </button>
-                    </Tooltip>
-                  ))}
-                </div>
+              <div className="topic-subject-name" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0' }}>
+                <Lightbulb size={12} />
+                Suggested Questions
               </div>
             )}
+          </>
+        )}
+      </div>
+
+      <div className="topic-panel-content" style={{ paddingTop: '4px' }}>
+        {!searchQuery && showSuggestions && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {suggestions.map((s, i) => (
+              <Tooltip 
+                key={i} 
+                content={
+                  <div className="flex flex-col gap-1">
+                    <div className="text-[10px] uppercase tracking-wider text-[var(--accent-indigo)] font-bold opacity-80">Topic Context</div>
+                    <div className="text-[12px] font-bold mb-1">{s.topic || 'Suggested Exploration'}</div>
+                    <div className="flex items-center gap-2 text-[10px] opacity-70">
+                      <span className="font-bold">Book:</span> {s.filename || 'Knowledge Base'}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] opacity-70">
+                      <span className="font-bold">Subject:</span> {s.subject || 'General Research'}
+                    </div>
+                  </div>
+                }
+              >
+                <button
+                  className="topic-chip user-message-style"
+                  onClick={() => onTopicClick(s.suggested_question)}
+                  style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'flex-start', 
+                    gap: '4px',
+                    padding: '10px 14px',
+                    textAlign: 'left',
+                    width: '100%',
+                    marginBottom: '6px'
+                  }}
+                >
+                  <span style={{ 
+                    fontSize: '9px', 
+                    fontWeight: 800, 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '0.5px',
+                    color: 'var(--accent-indigo)',
+                    opacity: 0.8
+                  }}>
+                    {s.filename || 'Source Document'}
+                  </span>
+                  <span style={{ fontSize: '12px', fontWeight: 500, lineHeight: 1.4 }}>
+                    {s.suggested_question}
+                  </span>
+                </button>
+              </Tooltip>
+            ))}
           </div>
         )}
 

@@ -42,71 +42,65 @@ export const CursorTooltip = React.forwardRef(({ text, content, isVisible }, ref
     if (!isVisible || !boxRef.current) return;
 
     const box = boxRef.current.getBoundingClientRect();
-    const offset = 12; // Halved from 24 for tighter proximity
+    const offset = 12; 
     const { innerWidth: width, innerHeight: height } = window;
 
-    let x = position.x + offset;
-    let y = position.y + offset;
+    let targetX = position.x + offset;
+    let targetY = position.y + offset;
 
-    // Boundary Awareness: Flip to left if hitting right edge
-    if (x + box.width > width - 20) {
-      x = position.x - box.width - offset;
+    if (targetX + box.width > width - 20) {
+      targetX = position.x - box.width - offset;
     }
 
-    // Boundary Awareness: Flip to right if hitting left edge (when flipped)
-    if (x < 10) {
-      x = position.x + offset;
+    if (targetX < 10) {
+      targetX = position.x + offset;
     }
 
-    // Boundary Awareness: Flip to top if hitting bottom edge
-    if (y + box.height > height - 20) {
-      y = position.y - box.height - offset;
+    if (targetY + box.height > height - 20) {
+      targetY = position.y - box.height - offset;
     }
 
-    // Final safety constraints
-    x = Math.max(10, Math.min(width - box.width - 10, x));
-    y = Math.max(10, Math.min(height - box.height - 10, y));
+    targetX = Math.max(10, Math.min(width - box.width - 10, targetX));
+    targetY = Math.max(10, Math.min(height - box.height - 10, targetY));
 
-    setCoords({ x, y, opacity: 1 });
-  }, [position, isVisible]);
+    setCoords({ x: targetX, y: targetY, opacity: 1 });
+  }, [position, isVisible, boxRef]);
+
+  if (!isVisible) return null;
 
   const portalContent = (
-    <AnimatePresence mode="wait">
-      {isVisible && (
-        <motion.div
-          ref={boxRef}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: coords.opacity, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.1, ease: 'easeOut' }}
-          style={{
-            position: 'fixed',
-            left: coords.x,
-            top: coords.y,
-            zIndex: 2147483647, // Max z-index for portal
-            pointerEvents: 'none'
-          }}
-        >
-          <div style={{
-            padding: '10px 14px',
-            background: 'var(--bg-secondary)',
-            backdropFilter: 'blur(30px)',
-            border: '1px solid var(--glass-border)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--text-primary)',
-            fontSize: '11px',
-            fontWeight: 600,
-            boxShadow: 'var(--shadow-lg)',
-            maxWidth: '480px',
-            lineHeight: 1.5,
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word'
-          }}>
-            {content || text}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <motion.div
+      key="cursor-tooltip"
+      ref={boxRef}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: coords.opacity, scale: 1 }}
+      transition={{ duration: 0.1, ease: 'easeOut' }}
+      style={{
+        position: 'fixed',
+        left: coords.x,
+        top: coords.y,
+        zIndex: 2147483647,
+        pointerEvents: 'none'
+      }}
+    >
+      <div style={{
+        padding: '10px 14px',
+        background: 'var(--bg-secondary)',
+        backdropFilter: 'blur(30px)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: 'var(--radius-md)',
+        color: 'var(--text-primary)',
+        fontSize: '11px',
+        fontWeight: 600,
+        boxShadow: 'var(--shadow-lg)',
+        maxWidth: '480px',
+        lineHeight: 1.5,
+        whiteSpace: 'pre-wrap',
+        wordBreak: 'break-word'
+      }}>
+        {content || text}
+      </div>
+    </motion.div>
   );
 
   return createPortal(portalContent, document.body);
@@ -117,8 +111,10 @@ CursorTooltip.displayName = 'CursorTooltip';
 /**
  * CursorPopover: Advanced hover window supporting rich content and dynamic dashboards.
  */
-export function CursorPopover({ isVisible, children, title }) {
+export const CursorPopover = React.forwardRef(({ isVisible, children, title }, ref) => {
   const { position, alignment } = useCursorFollow();
+  const internalRef = useRef(null);
+  const boxRef = ref || internalRef;
 
   const getStyle = () => {
     const offset = 12;
@@ -134,63 +130,64 @@ export function CursorPopover({ isVisible, children, title }) {
     };
   };
 
+  if (!isVisible) return null;
+
   const portalContent = (
-    <AnimatePresence mode="wait">
-      {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
-          transition={{ duration: 0.2 }}
-          style={getStyle()}
-        >
-          <div style={{
-            width: '480px',
-            background: 'var(--bg-secondary)',
-            backdropFilter: 'blur(40px)',
-            border: '1px solid var(--glass-border)',
-            borderRadius: 'var(--radius-xl)',
-            boxShadow: 'var(--shadow-xl)',
-            overflow: 'hidden',
+    <motion.div
+      key="cursor-popover"
+      ref={boxRef}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+      style={getStyle()}
+    >
+      <div style={{
+        width: '480px',
+        background: 'var(--bg-secondary)',
+        backdropFilter: 'blur(40px)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: 'var(--radius-xl)',
+        boxShadow: 'var(--shadow-xl)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        {title && (
+          <header style={{
+            padding: '12px 16px',
+            borderBottom: '1px solid var(--glass-border)',
+            background: 'rgba(255, 255, 255, 0.02)',
             display: 'flex',
-            flexDirection: 'column'
+            alignItems: 'center',
+            gap: '8px'
           }}>
-            {title && (
-              <header style={{
-                padding: '12px 16px',
-                borderBottom: '1px solid var(--glass-border)',
-                background: 'rgba(255, 255, 255, 0.02)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <div style={{ width: '4px', height: '12px', background: 'var(--accent-indigo)', borderRadius: '2px' }} />
-                <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)' }}>
-                  {title}
-                </span>
-              </header>
-            )}
-            <div style={{ padding: '16px' }}>
-              {children}
-            </div>
-            <footer style={{
-              padding: '8px 16px',
-              background: 'rgba(0,0,0,0.1)',
-              fontSize: '9px',
-              color: 'var(--text-muted)',
-              textAlign: 'right',
-              borderTop: '1px solid var(--glass-border)'
-            }}>
-              System Intelligence Hover Protocol v1.0
-            </footer>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            <div style={{ width: '4px', height: '12px', background: 'var(--accent-indigo)', borderRadius: '2px' }} />
+            <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)' }}>
+              {title}
+            </span>
+          </header>
+        )}
+        <div style={{ padding: '16px' }}>
+          {children}
+        </div>
+        <footer style={{
+          padding: '8px 16px',
+          background: 'rgba(0,0,0,0.1)',
+          fontSize: '9px',
+          color: 'var(--text-muted)',
+          textAlign: 'right',
+          borderTop: '1px solid var(--glass-border)'
+        }}>
+          System Intelligence Hover Protocol v1.0
+        </footer>
+      </div>
+    </motion.div>
   );
 
   return createPortal(portalContent, document.body);
-}
+});
+
+CursorPopover.displayName = 'CursorPopover';
 
 /**
  * Tooltip: Simple wrapper to add premium cursor-following hover text to any element.
@@ -215,18 +212,17 @@ export const Tooltip = React.forwardRef(({ children, text, content, delay = 0 },
   if (!text && !content) return children;
 
   return (
-    <div 
+    <span 
       ref={ref}
       className="tooltip-trigger-wrapper"
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
-      style={{ display: 'block', width: '100%' }}
+      style={{ display: 'inline-block', width: '100%' }}
     >
       {children}
       <CursorTooltip text={text} content={content} isVisible={isVisible} />
-    </div>
+    </span>
   );
 });
 
 Tooltip.displayName = 'Tooltip';
-

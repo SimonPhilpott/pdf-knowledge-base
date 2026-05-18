@@ -2,7 +2,7 @@ import { Router } from 'express';
 import fs from 'fs';
 import { syncPdfs, getSyncProgress, listDriveFolders, getCatalogStructure, deleteDocuments, moveDocument, findDuplicates, getCachedPdfPath } from '../services/driveService.js';
 import { autoCategoriseBooks } from '../services/categorisationService.js';
-import { extractPdfText, chunkText, getPageImage } from '../services/pdfService.js';
+import { extractPdfText, chunkText, getPageImage, extractOutline } from '../services/pdfService.js';
 import { generateEmbeddings } from '../services/embeddingService.js';
 import { storeEmbeddings, isDocumentIndexed } from '../services/vectorStore.js';
 import { extractTopicsFromDocument } from '../services/topicService.js';
@@ -21,7 +21,8 @@ let indexProgress = { active: false, total: 0, current: 0, currentFile: '', phas
  * POST /api/drive/sync - Sync PDFs from Google Drive and index them
  */
 router.post('/sync', async (req, res) => {
-  if (indexProgress.active) {
+  const syncProg = getSyncProgress();
+  if (indexProgress.active || syncProg.active) {
     return res.status(400).json({ error: 'Sync already in progress' });
   }
 
@@ -33,9 +34,9 @@ router.post('/sync', async (req, res) => {
       // Phase 1: Download PDFs from Drive
       await syncPdfs();
 
-      // Phase 2: Index unindexed documents
+      // Phase 2: Index unindexed documents (including previously failed ones at indexed=-1)
       const unindexed = db.prepare(`
-        SELECT * FROM documents WHERE indexed = 0 OR indexed IS NULL
+        SELECT * FROM documents WHERE indexed = 0 OR indexed = -1 OR indexed IS NULL
       `).all();
 
       indexProgress = {
@@ -76,16 +77,50 @@ router.post('/sync', async (req, res) => {
             chunkOverlap: config.defaults.chunkOverlap
           });
 
-          indexProgress.phase = `Generating embeddings: ${doc.filename}`;
-          const embeddedChunks = await generateEmbeddings(chunks);
+          // --- Embeddings: isolated try/catch so failures don't block TOC/topics ---
+          try {
+            indexProgress.phase = `Generating embeddings: ${doc.filename}`;
+            const embeddedChunks = await generateEmbeddings(chunks);
+            storeEmbeddings(doc.subject, doc.id, doc.drive_file_id, doc.filename, embeddedChunks);
+          } catch (embedErr) {
+            console.warn(`[Indexing] Embedding failed for ${doc.filename} (continuing): ${embedErr.message}`);
+          }
 
-          storeEmbeddings(doc.subject, doc.id, doc.drive_file_id, doc.filename, embeddedChunks);
+          // --- Topics: isolated try/catch ---
+          try {
+            indexProgress.phase = `Extracting topics: ${doc.filename}`;
+            await extractTopicsFromDocument(doc.id, doc.filename, doc.subject, pdfData.pages);
+          } catch (topicErr) {
+            console.warn(`[Indexing] Topic extraction failed for ${doc.filename} (continuing): ${topicErr.message}`);
+          }
 
-          indexProgress.phase = `Extracting topics: ${doc.filename}`;
-          await extractTopicsFromDocument(doc.id, doc.filename, doc.subject, pdfData.pages);
+          // --- TOC: isolated try/catch ---
+          try {
+            indexProgress.phase = `Extracting TOC: ${doc.filename}`;
+            const tocItems = await extractOutline(pdfPath);
+            if (tocItems.length > 0) {
+              // Clear old TOC for this document then insert fresh
+              db.prepare('DELETE FROM toc_items WHERE document_id = ?').run(doc.id);
+              const insertToc = db.prepare(
+                'INSERT INTO toc_items (id, document_id, title, level, parent_id, page_number, order_index) VALUES (?, ?, ?, ?, ?, ?, ?)'
+              );
+              const insertMany = db.transaction((items) => {
+                for (const item of items) {
+                  insertToc.run(item.id, doc.id, item.title, item.level, item.parentId, item.pageNumber, item.orderIndex);
+                }
+              });
+              insertMany(tocItems);
+              console.log(`[Indexing] Stored ${tocItems.length} TOC items for ${doc.filename}`);
+            }
+          } catch (tocErr) {
+            console.warn(`[Indexing] TOC extraction failed for ${doc.filename} (continuing): ${tocErr.message}`);
+          }
 
+          // Mark as successfully indexed — partial failures (embeddings, topics, TOC)
+          // are acceptable; search and graph still work with whatever we got.
           db.prepare('UPDATE documents SET indexed = 1, index_error = NULL WHERE id = ?').run(doc.id);
         } catch (err) {
+          // Only reach here on critical failures: missing cache, text extraction crash, etc.
           console.error(`[Indexing] Failed to index ${doc.filename}:`, err);
           db.prepare('UPDATE documents SET indexed = -1, index_error = ? WHERE id = ?')
             .run(err.message || 'Unknown indexing error', doc.id);

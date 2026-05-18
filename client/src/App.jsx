@@ -2,11 +2,12 @@ import React, { useEffect } from 'react';
 import Layout from './components/Layout';
 import OnboardingSetup from './components/OnboardingSetup';
 import CatalogBrowser from './components/CatalogBrowser';
+import MeshCanvas from './components/MeshCanvas';
 import AdminPortal from './components/Admin/AdminPortal';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAppLogic } from './hooks/useAppLogic';
 import { Sparkles } from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 /**
  * App component serves as the top-level orchestrator.
@@ -21,7 +22,7 @@ export default function App() {
     suggestions, syncStatus, pdfViewer, pinnedItems, showCapWarning,
     showCatalog, showAdmin, isRefining, refineProgress, theme,
     gems, deletingSessionIds, isClearingHistory, showCitations,
-    topicsWidth, isResizingTopics
+    topicsWidth, isResizingTopics, showMesh
   } = state;
 
   const {
@@ -31,7 +32,7 @@ export default function App() {
     sendMessage, triggerSync, refineAllLibrary, loadSession, deleteSession, clearAllHistory,
     updateModel, handlePin, clearAllPins, handleLogin, handleLogout, activateGem,
     toggleTheme, toggleCitations, voiceEngine,
-    setTopicsWidth, setIsResizingTopics
+    setTopicsWidth, setIsResizingTopics, setShowMesh
   } = actions;
 
   // Global sidebar resize listener
@@ -161,9 +162,7 @@ export default function App() {
         showCitations={showCitations}
         onToggleCitations={toggleCitations}
         deletingSessionIds={deletingSessionIds}
-        topicsWidth={topicsWidth}
-        isResizingTopics={isResizingTopics}
-        onTopicsResizeStart={() => setIsResizingTopics(true)}
+        onOpenMesh={() => setShowMesh(true)}
       />
 
       <ErrorBoundary>
@@ -177,28 +176,42 @@ export default function App() {
         )}
       </ErrorBoundary>
 
-      {isRefining && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-2xl">
-          <div className="bg-bg-secondary/40 backdrop-blur-md border border-glass-border p-8 rounded-2xl shadow-2xl max-w-sm w-full text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-accent-indigo/10 to-transparent pointer-events-none" />
-            <Sparkles size={48} className="mx-auto text-accent-indigo animate-pulse mb-6 relative z-10" />
-            <h3 className="text-xl font-bold mb-2 relative z-10">Refreshing Subjects</h3>
-            <p className="text-sm text-text-muted mb-6 relative z-10">{refineProgress.currentFile}</p>
-            <div className="h-2 w-full bg-bg-tertiary rounded-full overflow-hidden mb-8 border border-glass-border relative z-10">
-              <div 
-                className="h-full bg-primary-gradient shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-500 ease-out" 
-                style={{ width: `${(refineProgress.current / (refineProgress.total || 1)) * 100}%` }}
-              />
-            </div>
-            <button 
-              className="px-6 py-2 rounded-xl text-sm font-semibold border border-glass-border hover:bg-white/5 transition-all relative z-10 hover:border-accent-indigo/50"
-              onClick={() => { window.refine_abort = true; }}
+      <AnimatePresence>
+        {isRefining && (
+          <motion.div 
+            className="refining-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="refining-card"
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             >
-              Abort Refinement
-            </button>
-          </div>
-        </div>
-      )}
+              <Sparkles size={48} className="mx-auto text-accent-indigo animate-pulse mb-6 relative z-10" />
+              <h3 className="refining-title">Refreshing Subjects</h3>
+              <p className="refining-subtitle">{refineProgress.currentFile}</p>
+              
+              <div className="refining-progress-container">
+                <div 
+                  className="refining-progress-fill" 
+                  style={{ width: `${(refineProgress.current / (refineProgress.total || 1)) * 100}%` }}
+                />
+              </div>
+
+              <button 
+                className="refining-abort-btn"
+                onClick={() => { window.refine_abort = true; }}
+              >
+                Abort Refinement
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {showCapWarning && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl">
@@ -220,10 +233,17 @@ export default function App() {
       {showCatalog && (
         <CatalogBrowser 
           onClose={() => setShowCatalog(false)} 
+          chatTone={chatTone}
           onOpenFile={(id, page, name) => {
             setShowCatalog(false);
             setPdfViewer({ driveFileId: id, pageNum: page, filename: name });
           }}
+        />
+      )}
+      {showMesh && (
+        <MeshCanvas 
+          onClose={() => setShowMesh(false)} 
+          chatTone={chatTone}
         />
       )}
     </div>

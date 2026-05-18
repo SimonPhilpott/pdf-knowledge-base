@@ -79,6 +79,57 @@ export async function extractPdfText(filePath) {
 }
 
 /**
+ * Extract the Table of Contents (outline/bookmarks) from a PDF.
+ * Returns an array of { title, level, pageNumber, children } items.
+ */
+export async function extractOutline(filePath) {
+  try {
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const data = new Uint8Array(fs.readFileSync(filePath));
+    const doc = await pdfjsLib.getDocument({ data, useSystemFonts: true }).promise;
+    
+    const outline = await doc.getOutline();
+    await doc.destroy();
+
+    if (!outline || outline.length === 0) return [];
+
+    // Flatten the nested outline into a linear array with level information
+    const items = [];
+    let globalIndex = 0;
+
+    function walk(tree, level = 0, parentId = null) {
+      for (const item of tree) {
+        const pageRef = item.dest ? (
+          Array.isArray(item.dest) ? item.dest[0] : 
+          typeof item.dest === 'object' && item.dest.num != null ? item.dest : null
+        ) : null;
+
+        globalIndex++;
+        const entry = {
+          id: `toc_${Date.now()}_${globalIndex}_${Math.random().toString(36).slice(2, 6)}`,
+          title: item.title || '',
+          level,
+          parentId,
+          pageNumber: pageRef && pageRef.num != null ? pageRef.num : null,
+          orderIndex: globalIndex
+        };
+        items.push(entry);
+
+        if (item.items && item.items.length > 0) {
+          walk(item.items, level + 1, entry.id);
+        }
+      }
+    }
+
+    walk(outline);
+    return items;
+  } catch (err) {
+    console.warn(`[PDF] Failed to extract outline: ${err.message}`);
+    return [];
+  }
+}
+
+/**
  * Chunk text into segments suitable for embedding
  * Each chunk retains source metadata (filename, page, position)
  */

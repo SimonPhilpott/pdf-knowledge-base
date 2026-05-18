@@ -15,7 +15,7 @@ export default {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     redirectUri: `http://localhost:${process.env.PORT || 3001}/api/auth/callback`,
     scopes: [
-      'https://www.googleapis.com/auth/drive.readonly',
+      'https://www.googleapis.com/auth/drive',
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/userinfo.email'
     ]

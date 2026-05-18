@@ -13,7 +13,7 @@ const PDF_CACHE_DIR = path.join(__dirname, '..', 'data', 'pdfs');
 // Ensure cache directory exists
 fs.mkdirSync(PDF_CACHE_DIR, { recursive: true });
 
-let syncProgress = { active: false, total: 0, current: 0, currentFile: '', phase: '' };
+let syncProgress = { active: false, total: 0, current: 0, currentFile: '', phase: '', error: null };
 let lastAuthError = null;
 
 /**
@@ -98,14 +98,38 @@ export async function listDriveFolders(parentId = 'root') {
   if (!auth) throw new Error('Not authenticated');
 
   const drive = google.drive({ version: 'v3', auth });
-  const response = await drive.files.list({
-    q: `'${parentId}' in parents AND mimeType = 'application/vnd.google-apps.folder' AND trashed = false`,
-    fields: 'files(id, name, parents)',
-    orderBy: 'name',
-    pageSize: 100
-  });
+  const folders = [];
+  let pageToken = null;
 
-  return response.data.files || [];
+  do {
+    const response = await drive.files.list({
+      q: `'${parentId}' in parents AND mimeType = 'application/vnd.google-apps.folder' AND trashed = false`,
+      fields: 'nextPageToken, files(id, name, parents)',
+      orderBy: 'name',
+      pageSize: 100,
+      pageToken: pageToken,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true
+    });
+
+    if (response.data.files) {
+      folders.push(...response.data.files);
+    }
+    pageToken = response.data.nextPageToken;
+  } while (pageToken);
+
+  return folders;
+}
+
+/**
+ * Normalize subject names for consistency (e.g., AI -> Artificial Intelligence)
+ */
+function normalizeSubjectPart(name) {
+  const normalizationMap = {
+    'AI': 'Artificial Intelligence',
+    'RPG': 'Boardgames & Role-Playing Games'
+  };
+  return normalizationMap[name] || name;
 }
 
 /**
@@ -114,44 +138,76 @@ export async function listDriveFolders(parentId = 'root') {
 async function scanFolder(drive, folderId, subject = null) {
   const results = [];
 
-  // Get subfolders
-  const foldersResponse = await drive.files.list({
-    q: `'${folderId}' in parents AND mimeType = 'application/vnd.google-apps.folder' AND trashed = false`,
-    fields: 'files(id, name)',
-    orderBy: 'name',
-    pageSize: 100
-  });
+  // Get subfolders with pagination
+  let pageToken = null;
+  do {
+    let foldersResponse;
+    try {
+      foldersResponse = await drive.files.list({
+        q: `'${folderId}' in parents AND mimeType = 'application/vnd.google-apps.folder' AND trashed = false`,
+        fields: 'nextPageToken, files(id, name)',
+        orderBy: 'name',
+        pageSize: 100,
+        pageToken: pageToken,
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
+        corpora: 'allDrives'
+      });
+    } catch (err) {
+      console.warn(`[Sync] Skipping subfolders of ${folderId} due to error:`, err.message);
+      break;
+    }
 
-  const subfolders = foldersResponse.data.files || [];
+    const subfolders = foldersResponse.data.files || [];
+    for (const folder of subfolders) {
+      try {
+        const normalizedFolderName = normalizeSubjectPart(folder.name);
+        const subjectName = subject ? `${subject} / ${normalizedFolderName}` : normalizedFolderName;
+        const subResults = await scanFolder(drive, folder.id, subjectName);
+        results.push(...subResults);
+      } catch (err) {
+        console.warn(`[Sync] Failed to scan subfolder ${folder.name} (${folder.id}):`, err.message);
+      }
+    }
+    pageToken = foldersResponse.data.nextPageToken;
+  } while (pageToken);
 
-  // Get PDFs in current folder
-  const pdfsResponse = await drive.files.list({
-    q: `'${folderId}' in parents AND mimeType = 'application/pdf' AND trashed = false`,
-    fields: 'files(id, name, size, modifiedTime)',
-    orderBy: 'name',
-    pageSize: 100
-  });
+  // Get PDFs with pagination
+  pageToken = null;
+  do {
+    let pdfsResponse;
+    try {
+      pdfsResponse = await drive.files.list({
+        q: `'${folderId}' in parents AND mimeType = 'application/pdf' AND trashed = false`,
+        fields: 'nextPageToken, files(id, name, size, modifiedTime)',
+        orderBy: 'name',
+        pageSize: 100,
+        pageToken: pageToken,
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
+        corpora: 'allDrives'
+      });
+    } catch (err) {
+      console.warn(`[Sync] Skipping PDFs in ${folderId} due to error:`, err.message);
+      break;
+    }
 
-  const pdfs = pdfsResponse.data.files || [];
-  for (const pdf of pdfs) {
-    results.push({
-      driveFileId: pdf.id,
-      filename: pdf.name,
-      subject: subject || 'Uncategorised',
-      fileSize: parseInt(pdf.size || '0'),
-      modifiedTime: pdf.modifiedTime
-    });
-  }
-
-  // Recurse into subfolders (folder name becomes the subject)
-  for (const folder of subfolders) {
-    const subjectName = subject ? `${subject} / ${folder.name}` : folder.name;
-    const subResults = await scanFolder(drive, folder.id, subjectName);
-    results.push(...subResults);
-  }
+    const pdfs = pdfsResponse.data.files || [];
+    for (const pdf of pdfs) {
+      results.push({
+        driveFileId: pdf.id,
+        filename: pdf.name,
+        subject: subject || 'Uncategorised',
+        fileSize: parseInt(pdf.size || '0'),
+        modifiedTime: pdf.modifiedTime
+      });
+    }
+    pageToken = pdfsResponse.data.nextPageToken;
+  } while (pageToken);
 
   return results;
 }
+
 
 /**
  * Download a PDF from Google Drive and cache it locally
@@ -165,7 +221,7 @@ async function downloadPdf(drive, fileId, filename) {
   }
 
   const response = await drive.files.get(
-    { fileId, alt: 'media' },
+    { fileId, alt: 'media', supportsAllDrives: true },
     { responseType: 'stream' }
   );
 
@@ -194,12 +250,17 @@ export async function syncPdfs() {
     throw new Error('No Drive folder configured. Please set up a root folder first.');
   }
 
+  if (syncProgress.active) {
+    console.log('[Sync] Sync already active. Skipping.');
+    return;
+  }
+
   const auth = getAuthenticatedClient();
   if (!auth) throw new Error('Not authenticated');
-
   const drive = google.drive({ version: 'v3', auth });
 
-  syncProgress = { active: true, total: 0, current: 0, currentFile: '', phase: 'Scanning folders...' };
+  syncProgress = { active: true, total: 0, current: 0, currentFile: '', phase: 'Initializing...', error: null };
+  lastAuthError = null; // Clear previous errors on start
 
   try {
     // Phase 1: Scan for PDFs
@@ -275,16 +336,36 @@ export async function syncPdfs() {
     syncProgress.phase = 'Complete';
     syncProgress.active = false;
     lastAuthError = null; // Clear on success
-
     return {
       total: pdfFiles.length,
       subjects: [...new Set(pdfFiles.map(f => f.subject))]
     };
   } catch (err) {
     syncProgress.active = false;
-    syncProgress.phase = 'Error: ' + err.message;
-    if (err.message.includes('invalid_grant') || err.message.includes('Token has been expired')) {
+    if (err.message.includes('invalid_grant') || err.message.includes('Token has been expired') || err.message.includes('No refresh token')) {
       lastAuthError = 'Session Expired';
+      syncProgress.phase = 'Error: Session Expired';
+      syncProgress.error = 'Session Expired';
+    } else {
+      console.error('[Sync] Full Error Object:', JSON.stringify(err, null, 2));
+      
+      // LOG TO FILE FOR AGENT INSPECTION
+      try {
+        const errorLog = {
+          timestamp: new Date().toISOString(),
+          message: err.message,
+          stack: err.stack,
+          data: err.response?.data || null,
+          status: err.response?.status || null
+        };
+        fs.writeFileSync(path.join(__dirname, '..', 'data', 'sync_error.json'), JSON.stringify(errorLog, null, 2));
+      } catch (logErr) {
+        console.error('Failed to write error log:', logErr);
+      }
+
+      lastAuthError = err.message;
+      syncProgress.phase = 'Error: ' + err.message;
+      syncProgress.error = err.message;
     }
     throw err;
   }

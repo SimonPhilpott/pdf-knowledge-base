@@ -6,10 +6,9 @@ import {
   X, Compass, Settings2, Layers, Search,
   Zap, AlertCircle, ZoomIn, ZoomOut, Maximize2, Activity, Database,
   Briefcase, Settings, Eye, EyeOff, Globe, ShieldCheck, Scale,
-  Minimize2, Move, Sun, Moon, Palette
+  Minimize2, Move, Sun, Moon, Palette, Menu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { checkIsEntertainment } from '../utils/contentFilter';
 
 // --- STYLING CONSTANTS ---
 const COLORS = {
@@ -28,12 +27,13 @@ const COLORS = {
  * Hardened & High-Performance MeshCanvas
  * Uses Canvas Sprites for labels to ensure stability and speed.
  */
-export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSource, setSubjectSource }) {
+export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
   const fgRef = useRef();
+  const hasInteractedRef = useRef(false);
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [subjectDepth, setSubjectDepth] = useState(2); // 1 to 6 (default: 2)
+  const [subjectDepth, setSubjectDepth] = useState(3); // 1 to 6 (default: 3)
   const [nodeSpacing, setNodeSpacing] = useState(300); // Default to Normal
   const [hoverNode, setHoverNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
@@ -47,6 +47,23 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [galaxyMode, setGalaxyMode] = useState(false);
   const [renderMode, setRenderMode] = useState('3d'); // '3d' or '2d'
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (windowWidth <= 768) {
+      setIsSidebarOpen(false);
+    } else {
+      setIsSidebarOpen(true);
+    }
+  }, [windowWidth]);
   
   const [visibleLinkTypes, setVisibleLinkTypes] = useState({
     hierarchy: true,
@@ -56,7 +73,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
     thematic: false
   });
   
-  const [professionalFocus, setProfessionalFocus] = useState(chatTone === 'professional');
+  const [professionalFocus, setProfessionalFocus] = useState(true);
   
   const [showStylePopout, setShowStylePopout] = useState(false);
   const [graphStyles, setGraphStyles] = useState({
@@ -94,23 +111,18 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
   }, [chatTone]);
 
   // Fetch Data (once on mount or when subjectSource changes)
+  // Always fetch with folder source
   useEffect(() => {
-    console.log('[MeshCanvas] Initiating data fetch for source:', subjectSource);
+    console.log('[MeshCanvas] Initiating data fetch');
     
-    // Automatically adjust default depth: TOC starts at Lvl 1 (only chapters),
-    // while Folder starts at Lvl 2.
-    if (subjectSource === 'toc') {
-      setSubjectDepth(1);
-    } else {
-      setSubjectDepth(2);
-    }
+    setSubjectDepth(3);
 
     let isMounted = true;
     setLoading(true);
     setShouldRenderGraph(false);
     setLoadingProgress({ stage: 'Loading graph data...', percent: 10, visible: true });
 
-    fetch(`/api/graph/data?subjectSource=${subjectSource}`)
+    fetch(`/api/graph/data?subjectSource=folder`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         setLoadingProgress({ stage: 'Processing nodes...', percent: 40, visible: true });
@@ -161,7 +173,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
         }
       }
     };
-  }, [subjectSource]);
+  }, []);
 
   // Intersection of active visibility toggles
   const filteredLinks = useMemo(() => {
@@ -250,7 +262,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
     if (!graphData.nodes.length) return { nodes: [], links: [] };
 
     let visibleNodes = graphData.nodes.filter(n => {
-      if (professionalFocus && checkIsEntertainment(n)) return false;
+      if (professionalFocus && n.isEntertainment) return false;
       if (!showDocumentNodes && n.type === 'book') return false;
       if (focusedNodeIds && !focusedNodeIds.has(n.id)) return false;
 
@@ -281,7 +293,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
       const anchorBookIds = new Set(
         graphData.nodes
           .filter(n => n.type === 'book')
-          .filter(n => !checkIsEntertainment(n))
+          .filter(n => !n.isEntertainment)
           .map(n => n.id)
       );
 
@@ -325,6 +337,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
   useEffect(() => {
     if (!focusedNodeIds || !fgRef.current || !shouldRenderGraph) return;
     const timer = setTimeout(() => {
+      if (hasInteractedRef.current) return;
       try { fgRef.current.zoomToFit(1200, 250); } catch (_) {}
     }, 1200);
     return () => clearTimeout(timer);
@@ -344,6 +357,10 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
     if (renderMode !== '3d') return;
     if (fgRef.current && shouldRenderGraph) {
       const fg = fgRef.current;
+      
+      // Only proceed if the d3 simulation is initialized
+      if (typeof fg.d3Force !== 'function') return;
+      
       const scene = fg.scene();
       if (scene) {
         scene.background = null;
@@ -353,6 +370,17 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
         const dir = new THREE.DirectionalLight(0xffffff, graphTheme === 'dark' ? 0.8 : 3.5);
         dir.position.set(100, 100, 100);
         scene.add(dir);
+      }
+
+      const controls = fg.controls();
+      if (controls) {
+        controls.enableRotate = true;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.touches = {
+          ONE: THREE.TOUCH.ROTATE,
+          TWO: THREE.TOUCH.DOLLY_PAN
+        };
       }
 
       const charge = fg.d3Force('charge');
@@ -380,13 +408,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
       }
 
       try {
-        if (fgRef.current && typeof fgRef.current.d3AlphaTarget === 'function') {
-          const alpha = graphDataMemo.nodes.length > 500 ? 0.15 : 0.5;
-          fgRef.current.d3AlphaTarget(alpha);
-          setTimeout(() => {
-            if (fgRef.current) fgRef.current.d3AlphaTarget(0);
-          }, 1800);
-        }
+        // Force settings are updated above; graphData changes auto-reheat the simulation
       } catch(e) {}
     }
   }, [shouldRenderGraph, mountKey, nodeSpacing, galaxyMode, graphDataMemo, graphTheme, globalGravityForce, clusterPullForce, renderMode]);
@@ -397,11 +419,14 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
     const hasPositions = graphDataMemo.nodes.some(n => n.x !== 0 || n.y !== 0);
     if (!hasPositions) return;
 
+    hasInteractedRef.current = false;
+
     const timer = setTimeout(() => {
+      if (hasInteractedRef.current) return;
       try { fg.zoomToFit(1200, 150); } catch (e) {}
     }, 2500);
     return () => clearTimeout(timer);
-  }, [galaxyMode, showDocumentNodes, professionalFocus, visibleLinkTypes, selectedTopic, shouldRenderGraph, nodeSpacing, subjectDepth, graphTheme, graphDataMemo.nodes]);
+  }, [subjectDepth, nodeSpacing, showDocumentNodes, professionalFocus, selectedTopic, graphDataMemo.nodes.length, shouldRenderGraph]);
 
   useEffect(() => {
     if (fgRef.current && graphDataMemo.nodes) {
@@ -582,12 +607,23 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
 
   return (
     <div className="fixed inset-0 z-[10000] app-layout bg-bg-primary">
+      {/* Mobile overlay */}
+      {isSidebarOpen && windowWidth <= 768 && (
+        <div
+          className="mobile-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+          style={{ zIndex: 9000 }}
+        />
+      )}
       <header className="app-topbar" ref={topbarRef}>
         <div className="app-topbar-left">
           <div className="app-logo">
             <Compass className="app-logo-icon" size={20} />
             <span className="logo-text">Spatial Knowledge Graph</span>
           </div>
+          <button className="mobile-toggle-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{ marginLeft: '8px', display: 'flex' }}>
+            <Menu size={20} />
+          </button>
         </div>
         <div className="app-topbar-center" style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
           {!teleportedIds.includes('sensitivity') && (
@@ -605,28 +641,33 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
                 onChange={e => setSubjectDepth(parseInt(e.target.value))} 
                 className="flex-1 w-full subject-depth-slider cursor-pointer accent-[#899981]" 
               />
-              <span className="px-2.5 py-0.5 text-[9px] font-black tracking-widest text-white bg-gradient-to-r from-[#899981] to-[#6A7A62] rounded-full shadow-sm select-none" style={{ background: 'var(--gradient-primary)' }}>
+              <span className="px-2.5 py-0.5 text-[9px] font-black tracking-widest text-white bg-gradient-to-r from-[#899981] to-[#6A7A62] rounded-full shadow-sm select-none" style={{ background: 'var(--gradient-primary)', minWidth: '48px', textAlign: 'center' }}>
                 Lvl {subjectDepth}
               </span>
             </div>
           )}
           {!teleportedIds.includes('expansion') && (
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <div className="mode-switcher">
-                {[
-                  { val: 20,   label: 'Tight',    icon: Minimize2 },
-                  { val: 100,  label: 'Compact',  icon: Move },
-                  { val: 300,  label: 'Normal',   icon: Activity },
-                  { val: 600,  label: 'Wide',     icon: Maximize2 },
-                  { val: 1000, label: 'Distant',  icon: Compass }
-                ].map(opt => (
-                  <div key={opt.val} className={`node-spacing-item mode-item ${nodeSpacing === opt.val ? 'active' : ''}`} onClick={() => setNodeSpacing(opt.val)}>
-                    <opt.icon size={13} strokeWidth={2.5} />
-                    <span>{opt.label}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mode-switcher">
+            <div className="flex items-center gap-4 px-4 py-2.5 bg-white/40 backdrop-blur-md rounded-2xl border border-[#899981]/15 shadow-sm hover:border-[#899981]/25 transition-all" style={{ minWidth: '260px' }}>
+              <span className="text-[11px] font-black uppercase tracking-wider text-text-secondary whitespace-nowrap flex items-center gap-1.5">
+                <Maximize2 size={14} className="text-[#899981]" />
+                Node distance
+              </span>
+              <input 
+                type="range" 
+                min="20" 
+                max="1000" 
+                step="10"
+                value={nodeSpacing} 
+                onChange={e => setNodeSpacing(parseInt(e.target.value))} 
+                className="flex-1 w-full subject-depth-slider cursor-pointer accent-[#899981]" 
+              />
+              <span className="px-2.5 py-0.5 text-[9px] font-black tracking-widest text-white bg-gradient-to-r from-[#899981] to-[#6A7A62] rounded-full shadow-sm select-none" style={{ background: 'var(--gradient-primary)', minWidth: '68px', textAlign: 'center' }}>
+                {nodeSpacing <= 60 ? 'Tight' : nodeSpacing <= 200 ? 'Compact' : nodeSpacing <= 450 ? 'Normal' : nodeSpacing <= 800 ? 'Wide' : 'Distant'}
+              </span>
+            </div>
+          )}
+          {/* Galaxy mode disabled
+          <div className="mode-switcher" style={{ marginLeft: '12px' }}>
                 {[
                   { val: true,  label: 'Cluster', icon: Layers },
                   { val: false, label: 'Static',  icon: Database }
@@ -637,8 +678,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+          */}
         </div>
         <div className="app-topbar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button onClick={() => setShowStylePopout(!showStylePopout)} className={`global-close-btn ${showStylePopout ? 'active-palette' : ''}`} style={{ background: showStylePopout ? 'var(--accent-primary)' : 'transparent', color: showStylePopout ? 'white' : 'var(--text-secondary)' }} title="Graph Styling">
@@ -651,7 +691,16 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
       </header>
 
       <div className="app-main" style={{ width: '100vw', maxWidth: '100vw', display: 'flex', overflow: 'hidden' }}>
-        <div className="sidebar-wrapper mobile-open" style={{ width: '260px', flex: '0 0 260px', borderRight: '1px solid var(--glass-border)', overflow: 'hidden' }}>
+        <div 
+          className={`sidebar-wrapper ${isSidebarOpen ? 'mobile-open' : ''}`} 
+          style={{ 
+            width: '260px', 
+            flex: '0 0 260px', 
+            borderRight: '1px solid var(--glass-border)', 
+            overflow: 'hidden',
+            zIndex: windowWidth <= 768 ? 9500 : undefined
+          }}
+        >
           <aside className="sidebar" style={{ width: '100%', overflowY: 'auto' }}>
             <div className="sidebar-section" style={{ paddingTop: '16px', marginBottom: '16px' }}>
               <button onClick={() => {
@@ -695,7 +744,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
                         <Compass size={12} className="text-[#899981]" />
                         Subject depth
                       </span>
-                      <span className="text-[10px] font-black text-white bg-gradient-to-r from-[#899981] to-[#6A7A62] px-2 py-0.5 rounded-full" style={{ background: 'var(--gradient-primary)' }}>
+                      <span className="text-[10px] font-black text-white bg-gradient-to-r from-[#899981] to-[#6A7A62] px-2 py-0.5 rounded-full" style={{ background: 'var(--gradient-primary)', minWidth: '48px', textAlign: 'center' }}>
                         Lvl {subjectDepth}
                       </span>
                     </div>
@@ -712,13 +761,24 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
                     </div>
                   </div>
                 )}
-                {teleportedIds.includes('expansion') && (
+{teleportedIds.includes('expansion') && (
                   <div>
-                    <div className="flex justify-between text-[11px] font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}><span>Graph expansion</span></div>
-                    <div className="mode-switcher skg-sidebar-force-full" style={{ width: '100%', maxWidth: 'none', display: 'flex' }}>
-                      {[ { val: 20, label: 'Tight', icon: Minimize2 }, { val: 100, label: 'Compact', icon: Move }, { val: 300, label: 'Normal', icon: Activity }, { val: 600, label: 'Wide', icon: Maximize2 }, { val: 1000, label: 'Distant', icon: Compass } ].map(opt => (
-                        <div key={opt.val} className={`mode-item ${nodeSpacing === opt.val ? 'active' : ''}`} onClick={() => setNodeSpacing(opt.val)} style={{ flex: 1 }}><opt.icon size={13} strokeWidth={2.5} /><span>{opt.label}</span></div>
-                      ))}
+                    <div className="flex justify-between text-[11px] font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>
+                      <span className="flex items-center gap-1.5"><Maximize2 size={12} /> Node distance</span>
+                      <span className="text-[10px] font-black text-white bg-gradient-to-r from-[#899981] to-[#6A7A62] px-2 py-0.5 rounded-full" style={{ background: 'var(--gradient-primary)', minWidth: '68px', textAlign: 'center' }}>
+                        {nodeSpacing <= 60 ? 'Tight' : nodeSpacing <= 200 ? 'Compact' : nodeSpacing <= 450 ? 'Normal' : nodeSpacing <= 800 ? 'Wide' : 'Distant'}
+                      </span>
+                    </div>
+                    <div className="flex items-center w-full px-3 py-3.5 bg-[#EDE5D8]/40 rounded-xl border border-[#899981]/10">
+                      <input 
+                        type="range" 
+                        min="20" 
+                        max="1000" 
+                        step="10"
+                        value={nodeSpacing} 
+                        onChange={e => setNodeSpacing(parseInt(e.target.value))} 
+                        className="w-full subject-depth-slider cursor-pointer accent-[#899981]" 
+                      />
                     </div>
                   </div>
                 )}
@@ -744,20 +804,14 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
                         style={{ flex: 1 }}
                       >
                         <Globe size={13} strokeWidth={2.5} />
-                        <span>All Content</span>
+                        <span>All</span>
                       </div>
                     </div>
                   </div>
                   <div className="control-group">
                     <div className="mode-switcher skg-sidebar-force-full" style={{ width: '100%', display: 'flex' }}>
-                      <div className={`mode-item ${showDocumentNodes ? 'active' : ''}`} onClick={() => setShowDocumentNodes(true)} style={{ flex: 1 }}><Eye size={13} strokeWidth={2.5} /><span>Show PDF</span></div>
+                      <div className={`mode-item ${showDocumentNodes ? 'active' : ''}`} onClick={() => { setShowDocumentNodes(true); setVisibleLinkTypes(p => ({ ...p, category: true })); }} style={{ flex: 1 }}><Eye size={13} strokeWidth={2.5} /><span>Show PDF</span></div>
                       <div className={`mode-item ${!showDocumentNodes ? 'active' : ''}`} onClick={() => setShowDocumentNodes(false)} style={{ flex: 1 }}><EyeOff size={13} strokeWidth={2.5} /><span>Hide</span></div>
-                    </div>
-                  </div>
-                  <div className="control-group">
-                    <div className="mode-switcher skg-sidebar-force-full" style={{ width: '100%', display: 'flex' }}>
-                      <div className={`mode-item ${subjectSource === 'folder' ? 'active' : ''}`} onClick={() => setSubjectSource('folder')} style={{ flex: 1 }}><Database size={13} strokeWidth={2.5} /><span>Folders</span></div>
-                      <div className={`mode-item ${subjectSource === 'toc' ? 'active' : ''}`} onClick={() => setSubjectSource('toc')} style={{ flex: 1 }}><Layers size={13} strokeWidth={2.5} /><span>TOC</span></div>
                     </div>
                   </div>
                 </div>
@@ -786,7 +840,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
         <div className="main-content-wrapper" style={{ display: 'flex', flex: '1 1 0%', minWidth: 0, maxWidth: '100%', overflow: 'hidden', height: '100%', position: 'relative' }}>
           <div className="flex-1 relative bg-white z-10" onWheel={handleWheel}>
           {(loading || !shouldRenderGraph) && loadingProgress.visible && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#FBF9F7]/90 backdrop-blur-md">
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#FBF9F7]/90">
               <div className="flex flex-col items-center gap-3" style={{ width: '300px' }}>
                 <div className="w-12 h-12 border-4 border-[#899981] border-t-transparent rounded-full animate-spin" />
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#899981]">{loadingProgress.stage || 'Loading...'}</p>
@@ -806,9 +860,14 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
             </div>
           )}
           {shouldRenderGraph && graphData.nodes.length > 0 && (
-            <div style={{ position: 'absolute', inset: 0, background: graphStyles.bgType === 'solid' ? graphStyles.bgColor1 : graphStyles.bgType === 'radial' ? `radial-gradient(circle at center, ${graphStyles.bgColor1} 0%, ${graphStyles.bgColor2} 100%)` : `linear-gradient(180deg, ${graphStyles.bgColor1} 0%, ${graphStyles.bgColor2} 100%)`, transition: 'background 0.5s ease' }}>
+            <div 
+              style={{ position: 'absolute', inset: 0, background: graphStyles.bgType === 'solid' ? graphStyles.bgColor1 : graphStyles.bgType === 'radial' ? `radial-gradient(circle at center, ${graphStyles.bgColor1} 0%, ${graphStyles.bgColor2} 100%)` : `linear-gradient(180deg, ${graphStyles.bgColor1} 0%, ${graphStyles.bgColor2} 100%)`, transition: 'background 0.5s ease' }}
+              onMouseDown={() => { hasInteractedRef.current = true; }}
+              onTouchStart={() => { hasInteractedRef.current = true; }}
+              onWheel={() => { hasInteractedRef.current = true; }}
+            >
               <ForceGraph3D
-                key={`spatial-graph-3d-${mountKey}-${subjectSource}`}
+                key={`spatial-graph-3d-${mountKey}-${nodeSpacing}`}
                 ref={fgRef}
                 graphData={graphDataMemo}
                 nodeThreeObject={nodeThreeObject}
@@ -831,7 +890,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
                 onNodeClick={node => { setSelectedNode(node); fgRef.current?.cameraPosition({ x: node.x * 2, y: node.y * 2, z: node.z * 2 }, node, 1000); }}
                 enableNodeDrag={false}
                 warmupTicks={graphDataMemo.nodes.length > 500 ? 100 : 0}
-                cooldownTicks={graphDataMemo.nodes.length > 500 ? 50 : 100}
+                cooldownTicks={graphDataMemo.nodes.length > 500 ? 30 : 40}
                 onEngineStop={() => {
                   if (loadingProgress.visible) setLoadingProgress({ stage: '', percent: 100, visible: false });
                 }}
@@ -839,7 +898,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
             </div>
           )}
           <AnimatePresence>{showStylePopout && ( <StylePopout styles={graphStyles} setStyles={setGraphStyles} onClose={() => setShowStylePopout(false)} /> )}</AnimatePresence>
-          {renderMode === '3d' && <MiniMap graphData={graphDataMemo} fgRef={fgRef} />}
+          {renderMode === '3d' && windowWidth > 768 && <MiniMap graphData={graphDataMemo} fgRef={fgRef} />}
           {renderMode === '3d' && (
             <div className="absolute bottom-10 right-10 z-[100] pointer-events-none">
               <div className="px-5 py-2.5 bg-white/90 backdrop-blur-xl rounded-full border border-[#899981]/20 flex items-center gap-6 shadow-xl" style={{ width: 'max-content', maxWidth: '100%' }}>
@@ -864,9 +923,13 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly', subjectSour
 
 function MiniMap({ graphData, fgRef }) {
   const canvasRef = useRef(null);
-  const mapStateRef = useRef({ scale: 1, angle: 0, targetX: 0, targetY: 0, width: 360, height: 280 });
+  const graphDataRef = useRef(graphData);
+  const mapStateRef = useRef({ scale: 1, centerX: 0, centerY: 0, width: 360, height: 280 });
   const isDragging = useRef(false);
   const lastMousePos = useRef({ x: 0, y: 0 });
+
+  // Keep graphDataRef current on every render
+  graphDataRef.current = graphData;
 
   useEffect(() => {
     let animationFrameId;
@@ -875,83 +938,172 @@ function MiniMap({ graphData, fgRef }) {
       const fg = fgRef.current;
       if (!canvas || !fg) return;
       const ctx = canvas.getContext('2d');
-      const { width, height } = canvas;
+      const CW = canvas.width, CH = canvas.height;
       const camera = fg.camera();
       const controls = fg.controls();
       if (!camera || !controls) return;
       const target = controls.target;
-      const nodes = graphData.nodes;
+      // Read from graphDataRef so we always get the latest node positions
+      const gd = graphDataRef.current;
+      if (!gd) return;
+      const nodes = gd.nodes || [];
       if (!nodes.length) return;
+      const links = gd.links || [];
+
+      // Compute world bounds
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       nodes.forEach(n => { if (n.x == null || n.y == null) return; minX = Math.min(minX, n.x); maxX = Math.max(maxX, n.x); minY = Math.min(minY, n.y); maxY = Math.max(maxY, n.y); });
       const pad = 40;
-      const maxDim = Math.max(maxX - minX || 100, maxY - minY || 100);
-      const scale = (Math.min(width, height) - pad * 2) / maxDim;
-      const angle = Math.atan2(camera.position.x - target.x, camera.position.z - target.z);
-      mapStateRef.current = { scale, angle, targetX: target.x, targetY: target.y, width, height };
-      ctx.clearRect(0, 0, width, height);
-      ctx.save();
-      ctx.translate(width / 2, height / 2);
-      ctx.rotate(-angle + Math.PI / 2);
-      ctx.strokeStyle = 'rgba(137, 153, 129, 0.15)';
+      const worldW = maxX - minX || 100;
+      const worldH = maxY - minY || 100;
+      const scale = Math.min((CW - pad * 2) / worldW, (CH - pad * 2) / worldH);
+      const cx = (minX + maxX) / 2;
+      const cy = (minY + maxY) / 2;
+      mapStateRef.current = { scale, centerX: cx, centerY: cy, width: CW, height: CH };
+
+      // Coordinate transform: world → canvas
+      const toCanvas = (wx, wy) => [
+        CW / 2 + (wx - cx) * scale,
+        CH / 2 + (wy - cy) * scale
+      ];
+
+      ctx.clearRect(0, 0, CW, CH);
+
+      // Draw links
+      ctx.strokeStyle = 'rgba(137, 153, 129, 0.12)';
       ctx.lineWidth = 0.5;
-      graphData.links.forEach(l => { const s = typeof l.source === 'object' ? l.source : nodes.find(n => n.id === l.source); const t = typeof l.target === 'object' ? l.target : nodes.find(n => n.id === l.target); if (s && t) { ctx.beginPath(); ctx.moveTo((s.x - target.x) * scale, (s.y - target.y) * scale); ctx.lineTo((t.x - target.x) * scale, (t.y - target.y) * scale); ctx.stroke(); } });
-      nodes.forEach(n => { ctx.fillStyle = n.type === 'subject' ? '#899981' : '#6366F1'; ctx.beginPath(); ctx.arc((n.x - target.x) * scale, (n.y - target.y) * scale, n.type === 'subject' ? 2.5 : 1.5, 0, Math.PI * 2); ctx.fill(); });
-      ctx.restore();
-      const fov = camera.fov * (Math.PI / 180);
+      links.forEach(l => {
+        const s = typeof l.source === 'object' ? l.source : nodes.find(n => n.id === l.source);
+        const t = typeof l.target === 'object' ? l.target : nodes.find(n => n.id === l.target);
+        if (s && t) {
+          const [sx, sy] = toCanvas(s.x, s.y);
+          const [tx, ty] = toCanvas(t.x, t.y);
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(tx, ty);
+          ctx.stroke();
+        }
+      });
+
+      // Draw nodes
+      nodes.forEach(n => {
+        const [nx, ny] = toCanvas(n.x, n.y);
+        ctx.fillStyle = n.type === 'subject' ? '#899981' : '#6366F1';
+        ctx.beginPath();
+        ctx.arc(nx, ny, n.type === 'subject' ? 2.5 : 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw viewport rectangle — axis-aligned, proportional to camera distance
       const dist = camera.position.distanceTo(target);
-      const rw = (2 * Math.tan(fov / 2) * dist * (window.innerWidth / window.innerHeight)) * scale;
-      const rh = (2 * Math.tan(fov / 2) * dist) * scale;
-      ctx.strokeStyle = 'rgba(137, 153, 129, 0.8)';
-      ctx.setLineDash([4, 4]);
+      const fov = camera.fov * (Math.PI / 180);
+      const halfView = Math.tan(fov / 2) * dist;
+      const aspect = window.innerWidth / window.innerHeight;
+      const vx = halfView * aspect;
+      const vy = halfView;
+
+      const [rLeft, rTop] = toCanvas(target.x - vx, target.y - vy);
+      const [rRight, rBottom] = toCanvas(target.x + vx, target.y + vy);
+
+      ctx.strokeStyle = 'rgba(137, 153, 129, 0.9)';
       ctx.lineWidth = 2;
-      ctx.strokeRect((width - rw) / 2, (height - rh) / 2, rw, rh);
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(rLeft, rTop, rRight - rLeft, rBottom - rTop);
       ctx.setLineDash([]);
+
       animationFrameId = requestAnimationFrame(render);
     };
     render();
     return () => cancelAnimationFrame(animationFrameId);
   }, [graphData, fgRef]);
 
-  const handleMouseDown = (e) => { isDragging.current = true; lastMousePos.current = { x: e.clientX, y: e.clientY }; };
-  const handleMouseMove = (e) => {
-    if (!isDragging.current) return;
-    const dx_css = e.clientX - lastMousePos.current.x;
-    const dy_css = e.clientY - lastMousePos.current.y;
+  const getCanvasPos = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const CW = canvasRef.current.width, CH = canvasRef.current.height;
+    return { x: (e.clientX - rect.left) / rect.width * CW, y: (e.clientY - rect.top) / rect.height * CH };
+  };
+
+  const canvasToWorld = (cx, cy) => {
+    const { scale, centerX, centerY } = mapStateRef.current;
+    return { x: (cx - 180) / scale + centerX, y: (cy - 140) / scale + centerY };
+  };
+
+  const handleMouseDown = (e) => {
+    isDragging.current = false;
     lastMousePos.current = { x: e.clientX, y: e.clientY };
-    const { scale, angle } = mapStateRef.current;
+  };
+
+  const handleMouseMove = (e) => {
+    if (!lastMousePos.current) return;
+    const dx = e.clientX - lastMousePos.current.x;
+    const dy = e.clientY - lastMousePos.current.y;
+    const threshold = 3;
+    if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+      isDragging.current = true;
+    }
+    if (!isDragging.current) return;
+    const { scale } = mapStateRef.current;
     if (!scale || isNaN(scale)) return;
     const fg = fgRef.current;
     const camera = fg.camera();
     const controls = fg.controls();
     if (!camera || !controls) return;
-    const rot = -angle + Math.PI / 2;
-    const cosR = Math.cos(-rot);
-    const sinR = Math.sin(-rot);
-    const dx_world = (dx_css * cosR - dy_css * sinR) / scale;
-    const dy_world = (dx_css * sinR + dy_css * cosR) / scale;
-    controls.target.x -= dx_world;
-    controls.target.y -= dy_world;
-    camera.position.x -= dx_world;
-    camera.position.y -= dy_world;
+    const dx_world = -dx / scale;
+    const dy_world = -dy / scale;
+    controls.target.x += dx_world;
+    controls.target.y += dy_world;
+    camera.position.x += dx_world;
+    camera.position.y += dy_world;
     controls.update();
+    lastMousePos.current = { x: e.clientX, y: e.clientY };
   };
-  const handleMapClick = (e) => {
+
+  const handleMouseUp = () => {
+    isDragging.current = false;
+    lastMousePos.current = null;
+  };
+
+  const handleClick = (e) => {
     if (isDragging.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const { scale, angle, targetX, targetY, width, height } = mapStateRef.current;
-    if (!scale || isNaN(scale)) return;
-    const x_unrot = (e.clientX - rect.left - width / 2) * Math.cos(angle - Math.PI / 2) - (e.clientY - rect.top - height / 2) * Math.sin(angle - Math.PI / 2);
-    const y_unrot = (e.clientX - rect.left - width / 2) * Math.sin(angle - Math.PI / 2) + (e.clientY - rect.top - height / 2) * Math.cos(angle - Math.PI / 2);
+    const pos = getCanvasPos(e);
+    const world = canvasToWorld(pos.x, pos.y);
     const fg = fgRef.current;
-    const offset = fg.camera().position.clone().sub(fg.controls().target);
-    if (Math.abs(offset.z) < 100) offset.z = 2000;
-    const newTarget = new THREE.Vector3((x_unrot / scale) + targetX, (y_unrot / scale) + targetY, 0);
-    fg.cameraPosition(newTarget.clone().add(offset), newTarget, 800);
+    const camera = fg.camera();
+    const controls = fg.controls();
+    if (!camera || !controls) return;
+    const offset = camera.position.clone().sub(controls.target);
+    const newTarget = new THREE.Vector3(world.x, world.y, 0);
+    fg.cameraPosition(newTarget.clone().add(offset), newTarget, 600);
+  };
+
+  const handleWheel = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const fg = fgRef.current;
+    const camera = fg.camera();
+    const controls = fg.controls();
+    if (!camera || !controls) return;
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    const zoomFactor = e.deltaY > 0 ? 1.15 : 0.87;
+    const newDist = camera.position.distanceTo(controls.target) * zoomFactor;
+    const clampedDist = Math.max(50, Math.min(5000, newDist));
+    dir.multiplyScalar(clampedDist);
+    camera.position.copy(controls.target).add(dir);
+    controls.update();
   };
 
   return (
-    <div className="fixed top-0 right-0 z-[5000] minimap-container" style={{ width: '360px', height: '280px', background: 'rgba(241, 239, 233, 0.85)', backdropFilter: 'blur(30px)', borderLeft: '1px solid rgba(137, 153, 129, 0.2)', borderBottom: '1px solid rgba(137, 153, 129, 0.2)', boxShadow: '-10px 10px 40px rgba(0,0,0,0.15)', overflow: 'hidden', cursor: 'crosshair', pointerEvents: 'auto' }} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={() => isDragging.current = false} onMouseLeave={() => isDragging.current = false} onClick={handleMapClick}>
+    <div
+      className="fixed top-0 right-0 z-[5000] minimap-container"
+      style={{ width: '360px', height: '280px', background: 'rgba(241, 239, 233, 0.85)', backdropFilter: 'blur(30px)', borderLeft: '1px solid rgba(137, 153, 129, 0.2)', borderBottom: '1px solid rgba(137, 153, 129, 0.2)', boxShadow: '-10px 10px 40px rgba(0,0,0,0.15)', overflow: 'hidden', cursor: 'crosshair', pointerEvents: 'auto' }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
+      onClick={handleClick}
+      onWheel={handleWheel}
+    >
       <canvas ref={canvasRef} width={360} height={280} style={{ width: '100%', height: '100%' }} />
     </div>
   );

@@ -4,6 +4,7 @@ import {
   ExternalLink, Trash2, Move, Plus, Search, CheckSquare, Square,
   AlertCircle, ChevronLeft, Sparkles, Brain, RotateCcw
 } from 'lucide-react';
+import { checkIsEntertainment } from '../utils/contentFilter';
 
 const CatalogItem = ({ 
   item, level = 0, onOpenFile, onToggleSelect, isSelected, 
@@ -119,7 +120,7 @@ const CatalogItem = ({
   );
 };
 
-export default function CatalogBrowser({ onClose, onOpenFile }) {
+export default function CatalogBrowser({ onClose, onOpenFile, chatTone = 'friendly' }) {
   const [catalog, setCatalog] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -286,33 +287,55 @@ export default function CatalogBrowser({ onClose, onOpenFile }) {
 
   // Filter Catalog Tree
   const filterCatalog = (node, query) => {
-    if (!query) return node;
+    const search = query.toLowerCase().trim();
     
-    const search = query.toLowerCase();
-    
+    // Define entertainment detection logic as a reusable helper
     const filterNode = (n) => {
-      // If it's a file, check if title matches
-      if (n.type === 'file') {
-        return n.name.toLowerCase().includes(search);
+      // Professional Mode Pruning
+      if (chatTone === 'professional' && checkIsEntertainment(n)) {
+        return null;
       }
-      
-      // If it's a folder, check if any children match
+
+      // Search Filtering
+      if (search) {
+        // If it's a file, check if title matches
+        if (n.type === 'file') {
+          return n.name.toLowerCase().includes(search) ? n : null;
+        }
+        
+        // If it's a folder, check if any children match
+        if (n.children) {
+          const matchingChildren = n.children
+            .map(child => filterNode(child))
+            .filter(child => child !== null);
+            
+          if (matchingChildren.length > 0) {
+            return { ...n, children: matchingChildren };
+          }
+        }
+        
+        // If folder name itself matches, return it with all children
+        if (n.name.toLowerCase().includes(search)) {
+          return n;
+        }
+        
+        return null;
+      }
+
+      // No search, just return the node (potentially pruned by professional check)
       if (n.children) {
-        const matchingChildren = n.children
+        const prunedChildren = n.children
           .map(child => filterNode(child))
           .filter(child => child !== null);
-          
-        if (matchingChildren.length > 0) {
-          return { ...n, children: matchingChildren };
+        
+        // Prune empty folders (unless they are the root)
+        if (prunedChildren.length === 0 && n.type === 'folder' && n.name !== 'Library') {
+          return null;
         }
+        return { ...n, children: prunedChildren };
       }
-      
-      // If folder name itself matches, return it with all children
-      if (n.name.toLowerCase().includes(search)) {
-        return n;
-      }
-      
-      return null;
+
+      return n;
     };
 
     const result = filterNode(node);

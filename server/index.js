@@ -17,6 +17,7 @@ import settingsRoutes from './routes/settings.js';
 import notebookRoutes from './routes/notebook.js';
 import adminRoutes, { startNgrok } from './routes/admin.js';
 import gemsRoutes from './routes/gems.js';
+import graphRoutes from './routes/graph.js';
 import { getAuthStatus } from './services/driveService.js';
 import { validateConfiguredModels } from './services/modelService.js';
 
@@ -91,6 +92,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/notebook', notebookRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/gems', gemsRoutes);
+app.use('/api/graph', graphRoutes);
 
 // Serve static client build in production
 const clientDist = path.join(__dirname, '..', 'client', 'dist');

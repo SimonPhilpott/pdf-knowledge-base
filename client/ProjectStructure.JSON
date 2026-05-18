@@ -20,7 +20,8 @@
       "src/components/Admin": "Administrative portal views (DiagnosticsView, StructureView, etc.)",
       "src/pages": "Main application views",
       "src/context": "State management (Auth, Theme, Usage)",
-      "src/styles": "CSS styling using Vanilla CSS tokens"
+      "src/styles": "CSS styling using Vanilla CSS tokens",
+      "src/components/MeshCanvas.jsx": "3D Spatial Knowledge Graph component"
     },
     "server": {
       "index.js": "Main entry point and API routing",
@@ -30,9 +31,12 @@
       "services/chatService.js": "Gemini AI interaction logic",
       "services/imageService.js": "Imagen AI generation logic",
       "services/categorisationService.js": "AI library organization logic",
+      "services/graphService.js": "Shared concept mapping and graph data logic",
       "services/usageService.js": "Token and cost tracking",
       "services/pdfService.js": "PDF processing and extraction",
       "services/vectorStore.js": "FAISS-like vector search logic",
+      "routes/": "Express API endpoints",
+      "routes/graph.js": "Endpoint for fetching graph data",
       "data/": "SQLite database and PDF storage"
     }
   },

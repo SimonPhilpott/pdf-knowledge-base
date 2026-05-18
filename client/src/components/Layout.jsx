@@ -39,7 +39,8 @@ export default function Layout({
   showCitations,
   onToggleCitations,
   deletingSessionIds,
-  onClearPins
+  onClearPins,
+  onOpenMesh,
 }) {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -370,6 +371,7 @@ export default function Layout({
               onTopicClick={onTopicClick}
               onRefresh={onRefreshSuggestions}
               subjects={subjects}
+              onOpenMesh={onOpenMesh}
             />
           </div>
         )}
@@ -389,7 +391,7 @@ export default function Layout({
 
         <div className="statusbar-content">
           <div className="mobile-full-width">
-            <SyncStatus syncStatus={syncStatus} onSync={onSync} />
+            <SyncStatus syncStatus={syncStatus} onSync={onSync} onLogin={onLogin} authStatus={authStatus} />
           </div>
 
           {authStatus?.authenticated ? (
@@ -405,7 +407,7 @@ export default function Layout({
                   {authStatus.email}
                 </span>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <SyncStatus syncStatus={syncStatus} onSync={onSync} compact={true} />
+                  <SyncStatus syncStatus={syncStatus} onSync={onSync} compact={true} onLogin={onLogin} authStatus={authStatus} />
                   <Tooltip text="Sign out of your account">
                     <button className="auth-btn logout" onClick={onLogout}>Logout</button>
                   </Tooltip>

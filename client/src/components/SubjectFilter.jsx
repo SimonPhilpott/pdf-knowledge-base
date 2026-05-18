@@ -142,9 +142,11 @@ export default function SubjectFilter({ subjects, selected, onChange, onRefineAl
   if (!subjects || !subjects.children || subjects.children.length === 0) {
     return (
       <div className="subject-filter-container">
-        <div className="sidebar-section-title">
-          <Folder size={12} />
-          Subjects
+        <div className="sidebar-section-title" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Folder size={12} />
+            Subjects
+          </span>
         </div>
         <p style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '8px 0' }}>
           {!subjects ? 'Loading subjects...' : 'No subjects found. Sync your Drive to get started.'}
@@ -155,30 +157,31 @@ export default function SubjectFilter({ subjects, selected, onChange, onRefineAl
 
   return (
     <div className="subject-filter-container">
-      <div className="sidebar-section-title" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+      <div className="sidebar-section-title" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Folder size={12} />
           Subjects
         </span>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Tooltip text="Use AI to automatically categorise files based on content">
-            <button
-              onClick={handleRefineAll}
-              className={`text-btn ${isRefining ? 'pulse' : ''}`}
-              disabled={isRefining}
-            >
-              {isRefining ? 'Refreshing...' : 'Refresh Subjects'}
-            </button>
-          </Tooltip>
-          <Tooltip text={selected.length > 0 ? 'Deselect all subjects' : 'Select all subjects'}>
-            <button
-              onClick={toggleAll}
-              className="text-btn"
-            >
-              {selected.length > 0 ? 'None' : 'All'}
-            </button>
-          </Tooltip>
-        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', justifyContent: 'flex-end' }}>
+        <Tooltip text="Use AI to automatically categorise files based on content">
+          <button
+            onClick={handleRefineAll}
+            className={`text-btn ${isRefining ? 'pulse' : ''}`}
+            disabled={isRefining}
+          >
+            {isRefining ? 'Refreshing...' : 'Refresh Subjects'}
+          </button>
+        </Tooltip>
+        <Tooltip text={selected.length > 0 ? 'Deselect all subjects' : 'Select all subjects'}>
+          <button
+            onClick={toggleAll}
+            className="text-btn"
+          >
+            {selected.length > 0 ? 'None' : 'All'}
+          </button>
+        </Tooltip>
       </div>
       
       <div className="subject-tree-scroll-container">

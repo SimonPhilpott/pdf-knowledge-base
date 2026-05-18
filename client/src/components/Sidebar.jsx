@@ -26,10 +26,9 @@ export default function Sidebar({
   showCitations,
   onToggleCitations,
   deletingSessionIds = new Set(),
-  onClearPins
+  onClearPins,
 }) {
   const [isConfirmingClearPins, setIsConfirmingClearPins] = useState(false);
-
 
   return (
     <aside 
@@ -80,7 +79,7 @@ export default function Sidebar({
       </div>
 
       <div className="sidebar-section">
-        <div className="mode-switcher">
+        <div className="mode-switcher" style={{ width: '100%' }}>
           <Tooltip text="Focus on your uploaded PDF documents and library subjects">
             <div
               className={`mode-item ${appMode === 'kb' ? 'active' : ''}`}
@@ -103,21 +102,25 @@ export default function Sidebar({
         
         {appMode === 'kb' && (
           <div className="citation-toggle-section" style={{ marginTop: '8px' }}>
-            <div className="mode-switcher">
-              <div
-                className={`mode-item ${showCitations ? 'active' : ''}`}
-                onClick={onToggleCitations}
-              >
-                <Eye size={12} />
-                <span>Citations</span>
-              </div>
-              <div
-                className={`mode-item ${!showCitations ? 'active' : ''}`}
-                onClick={onToggleCitations}
-              >
-                <EyeOff size={12} />
-                <span>Hide</span>
-              </div>
+            <div className="mode-switcher" style={{ width: '100%' }}>
+              <Tooltip text="Show document citations in chat responses">
+                <div
+                  className={`mode-item ${showCitations ? 'active' : ''}`}
+                  onClick={onToggleCitations}
+                >
+                  <Eye size={12} />
+                  <span>Citations</span>
+                </div>
+              </Tooltip>
+              <Tooltip text="Hide citations for a cleaner chat experience">
+                <div
+                  className={`mode-item ${!showCitations ? 'active' : ''}`}
+                  onClick={onToggleCitations}
+                >
+                  <EyeOff size={12} />
+                  <span>Hide</span>
+                </div>
+              </Tooltip>
             </div>
           </div>
         )}

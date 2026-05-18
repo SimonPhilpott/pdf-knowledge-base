@@ -10,6 +10,25 @@ import config from '../config.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const router = express.Router();
 
+// Ensure app_settings table exists for persistent configuration
+db.exec(`
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+/**
+ * Retrieves the currently configured client port from the database,
+ * falling back to 5173 if no override has been set.
+ * @returns {number} The active client port.
+ */
+const getStoredPort = () => {
+  const row = db.prepare('SELECT value FROM app_settings WHERE key = ?').get('client_port');
+  return row ? parseInt(row.value, 10) : 5173;
+};
+
 // Helper to read JSON files safely
 const readJsonFile = (filename) => {
   const filePath = path.join(__dirname, '..', '..', filename);
@@ -109,20 +128,44 @@ router.get('/style-rules', (req, res) => {
   res.json(rules);
 });
 
-// 6. Ngrok Tunnel Management
+// 6. Port Configuration Management
+router.get('/port', (req, res) => {
+  const port = getStoredPort();
+  res.json({ port });
+});
+
+router.put('/port', (req, res) => {
+  const { port } = req.body;
+  const numPort = parseInt(port, 10);
+
+  if (isNaN(numPort) || numPort < 1024 || numPort > 65535) {
+    return res.status(400).json({ error: 'Port must be between 1024 and 65535.' });
+  }
+
+  db.prepare(
+    'INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP'
+  ).run('client_port', String(numPort));
+
+  console.log(`[Admin] Client port updated to ${numPort}. Restart the Vite dev server with VITE_PORT=${numPort} to apply.`);
+  res.json({ success: true, port: numPort, requiresRestart: true });
+});
+
+// 7. Ngrok Tunnel Management
 let ngrokListener = null;
 
 export const startNgrok = async () => {
   if (ngrokListener) return ngrokListener.url();
   if (!config.ngrok.authtoken) return null;
 
+  const tunnelPort = getStoredPort();
+
   try {
     ngrokListener = await ngrok.forward({
-      addr: 5173,
+      addr: tunnelPort,
       authtoken: config.ngrok.authtoken,
       domain: config.ngrok.domain
     });
-    console.log(`\n🌍 Ngrok Tunnel Active: ${ngrokListener.url()}`);
+    console.log(`\n🌍 Ngrok Tunnel Active: ${ngrokListener.url()} → localhost:${tunnelPort}`);
     return ngrokListener.url();
   } catch (err) {
     console.error(`❌ Ngrok Failed to start: ${err.message}`);
@@ -131,25 +174,32 @@ export const startNgrok = async () => {
 };
 
 router.get('/ngrok/status', async (req, res) => {
+  const port = getStoredPort();
   if (ngrokListener) {
-    res.json({ active: true, url: ngrokListener.url() });
+    res.json({ active: true, url: ngrokListener.url(), port });
   } else {
-    res.json({ active: false, url: null });
+    res.json({ active: false, url: null, port });
   }
 });
 
 router.post('/ngrok/toggle', async (req, res) => {
   const { action } = req.body;
+  const port = getStoredPort();
   try {
     if (action === 'start') {
+      // If ngrok is already running, close it first so it reconnects to the current port
+      if (ngrokListener) {
+        await ngrokListener.close();
+        ngrokListener = null;
+      }
       const url = await startNgrok();
-      res.json({ active: !!url, url });
+      res.json({ active: !!url, url, port });
     } else if (action === 'stop') {
       if (ngrokListener) {
         await ngrokListener.close();
         ngrokListener = null;
       }
-      res.json({ active: false, url: null });
+      res.json({ active: false, url: null, port });
     } else {
       res.status(400).json({ error: 'Invalid action' });
     }
@@ -159,3 +209,4 @@ router.post('/ngrok/toggle', async (req, res) => {
 });
 
 export default router;
+

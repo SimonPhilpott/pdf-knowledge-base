@@ -6,7 +6,7 @@ export default function ThemeToggle({ theme, onToggle }) {
   const isDark = theme === 'dark';
 
   return (
-    <div className="mode-switcher">
+    <div className="mode-switcher" style={{ width: '100%' }}>
       <Tooltip text="Switch to Light Mode">
         <div
           className={`mode-item ${!isDark ? 'active' : ''}`}

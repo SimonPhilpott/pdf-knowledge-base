@@ -115,6 +115,16 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS toc_items (
+    id TEXT PRIMARY KEY,
+    document_id TEXT REFERENCES documents(id) ON DELETE CASCADE,
+    title TEXT,
+    level INTEGER DEFAULT 0,
+    parent_id TEXT,
+    page_number INTEGER,
+    order_index INTEGER DEFAULT 0
+  );
+
   -- Insert default gems if they don't exist
   INSERT OR IGNORE INTO gems (id, name, icon, instruction, is_active, is_system) 
   VALUES 
@@ -128,6 +138,8 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_topics_subject ON topics(subject);
   CREATE INDEX IF NOT EXISTS idx_topics_document ON topics(document_id);
   CREATE INDEX IF NOT EXISTS idx_usage_timestamp ON token_usage(timestamp);
+  CREATE INDEX IF NOT EXISTS idx_toc_document ON toc_items(document_id);
+  CREATE INDEX IF NOT EXISTS idx_toc_parent ON toc_items(parent_id);
 `);
 
 // Helper functions

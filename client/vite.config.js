@@ -7,6 +7,9 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  resolve: {
+    dedupe: ['three']
+  },
   server: {
     host: true,
     allowedHosts: true,

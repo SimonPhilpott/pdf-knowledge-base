@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useVoiceEngine } from './useVoiceEngine';
+import { checkIsEntertainment, filterTreeNode } from '../utils/contentFilter';
 
 const API = '';
 
@@ -9,6 +10,7 @@ const API = '';
  */
 export function useAppLogic() {
   const voiceEngine = useVoiceEngine();
+  const refineAbortRef = useRef(false);
   const [authStatus, setAuthStatus] = useState({ authenticated: false });
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -27,12 +29,17 @@ export function useAppLogic() {
   // Filter state
   const [subjects, setSubjects] = useState(null);
   const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [subjectSource, setSubjectSource] = useState('folder'); // 'folder' or 'toc'
   const [currentModel, setCurrentModel] = useState('flash');
 
   // Usage state
   const [usage, setUsage] = useState(null);
   const [appMode, setAppMode] = useState('kb'); // 'kb' or 'general'
-  const [chatTone, setChatTone] = useState('friendly');
+  const [chatTone, _setChatTone] = useState('friendly');
+  const setChatTone = useCallback((tone) => {
+    console.log('[Action] Tone Change:', tone);
+    _setChatTone(tone);
+  }, []);
   const [canvasContent, setCanvasContent] = useState(null);
   const [isCanvasVisible, setIsCanvasVisible] = useState(false);
 
@@ -42,6 +49,43 @@ export function useAppLogic() {
 
   // Sync state
   const [syncStatus, setSyncStatus] = useState(null);
+
+  // Global Filter: Prune RPG/Entertainment content when in Professional mode
+  const filteredSubjects = useMemo(() => {
+    if (!subjects || chatTone !== 'professional') return subjects;
+
+    try {
+      const result = filterTreeNode(subjects, chatTone);
+      return result || subjects;
+    } catch (err) {
+      console.error('[Filtering] Subjects filter crashed:', err);
+      return subjects;
+    }
+  }, [subjects, chatTone]);
+
+  const filteredSuggestions = useMemo(() => {
+    if (chatTone !== 'professional') return suggestions;
+    try {
+      return suggestions.filter(s => !checkIsEntertainment(s));
+    } catch (err) {
+      return suggestions;
+    }
+  }, [suggestions, chatTone]);
+
+  const filteredTopics = useMemo(() => {
+    if (chatTone !== 'professional' || !topics) return topics;
+    try {
+      const newTopics = {};
+      Object.keys(topics).forEach(topic => {
+        if (!checkIsEntertainment(topic)) {
+          newTopics[topic] = topics[topic];
+        }
+      });
+      return newTopics;
+    } catch (err) {
+      return topics;
+    }
+  }, [topics, chatTone]);
 
   // PDF viewer state
   const [pdfViewer, setPdfViewer] = useState(null);
@@ -55,6 +99,7 @@ export function useAppLogic() {
   const [isRefining, setIsRefining] = useState(false);
   const [refineProgress, setRefineProgress] = useState({ current: 0, total: 0, currentFile: '' });
   const [isClearingHistory, setIsClearingHistory] = useState(false);
+  const [showMesh, setShowMesh] = useState(false);
 
   // Theme state
   const [theme, setTheme] = useState(() => localStorage.getItem('app-theme') || 'dark');
@@ -103,7 +148,7 @@ export function useAppLogic() {
           });
 
       const [subjectsRes, sessionsRes, usageRes, topicsRes, suggestionsRes, statusRes, canvasRes, pinsRes, gemsRes] = await Promise.all([
-        fetchJson('/api/subjects', { name: 'All Subjects', children: [], documentCount: 0, path: '' }),
+        fetchJson(`/api/subjects?subjectSource=folder`, { name: 'All Subjects', children: [], documentCount: 0, path: '' }),
         fetchJson('/api/chat/history', []),
         fetchJson('/api/usage/summary', { month: { cost: 0 }, today: { cost: 0 }, percentage: 0 }),
         fetchJson('/api/subjects/topics', {}),
@@ -147,6 +192,16 @@ export function useAppLogic() {
       setLoading(false);
     });
   }, [loadAppData]);
+
+  // Refresh subjects when auth changes (always folder-based; TOC toggle is graph-only)
+  useEffect(() => {
+    if (authStatus.authenticated && authStatus.isAuthorized && settings?.isConfigured) {
+      fetch(`${API}/api/subjects?subjectSource=folder`)
+        .then(r => r.json())
+        .then(setSubjects)
+        .catch(err => console.error('Failed to refresh subjects:', err));
+    }
+  }, [authStatus.authenticated, authStatus.isAuthorized, settings?.isConfigured]);
 
   const sendMessage = useCallback(async (text, forceModel, image = null) => {
     if (!text.trim() && !image) return;
@@ -237,18 +292,42 @@ export function useAppLogic() {
   }, [selectedSubjects, fetchSuggestions]);
 
   const triggerSync = useCallback(async () => {
+    setSyncStatus(prev => ({ 
+      ...prev, 
+      drive: { ...prev?.drive, active: true, phase: 'Initializing sync...' } 
+    }));
+    
     try {
-      await fetch(`${API}/api/drive/sync`, { method: 'POST' });
+      const res = await fetch(`${API}/api/drive/sync`, { method: 'POST' });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || `HTTP ${res.status}`);
+      }
+      
+      // Wait a moment for the server to actually start the background task
+      await new Promise(r => setTimeout(r, 1000));
+
       const pollInterval = setInterval(async () => {
-        const status = await fetch(`${API}/api/drive/status`).then(r => r.json());
-        setSyncStatus(status);
-        if (!status.drive.active && !status.indexing.active) {
+        try {
+          const status = await fetch(`${API}/api/drive/status`).then(r => r.json());
+          setSyncStatus(status);
+          
+          if (!status.drive.active && !status.indexing.active) {
+            console.log('[Sync] Polling stopped - Sync Complete.');
+            clearInterval(pollInterval);
+            loadAppData();
+          }
+        } catch (pollErr) {
+          console.error('[Sync] Polling error:', pollErr);
           clearInterval(pollInterval);
-          loadAppData();
         }
       }, 2000);
     } catch (err) {
-      console.error('Sync failed:', err);
+      console.error('[Sync] Failed to start sync:', err);
+      setSyncStatus(prev => ({
+        ...prev,
+        drive: { ...prev.drive, active: false, error: err.message, phase: 'Failed to start' }
+      }));
     }
   }, [loadAppData]);
 
@@ -260,7 +339,7 @@ export function useAppLogic() {
       const syncRes = await fetch(`${API}/api/drive/sync`, { method: 'POST' });
       let isIndexing = true;
       while (isIndexing) {
-        if (window.refine_abort) break;
+        if (refineAbortRef.current) break;
         const status = await fetch(`${API}/api/drive/status`).then(r => r.json());
         if (!status.indexing.active && !status.drive.active) isIndexing = false;
         else {
@@ -272,7 +351,7 @@ export function useAppLogic() {
           await new Promise(r => setTimeout(r, 2000));
         }
       }
-      if (window.refine_abort) { setIsRefining(false); window.refine_abort = false; return; }
+      if (refineAbortRef.current) { setIsRefining(false); refineAbortRef.current = false; return; }
       const catalog = await fetch(`${API}/api/drive/catalog`).then(r => r.json());
       const needsRefine = [];
       const extractIds = (node) => {
@@ -287,7 +366,7 @@ export function useAppLogic() {
       if (needsRefine.length === 0) { setIsRefining(false); await loadAppData(); return; }
       setRefineProgress({ current: 0, total: needsRefine.length, currentFile: 'Organising library...' });
       for (let i = 0; i < needsRefine.length; i++) {
-        if (window.refine_abort) break;
+        if (refineAbortRef.current) break;
         setRefineProgress(prev => ({ ...prev, currentFile: `Refining: ${needsRefine[i].name}...` }));
         await fetch(`${API}/api/drive/auto-categorise`, {
           method: 'POST',
@@ -296,7 +375,7 @@ export function useAppLogic() {
         });
         setRefineProgress(prev => ({ ...prev, current: i + 1 }));
       }
-      setIsRefining(false); window.refine_abort = false; await loadAppData(); 
+      setIsRefining(false); refineAbortRef.current = false; await loadAppData(); 
     } catch (err) { console.error('Refinement failed:', err); setIsRefining(false); }
   };
 
@@ -348,6 +427,7 @@ export function useAppLogic() {
   }, [isClearingHistory, appMode]);
 
   const updateModel = useCallback(async (model) => {
+    console.log('[Action] Model Change:', model);
     setCurrentModel(model);
     await fetch(`${API}/api/settings`, {
       method: 'PUT',
@@ -382,8 +462,20 @@ export function useAppLogic() {
   }, [pinnedItems]);
 
   const handleLogin = async () => {
-    const data = await fetch(`${API}/api/auth/url`).then(r => r.json());
-    if (data.url) window.location.href = data.url;
+    console.log('[Auth] Fetching redirect URL...');
+    try {
+      const data = await fetch(`${API}/api/auth/url`).then(r => r.json());
+      if (data.url) {
+        console.log('[Auth] Redirecting to:', data.url);
+        window.location.href = data.url;
+      } else {
+        console.error('[Auth] No URL returned from server');
+        alert('Authentication failed: No redirect URL received.');
+      }
+    } catch (err) {
+      console.error('[Auth] Fetch error:', err);
+      alert(`Authentication failed: ${err.message}`);
+    }
   };
 
   const handleLogout = async () => {
@@ -411,6 +503,9 @@ export function useAppLogic() {
       console.error('Failed to refresh suggestions:', err);
     }
   }, []);
+  const abortRefinement = useCallback(() => {
+    refineAbortRef.current = true;
+  }, []);
 
   const clearAllPins = useCallback(async () => {
     try {
@@ -424,24 +519,29 @@ export function useAppLogic() {
   return {
     state: {
       authStatus, settings, loading, messages, sidebarWidth, isResizing,
-      sessionId, sessions, isTyping, subjects, selectedSubjects, currentModel,
-      usage, appMode, chatTone, canvasContent, isCanvasVisible, topics,
-      suggestions, syncStatus, pdfViewer, pinnedItems, showCapWarning,
+      sessionId, sessions, isTyping, 
+      subjects: filteredSubjects, 
+      selectedSubjects, currentModel,
+      usage, appMode, chatTone, canvasContent, isCanvasVisible, 
+      topics: filteredTopics,
+      suggestions: filteredSuggestions, 
+      syncStatus, pdfViewer, pinnedItems, showCapWarning,
       pendingMessage, showCatalog, showAdmin, isRefining, refineProgress, theme,
-      gems, isClearingHistory, showCitations, topicsWidth, isResizingTopics
+      gems, isClearingHistory, showCitations, topicsWidth, isResizingTopics, showMesh,
+      subjectSource
     },
 
     actions: {
       setAuthStatus, setSettings, setLoading, setMessages, setSidebarWidth,
       setIsResizing, setSessionId, setSessions, setIsTyping, setSubjects,
-      setSelectedSubjects, setCurrentModel, setUsage, setAppMode, setChatTone,
+      setSelectedSubjects, setSubjectSource, setCurrentModel, setUsage, setAppMode, setChatTone,
       setCanvasContent, setIsCanvasVisible, setTopics, setSuggestions,
       setSyncStatus, setPdfViewer, setPinnedItems, setShowCapWarning,
       setPendingMessage, setShowCatalog, setShowAdmin, setIsRefining,
       setRefineProgress, loadAppData, sendMessage, triggerSync,
-      refineAllLibrary, loadSession, deleteSession, clearAllHistory, updateModel, handlePin, clearAllPins,
+      refineAllLibrary, abortRefinement, loadSession, deleteSession, clearAllHistory, updateModel, handlePin, clearAllPins,
       handleLogin, handleLogout, toggleTheme, toggleCitations, activateGem, refreshSuggestions,
-      setTopicsWidth, setIsResizingTopics,
+      setTopicsWidth, setIsResizingTopics, setShowMesh,
       voiceEngine
     }
   };

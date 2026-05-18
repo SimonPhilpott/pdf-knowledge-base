@@ -10,7 +10,51 @@ const router = Router();
  */
 router.get('/', (req, res) => {
   try {
-    // Get Folder Structure subjects
+    const subjectSource = req.query.subjectSource || 'folder';
+
+    if (subjectSource === 'toc') {
+      // Get TOC-based subjects
+      const tocItems = db.prepare(`
+        SELECT t.*, d.filename as doc_name, d.drive_file_id as doc_drive_id
+        FROM toc_items t
+        JOIN documents d ON t.document_id = d.id
+        ORDER BY t.document_id, t.order_index
+      `).all();
+
+      const root = { name: 'All Subjects (TOC)', children: [], documentCount: 0, path: '' };
+      
+      // Group by document
+      const docs = {};
+      for (const item of tocItems) {
+        if (!docs[item.document_id]) {
+          docs[item.document_id] = {
+            name: item.doc_name,
+            children: [],
+            documentCount: 1,
+            path: item.doc_drive_id,
+            source: 'toc'
+          };
+          root.children.push(docs[item.document_id]);
+          root.documentCount++;
+        }
+        
+        // Only top-level TOC items for the sidebar tree to keep it clean?
+        // Or full hierarchy? Let's do full hierarchy but limited to level 0/1 for now?
+        // Actually, let's just do level 0 items as children of the document.
+        if (item.level === 0) {
+          docs[item.document_id].children.push({
+            name: item.title,
+            path: `${item.doc_drive_id}:${item.id}`,
+            children: [], // We could add sub-items here if needed
+            documentCount: 0,
+            source: 'toc'
+          });
+        }
+      }
+      return res.json(root);
+    }
+
+    // Default: Get Folder Structure subjects
     const folderSubjects = db.prepare(`
       SELECT folder_path as subject, COUNT(*) as document_count, 
         SUM(page_count) as total_pages,
@@ -65,6 +109,13 @@ function buildSubjectTree(subjects, rootNode) {
       currentPath = currentPath ? `${currentPath}/${part}` : part;
       
       let node = current.children.find(c => c.name === part);
+      const isEntertainment = (name) => {
+        const n = (name || '').toLowerCase();
+        // Use a more robust regex-based detection matching the client-side MeshCanvas
+        const entertainmentRegex = /\b(rpg|roleplaying|role-playing|role playing|boardgame|board game|gaming|tabletop|hobby|fantasy|dungeon|dragon|quest|campaign|rulebook|playbook|adventure|scenario|starter set|wargame|miniature|games|wargaming|character|dice|encounter|bestiary|grimoire|warband|bushido|campfire|dead world|parsec|borderland|no quarter|starship|gang warfare|salvage crew)\w*/i;
+        return entertainmentRegex.test(n);
+      };
+
       if (!node) {
         node = { 
           name: part, 
@@ -72,7 +123,8 @@ function buildSubjectTree(subjects, rootNode) {
           children: [], 
           documentCount: 0,
           isLeaf: i === parts.length - 1,
-          source: s.source
+          source: s.source,
+          isEntertainment: isEntertainment(part)
         };
         current.children.push(node);
       } else if (s.source === 'ai') {
