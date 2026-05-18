@@ -1,6 +1,6 @@
 {
   "project": "Knowledge Base",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "currency": "GBP",
   "features": [
     {
@@ -153,6 +153,25 @@
       "id": "FEAT-025",
       "name": "Design System Synchronization & Parity",
       "description": "Established absolute visual parity between Admin Portal previews and production UI through a token-driven synchronization protocol using ComponentStyleRules.JSON.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-026",
+      "name": "Spatial Knowledge Graph",
+      "description": "Interactive 3D mesh visualization of the library with reactive node/link filtering for professional focus, document visibility, and multi-tier semantic connection toggles.",
+      "status": "implemented",
+      "notes": "Enhanced with stabilized visibility controls and forced WebGL scene synchronization."
+    },
+    {
+      "id": "FEAT-027",
+      "name": "Automated Style Audit (/styleaudit)",
+      "description": "Integrated workflow for detecting design system drift and style inconsistencies across all application screens by comparing production UI against the ComponentStyleRules.JSON source of truth.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-028",
+      "name": "High-Performance 3D TOC Graph Optimization",
+      "description": "Adaptive canvas text label constraints and server-side semantic link safety protocols to handle 9,800+ TOC items without GPU memory exhaust crashes. Dynamically defaults subject depth to 1 in TOC view for instantaneous startup.",
       "status": "implemented"
     }
   ]
