@@ -8,7 +8,7 @@ export function useVoiceEngine() {
   const [isListening, setIsListening] = useState(false);
   const [isTtsEnabled, setIsTtsEnabled] = useState(() => localStorage.getItem('voice-tts-enabled') === 'true');
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const recognitionRef = useRef(null);
+  const recognitionRef = useRef({ recognition: null, audio: null });
 
   // Initialize Speech Recognition and Voices
   useEffect(() => {
@@ -24,7 +24,7 @@ export function useVoiceEngine() {
         console.error('[VoiceEngine] Recognition error:', event.error);
         setIsListening(false);
       };
-      recognitionRef.current = recognition;
+      recognitionRef.current.recognition = recognition;
     }
 
     // Warm up voices
@@ -34,6 +34,35 @@ export function useVoiceEngine() {
         window.speechSynthesis.getVoices();
       };
     }
+
+    // Cleanup audio ref on unmount
+    return () => {
+      if (recognitionRef.current?.audio) {
+        try {
+          recognitionRef.current.audio.pause();
+        } catch (err) {
+          // ignore
+        }
+      }
+    };
+  }, []);
+
+  /**
+   * Stop all current AI speech immediately.
+   */
+  const interrupt = useCallback(() => {
+    if (recognitionRef.current?.audio) {
+      try {
+        recognitionRef.current.audio.pause();
+        recognitionRef.current.audio = null;
+      } catch (err) {
+        console.warn('[VoiceEngine] Failed to stop Audio element:', err);
+      }
+    }
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    setIsSpeaking(false);
   }, []);
 
   /**
@@ -46,79 +75,76 @@ export function useVoiceEngine() {
     const { onResult, autoSubmit = false } = options;
 
     if (isListening) {
-      recognitionRef.current?.stop();
+      recognitionRef.current?.recognition?.stop();
     } else {
       // INTERRUPT: Stop AI speaking when user starts talking
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
-      setIsSpeaking(false);
+      interrupt();
 
-      if (recognitionRef.current) {
-        recognitionRef.current.onresult = (event) => {
+      if (recognitionRef.current?.recognition) {
+        recognitionRef.current.recognition.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
           if (onResult) onResult(transcript, autoSubmit);
         };
-        recognitionRef.current.start();
+        recognitionRef.current.recognition.start();
       } else {
         alert('Speech recognition is not supported in this browser. Please use Chrome for the full Gemini voice experience.');
       }
     }
-  }, [isListening]);
+  }, [isListening, interrupt]);
 
   /**
-   * Stop all current AI speech immediately.
+   * Convert text to audible speech using premium neural cloud-based voices.
+   * @param {string} text The content to speak.
+   * @param {string} tone The active tone setting (friendly, professional, investigator, direct).
+   * @param {boolean} force If true, bypasses the isTtsEnabled check.
    */
-  const interrupt = useCallback(() => {
-    if (window.speechSynthesis) {
-      window.speechSynthesis.cancel();
+  const speak = useCallback(async (text, tone = 'friendly', force = false) => {
+    if ((!isTtsEnabled && !force) || !text) return;
+
+    try {
+      interrupt(); // Stop any currently playing audio
+      setIsSpeaking(true);
+
+      const response = await fetch('/api/voice/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, tone })
+      });
+
+      if (!response.ok) {
+        throw new Error(`TTS service returned status code ${response.status}`);
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      
+      recognitionRef.current.audio = audio;
+
+      audio.onplay = () => setIsSpeaking(true);
+      audio.onended = () => {
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        if (recognitionRef.current.audio === audio) {
+          recognitionRef.current.audio = null;
+        }
+      };
+
+      audio.onerror = (e) => {
+        console.error('[VoiceEngine] Neural TTS Playback failure:', e);
+        setIsSpeaking(false);
+        URL.revokeObjectURL(audioUrl);
+        if (recognitionRef.current.audio === audio) {
+          recognitionRef.current.audio = null;
+        }
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error('[VoiceEngine] Failed to synthesize or play neural TTS:', err);
       setIsSpeaking(false);
     }
-  }, []);
-
-  /**
-   * Convert text to audible speech using premium Google voices if available.
-   * @param {string} text The content to speak.
-   * @param {boolean} force If true, bypasses the isTtsEnabled check (used for diagnostics).
-   */
-  const speak = useCallback((text, force = false) => {
-    if ((!isTtsEnabled && !force) || !text) return;
-    
-    // Ensure we are in a browser context
-    if (!window.speechSynthesis) return;
-
-    // Stop any current speech
-    window.speechSynthesis.cancel();
-
-    // Clean text for better speech (remove markdown and citations [1], [p. 42] etc)
-    const cleanText = text
-      .replace(/\[[\d, \-&]+\]/g, '') // Strip [1], [1, 2], [1-3], [1 & 2]
-      .replace(/\([^)]*(?:page|p\.)\s*\d+\)/gi, '') // Strip (page 42), (p. 42)
-      .replace(/[*_#`\[\]()]/g, '') // Strip remaining symbols
-      .replace(/https?:\/\/\S+/g, 'link') // Replace URLs
-      .trim();
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'en-GB';
-    
-    // Find a premium Google voice (usually sounds most like Gemini)
-    const voices = window.speechSynthesis.getVoices();
-    const googleVoice = voices.find(v => v.name.includes('Google') && v.lang.startsWith('en')) || 
-                        voices.find(v => v.lang.startsWith('en-GB')) ||
-                        voices.find(v => v.lang.startsWith('en'));
-                        
-    if (googleVoice) utterance.voice = googleVoice;
-    
-    utterance.rate = 1.05; 
-    utterance.pitch = 1.0;
-    
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = (e) => {
-      console.error('[VoiceEngine] TTS Error:', e);
-      setIsSpeaking(false);
-    };
-    
-    window.speechSynthesis.speak(utterance);
-  }, [isTtsEnabled]);
+  }, [isTtsEnabled, interrupt]);
 
   /**
    * Toggle automated text-to-speech for assistant responses.
@@ -127,10 +153,12 @@ export function useVoiceEngine() {
     setIsTtsEnabled(prev => {
       const newVal = !prev;
       localStorage.setItem('voice-tts-enabled', newVal);
-      if (!newVal) window.speechSynthesis.cancel();
+      if (!newVal) {
+        interrupt();
+      }
       return newVal;
     });
-  }, []);
+  }, [interrupt]);
 
   return { isListening, isTtsEnabled, isSpeaking, toggleListening, toggleTts, speak, interrupt };
 }

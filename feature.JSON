@@ -1,6 +1,6 @@
 {
   "project": "Knowledge Base",
-  "version": "1.0.0",
+  "version": "1.1.2",
   "currency": "GBP",
   "features": [
     {
@@ -79,19 +79,105 @@
     {
       "id": "FEAT-013",
       "name": "Oatmeal Design System & Admin Portal UX",
-      "description": "Premium visual consistency across light/dark themes with fluid typography, micro-interactions, and refined executive dashboard aesthetics.",
-      "status": "implemented"
+      "description": "Premium visual consistency with refined executive dashboard aesthetics, prioritised Admin access, and integrated Ngrok administrative tunneling.",
+      "status": "implemented",
+      "notes": "Optimised tool teleportation to ensure Admin access remains prioritised across all breakpoints."
     },
     {
       "id": "FEAT-014",
-      "name": "Responsive Utility Teleportation & Draggable Toggles",
-      "description": "Adaptive top-bar utility management with 50% clipping detection and unified draggable horizontal scroll hooks for mobile and desktop accessibility.",
+      "name": "Hands-Free Voice Research (STT)",
+      "description": "Integrated en-GB speech recognition with auto-submit protocol for seamless conversational research.",
       "status": "implemented"
     },
     {
       "id": "FEAT-015",
-      "name": "Spatial Graph Subject Depth Slider & TOC Progressive Disclosure",
-      "description": "Premium 6-level dynamic range slider matching Oatmeal theme, coupled with progressive context disclosure to prevent WebGL context loss on large datasets.",
+      "name": "Premium Voice Feedback (TTS)",
+      "description": "Automated text-to-speech engine using Google Premium voices with markdown-stripping for natural auditory feedback.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-016",
+      "name": "Voice Interruption Protocol",
+      "description": "Intelligent system logic that automatically cancels AI speech when user voice input is detected.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-017",
+      "name": "Zero Truncation Summary Protocol",
+      "description": "Enforced architectural constraint ensuring full text visibility for conversation summaries through expanded 480px viewport-aware tooltips.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-018",
+      "name": "Subject-Aware Discovery Mechanism",
+      "description": "Dynamic subject-specific question generation through a dedicated discovery dropdown, allowing for targeted library exploration.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-019",
+      "name": "Architectural Traceability",
+      "description": "Admin Portal feature that maps every UI component to its source file, facilitating rapid maintenance and design parity verification.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-020",
+      "name": "Research Citation Visibility Toggle",
+      "description": "User-controlled toggle to show or hide inline AI citations, allowing for a cleaner reading experience or deep-dive verification.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-021",
+      "name": "Administrative Diagnostics Dashboard",
+      "description": "Integrated system health check within the Admin Portal, enabling one-click voice engine verification and citation-stripping diagnostics.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-022",
+      "name": "Progress-Tracked Session Purging",
+      "description": "High-fidelity chat history deletion with a multi-stage visual feedback loop, including confirmation gating and a real-time progress bar.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-023",
+      "name": "Resizable Knowledge Discovery Sidebar",
+      "description": "Integrated a resizable right-hand panel for Knowledge Discovery, featuring strict flex-box constraints and transition-suppressed resizing for optimal performance.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-024",
+      "name": "Dynamic Port Configuration",
+      "description": "Admin Portal control to change the localhost and ngrok tunnel port. Port is persisted in the database and used by both the Vite dev server (via VITE_PORT env) and ngrok tunnel forwarding.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-025",
+      "name": "Design System Synchronization & Parity",
+      "description": "Established absolute visual parity between Admin Portal previews and production UI through a token-driven synchronization protocol using ComponentStyleRules.JSON.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-026",
+      "name": "Spatial Knowledge Graph",
+      "description": "Interactive 3D mesh visualization of the library with reactive node/link filtering for professional focus, document visibility, and multi-tier semantic connection toggles.",
+      "status": "implemented",
+      "notes": "Enhanced with stabilized visibility controls and forced WebGL scene synchronization."
+    },
+    {
+      "id": "FEAT-027",
+      "name": "Automated Style Audit (/styleaudit)",
+      "description": "Integrated workflow for detecting design system drift and style inconsistencies across all application screens by comparing production UI against the ComponentStyleRules.JSON source of truth.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-028",
+      "name": "High-Performance 3D TOC Graph Optimization",
+      "description": "Adaptive canvas text label constraints and server-side semantic link safety protocols to handle 9,800+ TOC items without GPU memory exhaust crashes. Dynamically defaults subject depth to 1 in TOC view for instantaneous startup.",
+      "status": "implemented"
+    },
+    {
+      "id": "FEAT-029",
+      "name": "High-Fidelity Neural TTS & Tone/Role Alignment",
+      "description": "Integrated Microsoft Edge Neural Speech Synthesis (Edge Read Aloud) backend service delivering warm, human-like voice feedback tailored to the active search tone setting and assistant Gem persona.",
       "status": "implemented"
     }
   ]

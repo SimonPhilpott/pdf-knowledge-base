@@ -248,7 +248,8 @@ export function useAppLogic() {
         citations: data.citations || [],
         model: data.model,
         canvasUpdate: data.canvasUpdate,
-        image: data.generatedImage
+        image: data.generatedImage,
+        spokenSummary: data.spokenSummary
       }]);
 
       fetch(`${API}/api/usage/summary`).then(r => r.json()).then(setUsage);
@@ -269,10 +270,11 @@ export function useAppLogic() {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       if (lastMessage.role === 'assistant' && !isTyping) {
-        voiceEngine.speak(lastMessage.content);
+        const textToSpeak = lastMessage.spokenSummary || lastMessage.content;
+        voiceEngine.speak(textToSpeak, chatTone);
       }
     }
-  }, [messages, isTyping, voiceEngine.speak]);
+  }, [messages, isTyping, chatTone, voiceEngine.speak]);
 
   const fetchSuggestions = useCallback(async (selected) => {
     try {

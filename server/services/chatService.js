@@ -17,6 +17,16 @@ FORMATTING RULES:
 3. INDENTATION: Use nested bullets for sub-items.
 4. STRUCTURE: clear introduction, structured body with headings, concise conclusion.
 
+SPOKEN SUMMARY RULE (CRITICAL - ALWAYS OUTPUT THIS BLOCK):
+You MUST ALWAYS output a warm, highly conversational, and concise spoken summary of what you found inside a special block at the very end of your response:
+<<<SPOKEN_SUMMARY_START>>>
+[Your warm, human-like verbal summary goes here (1-3 sentences maximum). Avoid any markdown formatting, bracketed citations, bullet symbols, or page numbers. Speak naturally, acknowledge the user's question, and end with an engaging check-in or follow-up question.]
+<<<SPOKEN_SUMMARY_END>>>
+Write this spoken summary to match the active TONE instruction:
+- Friendly Tone: Warm, relaxed, conversational, British neural voice style.
+- Professional / Investigator Tone: Objective, precise, smart analytical British male voice style.
+- Direct Tone: Very brief, concise verbal response.
+
 CANVAS FEATURE (CRITICAL):
 If the user asks for a long-form report, a rule summary, a code snippet, or any text that would benefit from side-by-side editing, you MUST output that specific content inside a special block:
 <<<CANVAS_START>>>
@@ -191,6 +201,24 @@ export async function processMessage(message, sessionId, subjects = [], modelCho
     rawResponse = rawResponse.replace(/<<<CANVAS_START>>>|<<<CANVAS_END>>>/g, '').trim();
   }
 
+  // Step 7.5: Handle Spoken Summary Extraction
+  let spokenSummary = null;
+  const spokenRegex = /<<<SPOKEN_SUMMARY_START>>>\s*([\s\S]*?)\s*<<<SPOKEN_SUMMARY_END>>>/;
+  const spokenMatch = rawResponse.match(spokenRegex);
+
+  if (spokenMatch) {
+    spokenSummary = spokenMatch[1].trim();
+    // Remove the spoken tags and inner text from rawResponse so they are completely hidden from UI and DB logs
+    rawResponse = rawResponse.replace(spokenRegex, '').trim();
+  } else {
+    // Robust fallback: if tags are absent, strip canvas/images to produce clean text to synthesize
+    spokenSummary = rawResponse
+      .replace(/<<<CANVAS_START>>>[\s\S]*?<<<CANVAS_END>>>/g, '')
+      .replace(/<<<GENERATE_IMAGE:[\s\S]*?>>>/g, '')
+      .replace(/\[\[([^\]]+)\]\]/g, '') // strip citations
+      .trim();
+  }
+
   // Step 8: Handle Image Generation
   let generatedImage = null;
   const imageRegex = /<<<GENERATE_IMAGE:\s*"([\s\S]*?)"\s*>>>/;
@@ -227,6 +255,7 @@ export async function processMessage(message, sessionId, subjects = [], modelCho
     model: modelChoice,
     canvasUpdate, // Return the canvas update if any
     generatedImage, // Return the generated image if any
+    spokenSummary, // Return the conversational spoken summary payload
     usage: usage ? {
       promptTokens: usage.promptTokenCount,
       completionTokens: usage.candidatesTokenCount,

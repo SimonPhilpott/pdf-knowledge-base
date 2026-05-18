@@ -173,6 +173,12 @@
       "name": "High-Performance 3D TOC Graph Optimization",
       "description": "Adaptive canvas text label constraints and server-side semantic link safety protocols to handle 9,800+ TOC items without GPU memory exhaust crashes. Dynamically defaults subject depth to 1 in TOC view for instantaneous startup.",
       "status": "implemented"
+    },
+    {
+      "id": "FEAT-029",
+      "name": "High-Fidelity Neural TTS & Tone/Role Alignment",
+      "description": "Integrated Microsoft Edge Neural Speech Synthesis (Edge Read Aloud) backend service delivering warm, human-like voice feedback tailored to the active search tone setting and assistant Gem persona.",
+      "status": "implemented"
     }
   ]
 }
