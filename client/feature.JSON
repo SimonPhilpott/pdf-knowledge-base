@@ -160,7 +160,7 @@
       "name": "Spatial Knowledge Graph",
       "description": "Interactive 3D mesh visualization of the library with reactive node/link filtering for professional focus, document visibility, and multi-tier semantic connection toggles.",
       "status": "implemented",
-      "notes": "Enhanced with stabilized visibility controls and forced WebGL scene synchronization."
+      "notes": "Enhanced with stabilized visibility controls, forced WebGL scene synchronization, and 2D layout mode removed."
     },
     {
       "id": "FEAT-027",

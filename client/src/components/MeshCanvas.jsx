@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
-import ForceGraph2D from 'react-force-graph-2d';
 import * as THREE from 'three';
 import { 
   X, Compass, Settings2, Layers, Search,
   Zap, AlertCircle, ZoomIn, ZoomOut, Maximize2, Activity, Database,
   Briefcase, Settings, Eye, EyeOff, Globe, ShieldCheck, Scale,
-  Minimize2, Move, Sun, Moon, Palette, Menu, Box, LayoutGrid
+  Minimize2, Move, Sun, Moon, Palette, Menu, Box
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -46,7 +45,6 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [galaxyMode, setGalaxyMode] = useState(false);
-  const [renderMode, setRenderMode] = useState('3d'); // '3d' or '2d'
 
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
@@ -319,118 +317,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
     return { nodes: visibleNodes, links: visibleLinks };
   }, [graphData, showDocumentNodes, professionalFocus, filteredLinks, focusedNodeIds, subjectDepth, selectedNode]);
 
-  const mindMapData = useMemo(() => {
-    if (renderMode !== '2d') {
-      // Clear fixed coordinates for 3D physics
-      graphDataMemo.nodes.forEach(n => {
-        n.fx = undefined;
-        n.fy = undefined;
-        n.fz = undefined;
-      });
-      return graphDataMemo;
-    }
 
-    // Clone graph data to avoid mutating original states
-    const nodes = graphDataMemo.nodes.map(n => ({ ...n }));
-    const links = graphDataMemo.links.map(l => ({ ...l }));
-
-    // Group nodes for our Mindmap hierarchy columns
-    const subjects = nodes.filter(n => n.type === 'subject');
-    const books = nodes.filter(n => n.type === 'book');
-    const chapters = nodes.filter(n => n.type === 'toc_item');
-
-    // Spacing Y gap per chapter/leaf node
-    const spacingY = 48;
-
-    // Helper to calculate total leaf height needed for a subject
-    const getDescendantLeafCount = (subjId) => {
-      const connectedBooks = books.filter(b => {
-        return links.some(l => {
-          const srcId = l.source?.id ?? l.source;
-          const tgtId = l.target?.id ?? l.target;
-          return (srcId === b.id && tgtId === subjId) || (srcId === subjId && tgtId === b.id);
-        });
-      });
-      let leafCount = 0;
-      connectedBooks.forEach(book => {
-        const connectedChapters = chapters.filter(c => {
-          return links.some(l => {
-            const srcId = l.source?.id ?? l.source;
-            const tgtId = l.target?.id ?? l.target;
-            return (srcId === c.id && tgtId === book.id) || (srcId === book.id && tgtId === c.id);
-          });
-        });
-        leafCount += Math.max(1, connectedChapters.length);
-      });
-      return Math.max(1, leafCount);
-    };
-
-    // Calculate total leaves across all subjects to offset vertically
-    const subjectLeafCounts = subjects.map(s => ({
-      subject: s,
-      leafCount: getDescendantLeafCount(s.id)
-    }));
-    const totalLeaves = subjectLeafCounts.reduce((acc, curr) => acc + curr.leafCount, 0);
-
-    let currentY = - (totalLeaves * spacingY) / 2;
-
-    subjectLeafCounts.forEach(({ subject, leafCount }) => {
-      const subjHeight = leafCount * spacingY;
-      subject.fx = -320;
-      subject.fy = currentY + subjHeight / 2;
-      subject.fz = 0;
-
-      // Arrange connected books
-      const connectedBooks = books.filter(b => {
-        return links.some(l => {
-          const srcId = l.source?.id ?? l.source;
-          const tgtId = l.target?.id ?? l.target;
-          return (srcId === b.id && tgtId === subject.id) || (srcId === subject.id && tgtId === b.id);
-        });
-      });
-
-      let bookY = currentY;
-      connectedBooks.forEach(book => {
-        const connectedChapters = chapters.filter(c => {
-          return links.some(l => {
-            const srcId = l.source?.id ?? l.source;
-            const tgtId = l.target?.id ?? l.target;
-            return (srcId === c.id && tgtId === book.id) || (srcId === book.id && tgtId === c.id);
-          });
-        });
-
-        const bookLeafCount = Math.max(1, connectedChapters.length);
-        const bookSpan = bookLeafCount * spacingY;
-        
-        book.fx = -40;
-        book.fy = bookY + bookSpan / 2;
-        book.fz = 0;
-
-        // Arrange chapters
-        connectedChapters.forEach((chap, cIdx) => {
-          // Indent progressively by nesting level
-          chap.fx = 240 + (chap.tocLevel || 0) * 80;
-          chap.fy = bookY + cIdx * spacingY + spacingY / 2;
-          chap.fz = 0;
-        });
-
-        bookY += bookSpan;
-      });
-
-      currentY += subjHeight;
-    });
-
-    // Handle any loose nodes (assign center fallback)
-    nodes.forEach(n => {
-      if (n.fx === undefined) {
-        n.fx = 0;
-        n.fy = 0;
-        n.fz = 0;
-      }
-    });
-
-    return { nodes, links };
-  }, [graphDataMemo, renderMode]);
 
   const clusterPullForce = useCallback((alpha) => {
     if (!graphDataMemo.nodes.length) return;
@@ -466,7 +353,6 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
   }, []);
 
   useEffect(() => {
-    if (renderMode !== '3d') return;
     if (fgRef.current && shouldRenderGraph) {
       const fg = fgRef.current;
       
@@ -523,51 +409,24 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
         // Force settings are updated above; graphData changes auto-reheat the simulation
       } catch(e) {}
     }
-  }, [shouldRenderGraph, mountKey, nodeSpacing, galaxyMode, graphDataMemo, graphTheme, globalGravityForce, clusterPullForce, renderMode]);
+  }, [shouldRenderGraph, mountKey, nodeSpacing, galaxyMode, graphDataMemo, graphTheme, globalGravityForce, clusterPullForce]);
 
   useEffect(() => {
     if (!fgRef.current || !shouldRenderGraph) return;
     const fg = fgRef.current;
     
-    if (renderMode === '2d') {
-      const scene = fg.scene();
-      if (scene) {
-        scene.background = null;
-        scene.children = scene.children.filter(c => !(c instanceof THREE.Light));
-        const ambient = new THREE.AmbientLight(0xffffff, graphTheme === 'dark' ? 0.6 : 3.0);
-        scene.add(ambient);
-        const dir = new THREE.DirectionalLight(0xffffff, graphTheme === 'dark' ? 0.8 : 3.5);
-        dir.position.set(0, 0, 100);
-        scene.add(dir);
-      }
-
-      const controls = fg.controls();
-      if (controls) {
-        controls.enableRotate = false;
-        controls.enableZoom = true;
-        controls.enablePan = true;
-        controls.touches = {
-          ONE: THREE.TOUCH.PAN,
-          TWO: THREE.TOUCH.DOLLY_PAN
-        };
-      }
-
-      fg.cameraPosition({ x: 0, y: 0, z: 800 }, { x: 0, y: 0, z: 0 }, 1000);
-      fg.d3ReheatSimulation();
-    } else {
-      const controls = fg.controls();
-      if (controls) {
-        controls.enableRotate = true;
-        controls.touches = {
-          ONE: THREE.TOUCH.ROTATE,
-          TWO: THREE.TOUCH.DOLLY_PAN
-        };
-      }
-      setTimeout(() => {
-        fg.zoomToFit(1200, 150);
-      }, 100);
+    const controls = fg.controls();
+    if (controls) {
+      controls.enableRotate = true;
+      controls.touches = {
+        ONE: THREE.TOUCH.ROTATE,
+        TWO: THREE.TOUCH.DOLLY_PAN
+      };
     }
-  }, [renderMode, shouldRenderGraph, graphTheme]);
+    setTimeout(() => {
+      fg.zoomToFit(1200, 150);
+    }, 100);
+  }, [shouldRenderGraph]);
 
   useEffect(() => {
     if (!fgRef.current || !shouldRenderGraph || !graphDataMemo.nodes.length) return;
@@ -679,142 +538,6 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
       const isHovered = hoverNode && hoverNode.id === node.id;
       const isSelected = selectedNode && selectedNode.id === node.id;
 
-      if (renderMode === '2d') {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        const oversample = 2;
-        
-        const safeName = node.name || 'Unnamed';
-        const isSubjectNode = node.type === 'subject';
-        const isBookNode = node.type === 'book';
-        const isTocNode = node.type === 'toc_item';
-        
-        const baseFontSize = isSubjectNode ? 13 : isBookNode ? 11 : 10;
-        const fontHeight = baseFontSize * oversample;
-        
-        context.font = `bold ${fontHeight}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-        const textWidth = context.measureText(safeName).width;
-        
-        const r = (isSubjectNode ? 8 : isBookNode ? 6 : 4) * oversample;
-        const glowRadius = r + (isHovered || isSelected ? 12 : 6) * oversample;
-        const textGap = 10 * oversample;
-        
-        const canvasW = glowRadius * 2 + textGap + textWidth + 10 * oversample;
-        const canvasH = Math.max(glowRadius * 2, fontHeight) + 10 * oversample;
-        
-        canvas.width = canvasW;
-        canvas.height = canvasH;
-        
-        const cx = glowRadius + 5 * oversample;
-        const cy = canvasH / 2;
-        
-        const isDark = graphTheme === 'dark';
-        
-        // 1. Draw glowing background glow
-        context.save();
-        const grad = context.createRadialGradient(cx, cy, r * 0.2, cx, cy, glowRadius);
-        
-        if (isSubjectNode) {
-          grad.addColorStop(0, '#FFFFFF');
-          grad.addColorStop(0.2, '#899981');
-          grad.addColorStop(0.6, isDark ? 'rgba(137, 153, 129, 0.45)' : 'rgba(137, 153, 129, 0.25)');
-          grad.addColorStop(1, 'rgba(137, 153, 129, 0)');
-        } else if (isBookNode) {
-          grad.addColorStop(0, '#FFFFFF');
-          grad.addColorStop(0.2, '#6366F1');
-          grad.addColorStop(0.6, isDark ? 'rgba(99, 102, 241, 0.45)' : 'rgba(99, 102, 241, 0.25)');
-          grad.addColorStop(1, 'rgba(99, 102, 241, 0)');
-        } else {
-          grad.addColorStop(0, isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.5)');
-          grad.addColorStop(0.3, isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(71, 85, 105, 0.2)');
-          grad.addColorStop(1, 'rgba(148, 163, 184, 0)');
-        }
-        
-        context.fillStyle = grad;
-        context.beginPath();
-        context.arc(cx, cy, glowRadius, 0, Math.PI * 2);
-        context.fill();
-        context.restore();
-        
-        // 2. Draw outer concentric halo rings for hover / selected states
-        if (isSelected || isHovered) {
-          context.beginPath();
-          context.arc(cx, cy, r + 4 * oversample, 0, Math.PI * 2);
-          context.strokeStyle = isSubjectNode ? '#899981' : isBookNode ? '#6366F1' : '#94A3B8';
-          context.lineWidth = (isSelected ? 2 : 1) * oversample;
-          context.stroke();
-        }
-        
-        // 3. Draw Core solid node
-        context.beginPath();
-        context.arc(cx, cy, r, 0, Math.PI * 2);
-        if (isSubjectNode) {
-          context.fillStyle = '#899981';
-          context.fill();
-          context.beginPath();
-          context.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
-          context.fillStyle = '#FFFFFF';
-          context.fill();
-        } else if (isBookNode) {
-          context.fillStyle = '#6366F1';
-          context.fill();
-          context.beginPath();
-          context.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
-          context.fillStyle = '#FFFFFF';
-          context.fill();
-        } else {
-          // Hollow chapter circle
-          context.strokeStyle = isDark ? '#94A3B8' : '#64748B';
-          context.lineWidth = 1.5 * oversample;
-          context.stroke();
-          context.beginPath();
-          context.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
-          context.fillStyle = isDark ? '#94A3B8' : '#64748B';
-          context.fill();
-        }
-        
-        // 4. Draw adjacent text label
-        context.font = `${isSubjectNode ? 'bold' : 'normal'} ${fontHeight}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-        context.textAlign = 'left';
-        context.textBaseline = 'middle';
-        
-        let textColor = '#2C2C2C';
-        if (isDark) {
-          textColor = isSubjectNode ? '#F1EFE9' : isBookNode ? '#C7D2FE' : '#94A3B8';
-        } else {
-          textColor = isSubjectNode ? '#2E2B27' : isBookNode ? '#312E81' : '#475569';
-        }
-        
-        context.fillStyle = textColor;
-        context.shadowColor = isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)';
-        context.shadowBlur = 3 * oversample;
-        context.fillText(safeName, cx + r + textGap, cy);
-        
-        const texture = new THREE.CanvasTexture(canvas);
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.needsUpdate = true;
-        
-        const spriteMaterial = new THREE.SpriteMaterial({ 
-          map: texture, 
-          transparent: true,
-          opacity: 1.0,
-          depthTest: true,
-          depthWrite: true
-        });
-        
-        const sprite = new THREE.Sprite(spriteMaterial);
-        const scaleFactor = 0.25;
-        sprite.scale.set((canvasW / (oversample * 10)) * scaleFactor * 10, (canvasH / (oversample * 10)) * scaleFactor * 10, 1);
-        
-        group.add(sprite);
-        group.userData = {
-          texture,
-          material: spriteMaterial
-        };
-        return group;
-      }
-
       const size = isSubject ? 4 : (isTocItem ? 1.5 : 2.5);
       
       const segments = totalNodes > 2000 ? 6 : 12;
@@ -897,7 +620,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
       console.error('[MeshCanvas] Node render error:', err);
       return new THREE.Mesh(new THREE.BoxGeometry(5,5,5), new THREE.MeshBasicMaterial({color: 'red'}));
     }
-  }, [graphStyles, graphTheme, graphDataMemo.nodes.length, hoverNode, selectedNode, renderMode]);
+  }, [graphStyles, graphTheme, graphDataMemo.nodes.length, hoverNode, selectedNode]);
 
   return (
     <div className="fixed inset-0 z-[10000] app-layout bg-bg-primary">
@@ -997,28 +720,6 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
         >
           <aside className="sidebar" style={{ width: '100%', overflowY: 'auto' }}>
             <div className="sidebar-section" style={{ paddingTop: '16px', marginBottom: '16px' }}>
-              <div className="sidebar-label" style={{ marginBottom: '12px', fontSize: '10px', opacity: 0.6, letterSpacing: '1.5px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
-                <Eye size={14} className="text-accent" />
-                <span>Layout Mode</span>
-              </div>
-              <div className="mode-switcher skg-sidebar-force-full" style={{ width: '100%', display: 'flex', gap: '4px', marginBottom: '20px' }}>
-                <div
-                  className={`mode-item ${renderMode === '3d' ? 'active' : ''}`}
-                  onClick={() => setRenderMode('3d')}
-                  style={{ flex: 1 }}
-                >
-                  <Box size={13} strokeWidth={2.5} />
-                  <span>3D Spatial</span>
-                </div>
-                <div
-                  className={`mode-item ${renderMode === '2d' ? 'active' : ''}`}
-                  onClick={() => setRenderMode('2d')}
-                  style={{ flex: 1 }}
-                >
-                  <LayoutGrid size={13} strokeWidth={2.5} />
-                  <span>2D Mindmap</span>
-                </div>
-              </div>
 
               <button onClick={() => {
                 const newTheme = graphTheme === 'light' ? 'dark' : 'light';
@@ -1186,21 +887,11 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
               <ForceGraph3D
                 key={`spatial-graph-3d-${mountKey}-${nodeSpacing}`}
                 ref={fgRef}
-                graphData={renderMode === '2d' ? mindMapData : graphDataMemo}
+                graphData={graphDataMemo}
                 nodeThreeObject={nodeThreeObject}
                 nodeThreeObjectExtend={false}
                 nodeColor={null}
-                linkCurvature={l => {
-                  if (renderMode !== '2d') return 0;
-                  const typeMap = {
-                    hierarchy: 0.18,
-                    category: 0.28,
-                    discovery: 0.38,
-                    semantic: 0.32,
-                    thematic: 0.24
-                  };
-                  return typeMap[l.type] || 0.25;
-                }}
+                linkCurvature={0}
                 nodeLabel={n => n.type === 'subject' ? n.fullName : n.type === 'toc_item' ? n.fullName : `${n.name}\n[${n.subject || 'No Subject'}]`}
                 nodeVal={n => n.type === 'subject' ? 40 : n.type === 'toc_item' ? 12 : 10}
                 nodeResolution={graphDataMemo.nodes.length > 500 ? 8 : 20}
@@ -1234,8 +925,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
             </div>
           )}
           <AnimatePresence>{showStylePopout && ( <StylePopout styles={graphStyles} setStyles={setGraphStyles} onClose={() => setShowStylePopout(false)} /> )}</AnimatePresence>
-          {renderMode === '3d' && windowWidth > 768 && <MiniMap graphData={graphDataMemo} fgRef={fgRef} />}
-          {renderMode === '3d' && (
+          {windowWidth > 768 && <MiniMap graphData={graphDataMemo} fgRef={fgRef} />}
             <div className="absolute bottom-10 right-10 z-[100] pointer-events-none">
               <div className="px-5 py-2.5 bg-white/90 backdrop-blur-xl rounded-full border border-[#899981]/20 flex items-center gap-6 shadow-xl" style={{ width: 'max-content', maxWidth: '100%' }}>
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#899981] flex items-center gap-2.5"><span className="w-2 h-2 rounded-full bg-[#899981]/40 animate-pulse"></span>Left Click: Rotate</span>
@@ -1245,7 +935,6 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#899981] flex items-center gap-2.5"><span className="w-2 h-2 rounded-full bg-[#899981]/40"></span>Scroll: Zoom</span>
               </div>
             </div>
-          )}
           <div className="absolute bottom-10 left-10 flex gap-6 z-20">
             <div className="px-4 py-2 bg-white/80 backdrop-blur-md rounded-xl border border-[#899981]/10 flex items-center gap-3"><Activity size={14} className="text-[#899981]" /><span className="text-[10px] font-black uppercase tracking-widest text-[#899981]">Nodes: {graphDataMemo.nodes.length}</span></div>
             <div className="px-4 py-2 bg-white/80 backdrop-blur-md rounded-xl border border-[#899981]/10 flex items-center gap-3"><Database size={14} className="text-[#899981]" /><span className="text-[10px] font-black uppercase tracking-widest text-[#899981]">Links: {graphDataMemo.links.length}</span></div>
@@ -1270,6 +959,9 @@ function MiniMap({ graphData, fgRef }) {
   useEffect(() => {
     let animationFrameId;
     const render = () => {
+      // Schedule next frame immediately so the loop doesn't die on early returns during init
+      animationFrameId = requestAnimationFrame(render);
+
       const canvas = canvasRef.current;
       const fg = fgRef.current;
       if (!canvas || !fg) return;
@@ -1346,8 +1038,6 @@ function MiniMap({ graphData, fgRef }) {
       ctx.setLineDash([4, 4]);
       ctx.strokeRect(rLeft, rTop, rRight - rLeft, rBottom - rTop);
       ctx.setLineDash([]);
-
-      animationFrameId = requestAnimationFrame(render);
     };
     render();
     return () => cancelAnimationFrame(animationFrameId);
