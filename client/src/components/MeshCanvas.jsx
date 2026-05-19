@@ -339,33 +339,58 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
     const books = nodes.filter(n => n.type === 'book');
     const chapters = nodes.filter(n => n.type === 'toc_item');
 
-    // Spacing configuration
-    const subjectHeight = 120;
-    const bookHeight = 70;
-    const chapHeight = 35;
+    // Spacing Y gap per chapter/leaf node
+    const spacingY = 48;
 
-    // Arrange subjects vertically at x = -280
-    subjects.forEach((subj, sIdx) => {
-      subj.fx = -280;
-      subj.fy = (sIdx - (subjects.length - 1) / 2) * subjectHeight;
-      subj.fz = 0;
-
-      // Filter books linked to this subject
+    // Helper to calculate total leaf height needed for a subject
+    const getDescendantLeafCount = (subjId) => {
       const connectedBooks = books.filter(b => {
         return links.some(l => {
           const srcId = l.source?.id ?? l.source;
           const tgtId = l.target?.id ?? l.target;
-          return (srcId === b.id && tgtId === subj.id) || (srcId === subj.id && tgtId === b.id);
+          return (srcId === b.id && tgtId === subjId) || (srcId === subjId && tgtId === b.id);
+        });
+      });
+      let leafCount = 0;
+      connectedBooks.forEach(book => {
+        const connectedChapters = chapters.filter(c => {
+          return links.some(l => {
+            const srcId = l.source?.id ?? l.source;
+            const tgtId = l.target?.id ?? l.target;
+            return (srcId === c.id && tgtId === book.id) || (srcId === book.id && tgtId === c.id);
+          });
+        });
+        leafCount += Math.max(1, connectedChapters.length);
+      });
+      return Math.max(1, leafCount);
+    };
+
+    // Calculate total leaves across all subjects to offset vertically
+    const subjectLeafCounts = subjects.map(s => ({
+      subject: s,
+      leafCount: getDescendantLeafCount(s.id)
+    }));
+    const totalLeaves = subjectLeafCounts.reduce((acc, curr) => acc + curr.leafCount, 0);
+
+    let currentY = - (totalLeaves * spacingY) / 2;
+
+    subjectLeafCounts.forEach(({ subject, leafCount }) => {
+      const subjHeight = leafCount * spacingY;
+      subject.fx = -320;
+      subject.fy = currentY + subjHeight / 2;
+      subject.fz = 0;
+
+      // Arrange connected books
+      const connectedBooks = books.filter(b => {
+        return links.some(l => {
+          const srcId = l.source?.id ?? l.source;
+          const tgtId = l.target?.id ?? l.target;
+          return (srcId === b.id && tgtId === subject.id) || (srcId === subject.id && tgtId === b.id);
         });
       });
 
-      // Arrange books vertically relative to their parent subject at x = 0
-      connectedBooks.forEach((book, bIdx) => {
-        book.fx = 0;
-        book.fy = subj.fy + (bIdx - (connectedBooks.length - 1) / 2) * bookHeight;
-        book.fz = 0;
-
-        // Filter chapters linked to this book
+      let bookY = currentY;
+      connectedBooks.forEach(book => {
         const connectedChapters = chapters.filter(c => {
           return links.some(l => {
             const srcId = l.source?.id ?? l.source;
@@ -374,16 +399,28 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
           });
         });
 
-        // Arrange chapters vertically relative to their parent book at x = 280
+        const bookLeafCount = Math.max(1, connectedChapters.length);
+        const bookSpan = bookLeafCount * spacingY;
+        
+        book.fx = -40;
+        book.fy = bookY + bookSpan / 2;
+        book.fz = 0;
+
+        // Arrange chapters
         connectedChapters.forEach((chap, cIdx) => {
-          chap.fx = 280;
-          chap.fy = book.fy + (cIdx - (connectedChapters.length - 1) / 2) * chapHeight;
+          // Indent progressively by nesting level
+          chap.fx = 240 + (chap.tocLevel || 0) * 80;
+          chap.fy = bookY + cIdx * spacingY + spacingY / 2;
           chap.fz = 0;
         });
+
+        bookY += bookSpan;
       });
+
+      currentY += subjHeight;
     });
 
-    // Handle any loose nodes (if any exist)
+    // Handle any loose nodes (assign center fallback)
     nodes.forEach(n => {
       if (n.fx === undefined) {
         n.fx = 0;
@@ -647,72 +684,111 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
         const context = canvas.getContext('2d');
         const oversample = 2;
         
-        const fontSize = 14 * oversample;
         const safeName = node.name || 'Unnamed';
+        const isSubjectNode = node.type === 'subject';
+        const isBookNode = node.type === 'book';
+        const isTocNode = node.type === 'toc_item';
         
-        context.font = `bold ${fontSize}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-        const metrics = context.measureText(safeName);
-        const textWidth = metrics.width;
+        const baseFontSize = isSubjectNode ? 13 : isBookNode ? 11 : 10;
+        const fontHeight = baseFontSize * oversample;
         
-        const padX = 24 * oversample;
-        const padY = 12 * oversample;
-        const cardW = textWidth + padX * 2;
-        const cardH = fontSize + padY * 2;
-        const radius = 8 * oversample;
+        context.font = `bold ${fontHeight}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        const textWidth = context.measureText(safeName).width;
         
-        canvas.width = cardW;
-        canvas.height = cardH;
+        const r = (isSubjectNode ? 8 : isBookNode ? 6 : 4) * oversample;
+        const glowRadius = r + (isHovered || isSelected ? 12 : 6) * oversample;
+        const textGap = 10 * oversample;
         
-        context.beginPath();
-        context.roundRect(0, 0, cardW, cardH, radius);
+        const canvasW = glowRadius * 2 + textGap + textWidth + 10 * oversample;
+        const canvasH = Math.max(glowRadius * 2, fontHeight) + 10 * oversample;
+        
+        canvas.width = canvasW;
+        canvas.height = canvasH;
+        
+        const cx = glowRadius + 5 * oversample;
+        const cy = canvasH / 2;
         
         const isDark = graphTheme === 'dark';
-        let bgStyle = '';
-        let textColor = '#FFFFFF';
-        let borderStyle = 'rgba(255,255,255,0.15)';
         
-        if (node.type === 'subject') {
-          bgStyle = isHovered ? 'linear-gradient(135deg, #9FB097 0%, #76856E 100%)' : 'linear-gradient(135deg, #899981 0%, #6A7A62 100%)';
-          borderStyle = isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.2)';
-        } else if (node.type === 'book') {
-          bgStyle = isHovered ? 'linear-gradient(135deg, #7A7DF5 0%, #4F52C2 100%)' : 'linear-gradient(135deg, #6366F1 0%, #4338CA 100%)';
-          borderStyle = isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.2)';
+        // 1. Draw glowing background glow
+        context.save();
+        const grad = context.createRadialGradient(cx, cy, r * 0.2, cx, cy, glowRadius);
+        
+        if (isSubjectNode) {
+          grad.addColorStop(0, '#FFFFFF');
+          grad.addColorStop(0.2, '#899981');
+          grad.addColorStop(0.6, isDark ? 'rgba(137, 153, 129, 0.45)' : 'rgba(137, 153, 129, 0.25)');
+          grad.addColorStop(1, 'rgba(137, 153, 129, 0)');
+        } else if (isBookNode) {
+          grad.addColorStop(0, '#FFFFFF');
+          grad.addColorStop(0.2, '#6366F1');
+          grad.addColorStop(0.6, isDark ? 'rgba(99, 102, 241, 0.45)' : 'rgba(99, 102, 241, 0.25)');
+          grad.addColorStop(1, 'rgba(99, 102, 241, 0)');
         } else {
-          bgStyle = isHovered 
-            ? (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)') 
-            : (isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)');
-          textColor = isDark ? '#E2E8F0' : '#475569';
-          borderStyle = isSelected 
-            ? (isDark ? '#E2E8F0' : '#475569') 
-            : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)');
+          grad.addColorStop(0, isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.5)');
+          grad.addColorStop(0.3, isDark ? 'rgba(148, 163, 184, 0.4)' : 'rgba(71, 85, 105, 0.2)');
+          grad.addColorStop(1, 'rgba(148, 163, 184, 0)');
         }
         
-        if (bgStyle.startsWith('linear-gradient')) {
-          const grad = context.createLinearGradient(0, 0, cardW, cardH);
-          if (node.type === 'subject') {
-            grad.addColorStop(0, isHovered ? '#9FB097' : '#899981');
-            grad.addColorStop(1, isHovered ? '#76856E' : '#6A7A62');
-          } else {
-            grad.addColorStop(0, isHovered ? '#7A7DF5' : '#6366F1');
-            grad.addColorStop(1, isHovered ? '#4F52C2' : '#4338CA');
-          }
-          context.fillStyle = grad;
-        } else {
-          context.fillStyle = bgStyle;
-        }
+        context.fillStyle = grad;
+        context.beginPath();
+        context.arc(cx, cy, glowRadius, 0, Math.PI * 2);
         context.fill();
+        context.restore();
         
-        context.lineWidth = (isSelected ? 3 : 1.5) * oversample;
-        context.strokeStyle = borderStyle;
-        context.stroke();
+        // 2. Draw outer concentric halo rings for hover / selected states
+        if (isSelected || isHovered) {
+          context.beginPath();
+          context.arc(cx, cy, r + 4 * oversample, 0, Math.PI * 2);
+          context.strokeStyle = isSubjectNode ? '#899981' : isBookNode ? '#6366F1' : '#94A3B8';
+          context.lineWidth = (isSelected ? 2 : 1) * oversample;
+          context.stroke();
+        }
         
-        context.shadowColor = 'rgba(0, 0, 0, 0.2)';
-        context.shadowBlur = 4 * oversample;
-        context.font = `bold ${fontSize}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-        context.textAlign = 'center';
+        // 3. Draw Core solid node
+        context.beginPath();
+        context.arc(cx, cy, r, 0, Math.PI * 2);
+        if (isSubjectNode) {
+          context.fillStyle = '#899981';
+          context.fill();
+          context.beginPath();
+          context.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+          context.fillStyle = '#FFFFFF';
+          context.fill();
+        } else if (isBookNode) {
+          context.fillStyle = '#6366F1';
+          context.fill();
+          context.beginPath();
+          context.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+          context.fillStyle = '#FFFFFF';
+          context.fill();
+        } else {
+          // Hollow chapter circle
+          context.strokeStyle = isDark ? '#94A3B8' : '#64748B';
+          context.lineWidth = 1.5 * oversample;
+          context.stroke();
+          context.beginPath();
+          context.arc(cx, cy, r * 0.3, 0, Math.PI * 2);
+          context.fillStyle = isDark ? '#94A3B8' : '#64748B';
+          context.fill();
+        }
+        
+        // 4. Draw adjacent text label
+        context.font = `${isSubjectNode ? 'bold' : 'normal'} ${fontHeight}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        context.textAlign = 'left';
         context.textBaseline = 'middle';
+        
+        let textColor = '#2C2C2C';
+        if (isDark) {
+          textColor = isSubjectNode ? '#F1EFE9' : isBookNode ? '#C7D2FE' : '#94A3B8';
+        } else {
+          textColor = isSubjectNode ? '#2E2B27' : isBookNode ? '#312E81' : '#475569';
+        }
+        
         context.fillStyle = textColor;
-        context.fillText(safeName, cardW / 2, cardH / 2);
+        context.shadowColor = isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.9)';
+        context.shadowBlur = 3 * oversample;
+        context.fillText(safeName, cx + r + textGap, cy);
         
         const texture = new THREE.CanvasTexture(canvas);
         texture.minFilter = THREE.LinearFilter;
@@ -729,7 +805,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
         
         const sprite = new THREE.Sprite(spriteMaterial);
         const scaleFactor = 0.25;
-        sprite.scale.set((cardW / (oversample * 10)) * scaleFactor * 10, (cardH / (oversample * 10)) * scaleFactor * 10, 1);
+        sprite.scale.set((canvasW / (oversample * 10)) * scaleFactor * 10, (canvasH / (oversample * 10)) * scaleFactor * 10, 1);
         
         group.add(sprite);
         group.userData = {
@@ -1114,6 +1190,17 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
                 nodeThreeObject={nodeThreeObject}
                 nodeThreeObjectExtend={false}
                 nodeColor={null}
+                linkCurvature={l => {
+                  if (renderMode !== '2d') return 0;
+                  const typeMap = {
+                    hierarchy: 0.18,
+                    category: 0.28,
+                    discovery: 0.38,
+                    semantic: 0.32,
+                    thematic: 0.24
+                  };
+                  return typeMap[l.type] || 0.25;
+                }}
                 nodeLabel={n => n.type === 'subject' ? n.fullName : n.type === 'toc_item' ? n.fullName : `${n.name}\n[${n.subject || 'No Subject'}]`}
                 nodeVal={n => n.type === 'subject' ? 40 : n.type === 'toc_item' ? 12 : 10}
                 nodeResolution={graphDataMemo.nodes.length > 500 ? 8 : 20}
