@@ -232,7 +232,7 @@ export async function getSpatialGraph(sensitivity = 1, subjectSource = 'folder')
             links.push({
               source: idA,
               target: idB,
-              type: 'discovery',
+              type: 'thematic',
               value: shared.length * 0.5,
               shared: shared
             });

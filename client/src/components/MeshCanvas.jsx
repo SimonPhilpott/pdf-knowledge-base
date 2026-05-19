@@ -6,7 +6,7 @@ import {
   X, Compass, Settings2, Layers, Search,
   Zap, AlertCircle, ZoomIn, ZoomOut, Maximize2, Activity, Database,
   Briefcase, Settings, Eye, EyeOff, Globe, ShieldCheck, Scale,
-  Minimize2, Move, Sun, Moon, Palette, Menu
+  Minimize2, Move, Sun, Moon, Palette, Menu, Box, LayoutGrid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -272,8 +272,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
         if (n.tocLevel === 0) return true;
 
         // For nested levels (level >= 1), only display them for the active/focused book
-        const activeDocId = selectedNode?.documentId || (selectedNode?.type === 'book' ? selectedNode?.id : null) || 
-                            hoverNode?.documentId || (hoverNode?.type === 'book' ? hoverNode?.id : null);
+        const activeDocId = selectedNode?.documentId || (selectedNode?.type === 'book' ? selectedNode?.id : null);
         
         if (activeDocId && n.documentId === activeDocId) {
           if (n.tocLevel !== undefined && n.tocLevel > (subjectDepth - 1)) return false;
@@ -318,7 +317,83 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
     });
 
     return { nodes: visibleNodes, links: visibleLinks };
-  }, [graphData, showDocumentNodes, professionalFocus, filteredLinks, focusedNodeIds, subjectDepth, selectedNode, hoverNode]);
+  }, [graphData, showDocumentNodes, professionalFocus, filteredLinks, focusedNodeIds, subjectDepth, selectedNode]);
+
+  const mindMapData = useMemo(() => {
+    if (renderMode !== '2d') {
+      // Clear fixed coordinates for 3D physics
+      graphDataMemo.nodes.forEach(n => {
+        n.fx = undefined;
+        n.fy = undefined;
+        n.fz = undefined;
+      });
+      return graphDataMemo;
+    }
+
+    // Clone graph data to avoid mutating original states
+    const nodes = graphDataMemo.nodes.map(n => ({ ...n }));
+    const links = graphDataMemo.links.map(l => ({ ...l }));
+
+    // Group nodes for our Mindmap hierarchy columns
+    const subjects = nodes.filter(n => n.type === 'subject');
+    const books = nodes.filter(n => n.type === 'book');
+    const chapters = nodes.filter(n => n.type === 'toc_item');
+
+    // Spacing configuration
+    const subjectHeight = 120;
+    const bookHeight = 70;
+    const chapHeight = 35;
+
+    // Arrange subjects vertically at x = -280
+    subjects.forEach((subj, sIdx) => {
+      subj.fx = -280;
+      subj.fy = (sIdx - (subjects.length - 1) / 2) * subjectHeight;
+      subj.fz = 0;
+
+      // Filter books linked to this subject
+      const connectedBooks = books.filter(b => {
+        return links.some(l => {
+          const srcId = l.source?.id ?? l.source;
+          const tgtId = l.target?.id ?? l.target;
+          return (srcId === b.id && tgtId === subj.id) || (srcId === subj.id && tgtId === b.id);
+        });
+      });
+
+      // Arrange books vertically relative to their parent subject at x = 0
+      connectedBooks.forEach((book, bIdx) => {
+        book.fx = 0;
+        book.fy = subj.fy + (bIdx - (connectedBooks.length - 1) / 2) * bookHeight;
+        book.fz = 0;
+
+        // Filter chapters linked to this book
+        const connectedChapters = chapters.filter(c => {
+          return links.some(l => {
+            const srcId = l.source?.id ?? l.source;
+            const tgtId = l.target?.id ?? l.target;
+            return (srcId === c.id && tgtId === book.id) || (srcId === book.id && tgtId === c.id);
+          });
+        });
+
+        // Arrange chapters vertically relative to their parent book at x = 280
+        connectedChapters.forEach((chap, cIdx) => {
+          chap.fx = 280;
+          chap.fy = book.fy + (cIdx - (connectedChapters.length - 1) / 2) * chapHeight;
+          chap.fz = 0;
+        });
+      });
+    });
+
+    // Handle any loose nodes (if any exist)
+    nodes.forEach(n => {
+      if (n.fx === undefined) {
+        n.fx = 0;
+        n.fy = 0;
+        n.fz = 0;
+      }
+    });
+
+    return { nodes, links };
+  }, [graphDataMemo, renderMode]);
 
   const clusterPullForce = useCallback((alpha) => {
     if (!graphDataMemo.nodes.length) return;
@@ -414,6 +489,50 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
   }, [shouldRenderGraph, mountKey, nodeSpacing, galaxyMode, graphDataMemo, graphTheme, globalGravityForce, clusterPullForce, renderMode]);
 
   useEffect(() => {
+    if (!fgRef.current || !shouldRenderGraph) return;
+    const fg = fgRef.current;
+    
+    if (renderMode === '2d') {
+      const scene = fg.scene();
+      if (scene) {
+        scene.background = null;
+        scene.children = scene.children.filter(c => !(c instanceof THREE.Light));
+        const ambient = new THREE.AmbientLight(0xffffff, graphTheme === 'dark' ? 0.6 : 3.0);
+        scene.add(ambient);
+        const dir = new THREE.DirectionalLight(0xffffff, graphTheme === 'dark' ? 0.8 : 3.5);
+        dir.position.set(0, 0, 100);
+        scene.add(dir);
+      }
+
+      const controls = fg.controls();
+      if (controls) {
+        controls.enableRotate = false;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.touches = {
+          ONE: THREE.TOUCH.PAN,
+          TWO: THREE.TOUCH.DOLLY_PAN
+        };
+      }
+
+      fg.cameraPosition({ x: 0, y: 0, z: 800 }, { x: 0, y: 0, z: 0 }, 1000);
+      fg.d3ReheatSimulation();
+    } else {
+      const controls = fg.controls();
+      if (controls) {
+        controls.enableRotate = true;
+        controls.touches = {
+          ONE: THREE.TOUCH.ROTATE,
+          TWO: THREE.TOUCH.DOLLY_PAN
+        };
+      }
+      setTimeout(() => {
+        fg.zoomToFit(1200, 150);
+      }, 100);
+    }
+  }, [renderMode, shouldRenderGraph, graphTheme]);
+
+  useEffect(() => {
     if (!fgRef.current || !shouldRenderGraph || !graphDataMemo.nodes.length) return;
     const fg = fgRef.current;
     const hasPositions = graphDataMemo.nodes.some(n => n.x !== 0 || n.y !== 0);
@@ -426,7 +545,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
       try { fg.zoomToFit(1200, 150); } catch (e) {}
     }, 2500);
     return () => clearTimeout(timer);
-  }, [subjectDepth, nodeSpacing, showDocumentNodes, professionalFocus, selectedTopic, graphDataMemo.nodes.length, shouldRenderGraph]);
+  }, [subjectDepth, nodeSpacing, showDocumentNodes, professionalFocus, selectedTopic, graphDataMemo.nodes.length, shouldRenderGraph, isSidebarOpen, windowWidth]);
 
   useEffect(() => {
     if (fgRef.current && graphDataMemo.nodes) {
@@ -520,9 +639,108 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
 
     try {
       const group = new THREE.Group();
+      const isHovered = hoverNode && hoverNode.id === node.id;
+      const isSelected = selectedNode && selectedNode.id === node.id;
+
+      if (renderMode === '2d') {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        const oversample = 2;
+        
+        const fontSize = 14 * oversample;
+        const safeName = node.name || 'Unnamed';
+        
+        context.font = `bold ${fontSize}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        const metrics = context.measureText(safeName);
+        const textWidth = metrics.width;
+        
+        const padX = 24 * oversample;
+        const padY = 12 * oversample;
+        const cardW = textWidth + padX * 2;
+        const cardH = fontSize + padY * 2;
+        const radius = 8 * oversample;
+        
+        canvas.width = cardW;
+        canvas.height = cardH;
+        
+        context.beginPath();
+        context.roundRect(0, 0, cardW, cardH, radius);
+        
+        const isDark = graphTheme === 'dark';
+        let bgStyle = '';
+        let textColor = '#FFFFFF';
+        let borderStyle = 'rgba(255,255,255,0.15)';
+        
+        if (node.type === 'subject') {
+          bgStyle = isHovered ? 'linear-gradient(135deg, #9FB097 0%, #76856E 100%)' : 'linear-gradient(135deg, #899981 0%, #6A7A62 100%)';
+          borderStyle = isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.2)';
+        } else if (node.type === 'book') {
+          bgStyle = isHovered ? 'linear-gradient(135deg, #7A7DF5 0%, #4F52C2 100%)' : 'linear-gradient(135deg, #6366F1 0%, #4338CA 100%)';
+          borderStyle = isSelected ? '#FFFFFF' : 'rgba(255,255,255,0.2)';
+        } else {
+          bgStyle = isHovered 
+            ? (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)') 
+            : (isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)');
+          textColor = isDark ? '#E2E8F0' : '#475569';
+          borderStyle = isSelected 
+            ? (isDark ? '#E2E8F0' : '#475569') 
+            : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)');
+        }
+        
+        if (bgStyle.startsWith('linear-gradient')) {
+          const grad = context.createLinearGradient(0, 0, cardW, cardH);
+          if (node.type === 'subject') {
+            grad.addColorStop(0, isHovered ? '#9FB097' : '#899981');
+            grad.addColorStop(1, isHovered ? '#76856E' : '#6A7A62');
+          } else {
+            grad.addColorStop(0, isHovered ? '#7A7DF5' : '#6366F1');
+            grad.addColorStop(1, isHovered ? '#4F52C2' : '#4338CA');
+          }
+          context.fillStyle = grad;
+        } else {
+          context.fillStyle = bgStyle;
+        }
+        context.fill();
+        
+        context.lineWidth = (isSelected ? 3 : 1.5) * oversample;
+        context.strokeStyle = borderStyle;
+        context.stroke();
+        
+        context.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        context.shadowBlur = 4 * oversample;
+        context.font = `bold ${fontSize}px "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillStyle = textColor;
+        context.fillText(safeName, cardW / 2, cardH / 2);
+        
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.needsUpdate = true;
+        
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+          map: texture, 
+          transparent: true,
+          opacity: 1.0,
+          depthTest: true,
+          depthWrite: true
+        });
+        
+        const sprite = new THREE.Sprite(spriteMaterial);
+        const scaleFactor = 0.25;
+        sprite.scale.set((cardW / (oversample * 10)) * scaleFactor * 10, (cardH / (oversample * 10)) * scaleFactor * 10, 1);
+        
+        group.add(sprite);
+        group.userData = {
+          texture,
+          material: spriteMaterial
+        };
+        return group;
+      }
+
       const size = isSubject ? 4 : (isTocItem ? 1.5 : 2.5);
       
-      // Use simpler geometry for very high density
       const segments = totalNodes > 2000 ? 6 : 12;
       const geo = new THREE.SphereGeometry(size, segments, segments);
       const mat = new THREE.MeshBasicMaterial({
@@ -603,7 +821,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
       console.error('[MeshCanvas] Node render error:', err);
       return new THREE.Mesh(new THREE.BoxGeometry(5,5,5), new THREE.MeshBasicMaterial({color: 'red'}));
     }
-  }, [graphStyles, graphTheme, graphDataMemo.nodes.length, hoverNode, selectedNode]);
+  }, [graphStyles, graphTheme, graphDataMemo.nodes.length, hoverNode, selectedNode, renderMode]);
 
   return (
     <div className="fixed inset-0 z-[10000] app-layout bg-bg-primary">
@@ -703,6 +921,29 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
         >
           <aside className="sidebar" style={{ width: '100%', overflowY: 'auto' }}>
             <div className="sidebar-section" style={{ paddingTop: '16px', marginBottom: '16px' }}>
+              <div className="sidebar-label" style={{ marginBottom: '12px', fontSize: '10px', opacity: 0.6, letterSpacing: '1.5px', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
+                <Eye size={14} className="text-accent" />
+                <span>Layout Mode</span>
+              </div>
+              <div className="mode-switcher skg-sidebar-force-full" style={{ width: '100%', display: 'flex', gap: '4px', marginBottom: '20px' }}>
+                <div
+                  className={`mode-item ${renderMode === '3d' ? 'active' : ''}`}
+                  onClick={() => setRenderMode('3d')}
+                  style={{ flex: 1 }}
+                >
+                  <Box size={13} strokeWidth={2.5} />
+                  <span>3D Spatial</span>
+                </div>
+                <div
+                  className={`mode-item ${renderMode === '2d' ? 'active' : ''}`}
+                  onClick={() => setRenderMode('2d')}
+                  style={{ flex: 1 }}
+                >
+                  <LayoutGrid size={13} strokeWidth={2.5} />
+                  <span>2D Mindmap</span>
+                </div>
+              </div>
+
               <button onClick={() => {
                 const newTheme = graphTheme === 'light' ? 'dark' : 'light';
                 setGraphTheme(newTheme);
@@ -821,7 +1062,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
                     return (
                       <div key={type.id} className="control-group">
                         <div className="mode-switcher skg-sidebar-force-full" style={{ width: '100%', display: 'flex' }}>
-                          <div className={`mode-item ${isOn ? 'active' : ''}`} onClick={() => setVisibleLinkTypes(p => ({ ...p, [type.id]: true }))} style={{ flex: 1, ...(isOn ? { background: `linear-gradient(135deg, ${type.color} 0%, color-mix(in srgb, ${type.color}, black 20%) 100%)`, color: 'white', boxShadow: `0 0 15px ${type.color}40` } : {}) }}>
+                          <div className={`mode-item ${isOn ? 'active' : ''}`} onClick={() => { setVisibleLinkTypes(p => ({ ...p, [type.id]: true })); if (type.id === 'semantic' || type.id === 'discovery' || type.id === 'category') setShowDocumentNodes(true); }} style={{ flex: 1, ...(isOn ? { background: `linear-gradient(135deg, ${type.color} 0%, color-mix(in srgb, ${type.color}, black 20%) 100%)`, color: 'white', boxShadow: `0 0 15px ${type.color}40` } : {}) }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isOn ? 'white' : type.color, boxShadow: `0 0 8px ${isOn ? 'rgba(255,255,255,0.5)' : type.color + '80'}` }} />
                               <span>{type.label}</span>
@@ -869,7 +1110,7 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
               <ForceGraph3D
                 key={`spatial-graph-3d-${mountKey}-${nodeSpacing}`}
                 ref={fgRef}
-                graphData={graphDataMemo}
+                graphData={renderMode === '2d' ? mindMapData : graphDataMemo}
                 nodeThreeObject={nodeThreeObject}
                 nodeThreeObjectExtend={false}
                 nodeColor={null}
@@ -887,7 +1128,15 @@ export default function MeshCanvas({ onClose, chatTone = 'friendly' }) {
                 showNavInfo={false}
                 controlType="orbit"
                 onNodeHover={setHoverNode}
-                onNodeClick={node => { setSelectedNode(node); fgRef.current?.cameraPosition({ x: node.x * 2, y: node.y * 2, z: node.z * 2 }, node, 1000); }}
+                onNodeClick={node => {
+                  if (selectedNode && selectedNode.id === node.id) {
+                    setSelectedNode(null);
+                  } else {
+                    setSelectedNode(node);
+                    fgRef.current?.cameraPosition({ x: node.x * 2, y: node.y * 2, z: node.z * 2 }, node, 1000);
+                  }
+                }}
+                onBackgroundClick={() => setSelectedNode(null)}
                 enableNodeDrag={false}
                 warmupTicks={graphDataMemo.nodes.length > 500 ? 100 : 0}
                 cooldownTicks={graphDataMemo.nodes.length > 500 ? 30 : 40}
